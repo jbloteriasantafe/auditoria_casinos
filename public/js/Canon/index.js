@@ -1769,3 +1769,27 @@ $(function(){
     });*/
   });
 });
+
+
+
+$(function(){
+  $('#pant_permisos').each(function(_,pant_obj){
+    const pant = $(pant_obj);
+    
+    pant.find('[data-js-filtro-tabla]').on('busqueda',function(e,ret,tbody,molde){
+      ret.data.forEach(function(obj){
+        const fila = molde.clone();
+        Object.keys(obj).forEach(function(k){
+          fila.find('.'+k).text(obj[k]);
+        });
+        
+        const id_k = fila.attr('data-table-id');
+        const id = obj[id_k];
+        fila.find('button').val(id);
+        
+        tbody.append(fila);
+      });
+    });
+  });
+});
+

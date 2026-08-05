@@ -69,7 +69,10 @@
   [data-content-popover]:not([data-molde-popover]) {
     display: flex;
   }
-  
+ 
+</style>
+
+<style>
   #pant_canon table tr.canon-table-row {
     display: table-row !important;
   }
@@ -85,9 +88,6 @@
   #pant_canon table tr.canon-table-row-cuenta[data-cuenta-display="none"] {
     display: none !important;
   }
-</style>
-
-<style>
   #pant_canon [data-js-filtro-tabla] th, 
   #pant_canon [data-js-filtro-tabla] td {
     width: 11.11%;/* @HACK: poner algun atributo a la tabla para que haya columnas fijas? */
@@ -260,17 +260,22 @@
     <div>
       <a data-js-tab="#pant_canon">Canon</a>
     </div>
-    @if($permisos['canon_operador_cargar'] || $permisos['canon_operador_ver'])
+    @if($permisos('canon_operador_cargar') || $permisos('canon_operador_ver'))
     <div>
       <a data-js-tab="#pant_operadores">Operadores</a>
     </div>
     @endif
-    @if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
+    @if($permisos('canon_agrupamiento_cargar') || $permisos('canon_agrupamiento_ver'))
     <div>
       <a data-js-tab="#pant_agrupamientos_todos">Agrupamientos</a>
     </div>
     <div>
       <a data-js-tab="#pant_defecto">Valores por Defecto</a>
+    </div>
+    @endif
+    @if($permisos('canon_permiso_ver') || $permisos('canon_permiso_cargar'))
+    <div>
+      <a data-js-tab="#pant_permisos">Permisos</a>
     </div>
     @endif
   </div>
@@ -285,10 +290,10 @@
   @component('Components/FiltroTabla')
     @slot('titulo')
     CANON
-    @if($permisos['canon_cargar'])
+    @if($permisos('canon_cargar'))
     <button class="btn" type="button" data-js-nuevo="/canon/obtener">NUEVO</button>
     @endif
-    @if($permisos['canon_ver'])
+    @if($permisos('canon_ver'))
     <button data-js-descargar="/canon/descargar" class="btn btn-sucess" type="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>DESCARGAR<i class="fa fa-spinner fa-spin" data-js-descargando style="display: none;"></i></button> 
     <a href="/canon/descargarPlanillas" target="_blank" class="btn btn-sucess" role="button" style="font-size: 0.9rem;"><i class="fa fa-arrow-circle-down"></i>PLANILLAS</a>
     @endif
@@ -327,7 +332,7 @@
         @endcomponent
       </div>
     </div>
-    @if($permisos['canon_deseliminar'])
+    @if($permisos('canon_deseliminar'))
     <div class="col-md-4">
       <h5>ELIMINADOS</h5>
       <select class="form-control" name="eliminados">
@@ -340,15 +345,15 @@
     
     @slot('cabecera')
     <tr class="canon-table-row">
-      <th data-js-sortable="año_mes">AÑO MES</th>
-      <th>CASINO</th>
-      <th>ESTADO</th>
-      <th>DEVENGADO</th>
-      <th>DETERMINADO</th>
-      <th>INTERESES Y CARGOS</th>
-      <th>PAGO</th>
-      <th>SALDO</th>
-      <th>ACCION</th>
+      <th style="text-align: center;" data-js-sortable="año_mes">AÑO MES</th>
+      <th style="text-align: center;">CASINO</th>
+      <th style="text-align: center;">ESTADO</th>
+      <th style="text-align: center;">DEVENGADO</th>
+      <th style="text-align: center;">DETERMINADO</th>
+      <th style="text-align: center;">INTERESES Y CARGOS</th>
+      <th style="text-align: center;">PAGO</th>
+      <th style="text-align: center;">SALDO</th>
+      <th style="text-align: center;">ACCION</th>
     </tr>
     @endslot
     
@@ -356,16 +361,16 @@
     <?php $rowspan=count($cuentas)+1; ?>
     <tr class="canon-table-row" data-table-id="id_canon" data-canon>
       <!-- Bootstrap usa data-rowspan -->
-      <td data-cuentas-rowspan="{{$rowspan}}" class="año_mes">AÑO MES</td>
-      <td data-cuentas-rowspan="{{$rowspan}}" class="casino">CASINO</td>
-      <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados">
-        @if($permisos['canon_ver'] || $permisos['canon_cargar'])
+      <td data-cuentas-rowspan="{{$rowspan}}" class="año_mes" style="text-align: center;">AÑO MES</td>
+      <td data-cuentas-rowspan="{{$rowspan}}" class="casino"  style="text-align: center;">CASINO</td>
+      <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados" style="text-align: center;">
+        @if($permisos('canon_ver') || $permisos('canon_cargar'))
         <div data-content-popover data-molde-popover="acciones-canon" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
-            @if($permisos['canon_ver'])
+            @if($permisos('canon_ver'))
             <button class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL">VER CANON<i class="fa fa-fw fa-search-plus"></i></button>
             @endif
-            @if($permisos['canon_cargar'])
+            @if($permisos('canon_cargar'))
             <button class="btn" type="button" data-js-adjuntar="/canon/obtener" data-estado-visible="GENERADO,PAGADO" title="ADJUNTAR">ADJUNTAR <i class="fa fa-fw fa-paperclip"></i></button>
             <button class="btn" type="button" data-js-editar="/canon/obtener" data-estado-visible="GENERADO"  title="EDITAR">EDITAR CANON<i class="fas fa-fw fa-pencil-alt"></i></button>
             @endif
@@ -373,10 +378,10 @@
         </div>
         <div data-content-popover data-molde-popover="acciones-cuenta" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($permisos['canon_cuenta_ver'])
+            @if($permisos('canon_cuenta_ver'))
             <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
             @endif
-            @if($permisos['canon_cuenta_cargar'])
+            @if($permisos('canon_cuenta_cargar'))
             <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
             @endif
           </div>
@@ -389,7 +394,7 @@
         </div>
         <span style="color: blue;font-weight: bold;font-size: 0.8em;padding-right: 0.1em;"><sup class="antiguo">XXX</sup></span>
         <span class="estado">ESTADO</span>
-        @if($permisos['canon_cargar'])
+        @if($permisos('canon_cargar'))
         <button class="btn" type="button" data-js-cambiar-estado="/canon/cambiarEstado?estado=Pagado" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "Generado" a "Pagado"?' data-estado-visible="GENERADO" title="CONFIRMAR PAGO">
           <i class="fas fa-hand-holding-usd"></i>
         </button>
@@ -413,9 +418,9 @@
         </button>
         <span class="pago" data-formatear-numero>PAGO</span>
       </td>
-      <td class="tright saldo_posterior" data-formatear-numero>SALDO</td>
-      <td>
-        @if($permisos['canon_ver'] || $permisos['canon_cargar'])
+      <td class="saldo_posterior" style="text-align: center;font-weight: bolder;font-size: 200%;">SALDO</td>
+      <td style="text-align: center;">
+        @if($permisos('canon_ver') || $permisos('canon_cargar'))
         <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones-canon" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-window-restore" aria-hidden="true"></i>
         </a>
@@ -426,15 +431,15 @@
           <i class="fa fa-list-ul"></i>
         </a>
         @endif
-        @if($permisos['canon_deseliminar'])
+        @if($permisos('canon_deseliminar'))
         <button data-mostrar-borrado class="btn" type="button" data-js-ver="/canon/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
         <button data-mostrar-borrado class="btn" type="button" data-js-cambiar-estado="/canon/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
           <i class="fa fa-backward"></i>
         </button>
         @endif
-        @if($permisos['canon_cargar'] || $permisos['canon_deseliminar'])
+        @if($permisos('canon_cargar') || $permisos('canon_deseliminar'))
         <button class="btn" type="button" data-js-borrar="/canon/borrar" title="BORRAR" 
-          @if($permisos['canon_deseliminar'])
+          @if($permisos('canon_deseliminar'))
           data-estado-visible="GENERADO,PAGADO"
           @endif
         >
@@ -457,8 +462,8 @@
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][intereses_y_cargos]" data-formatear-numero>-</td>
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][pago]" data-formatear-numero>-</td>
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][saldo_posterior]" data-formatear-numero>-</td>
-      <td>
-        @if($permisos['canon_cuenta_ver'] || $permisos['canon_cuenta_cargar'])
+      <td style="text-align: center;">
+        @if($permisos('canon_cuenta_ver') || $permisos('canon_cuenta_cargar'))
         <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones-cuenta" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-window-restore" aria-hidden="true"></i>
         </a>
@@ -471,12 +476,12 @@
   @endcomponent
 </div>
 
-@if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
+@if($permisos('canon_operador_ver') || $permisos('canon_operador_cargar'))
 <div id="pant_operadores" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
     Operarios
-    @if($permisos['canon_operador_cargar'])
+    @if($permisos('canon_operador_cargar'))
     <button class="btn" type="button" data-js-nuevo="/canon/operador/obtener">NUEVO</button>
     @endif
     @endslot
@@ -486,7 +491,7 @@
     @endslot
     
     @slot('filtros')
-    @if($permisos['canon_operador_deseliminar'])
+    @if($permisos('canon_operador_deseliminar'))
     <div class="col-md-4">
       <h5>ELIMINADOS</h5>
       <select class="form-control" name="eliminados">
@@ -510,37 +515,37 @@
       <td class="id_operador">ID</td>
       <td class="nombre">NOMBRE</td>
       <td>
-        @if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
+        @if($permisos('canon_operador_ver') || $permisos('canon_operador_cargar'))
         <div data-content-popover data-molde-popover="acciones" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
-            @if($permisos['canon_operador_ver'])
+            @if($permisos('canon_operador_ver'))
             <button class="btn" type="button" data-js-ver="/canon/operador/obtenerConHistorial" title="VER/HISTORIAL">VER OPERARIO<i class="fa fa-fw fa-search-plus"></i></button>
             @endif
-            @if($permisos['canon_operador_cargar'])
+            @if($permisos('canon_operador_cargar'))
             <button class="btn" type="button" data-js-editar="/canon/operador/obtener" title="EDITAR">EDITAR OPERARIO<i class="fas fa-fw fa-pencil-alt"></i></button>
             @endif
           </div>
           <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($permisos['canon_operador_ver'])
+            @if($permisos('canon_operador_ver'))
             <button class="btn" type="button" data-js-ver-cuentas="/canon/operador/obtenerConHistorial" title="VER CUENTAS">VER CUENTAS <i class="fa fa-info"></i></button>
             @endif
-            @if($permisos['canon_operador_cargar'])
+            @if($permisos('canon_operador_cargar'))
             <button class="btn" type="button" data-js-editar-cuentas="/canon/operador/obtener" title="CARGAR PAGO">EDITAR CUENTAS <i class="fa fa-university"></i></button>
             @endif
           </div>
         </div>
         @endif
-        @if($permisos['canon_operador_ver'])
+        @if($permisos('canon_operador_ver'))
         <a tabindex="0" class="btn btn-info info" data-toggle-popover="acciones" data-content="COMPLETAR!" data-html="true" data-trigger="focus" data-placement="top">
           <i class="fa fa-window-restore" aria-hidden="true"></i>
         </a>
         @endif
-        @if($permisos['canon_operador_deseliminar'])
+        @if($permisos('canon_operador_deseliminar'))
         <button data-mostrar-borrado class="btn" type="button" data-js-desborrar="/canon/operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
           <i class="fa fa-backward"></i>
         </button>
         @endif
-        @if($permisos['canon_operador_cargar'] || $permisos['canon_operador_deseliminar'])
+        @if($permisos('canon_operador_cargar') || $permisos('canon_operador_deseliminar'))
         <button class="btn" type="button" data-js-borrar="/canon/operador/borrar" title="BORRAR">
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>
@@ -552,9 +557,7 @@
 </div>
 @endif
 
-@if($permisos['canon_agrupamiento_cargar'] || $permisos['canon_agrupamiento_ver'])
-
-
+@if($permisos('canon_agrupamiento_cargar') || $permisos('canon_agrupamiento_ver'))
 <div id="pant_agrupamientos_todos">
   <div class="col-md-6" id="pant_agrupamientos">
     @component('Canon.bAgrupamientos')
@@ -565,7 +568,7 @@
     @component('Components/FiltroTabla')
       @slot('titulo')
       Grupos Operarios
-      @if($permisos['canon_agrupamiento_cargar'])
+      @if($permisos('canon_agrupamiento_cargar'))
       <button class="btn" type="button" data-js-nuevo="/canon/grupo_operador/obtener">NUEVO</button>
       @endif
       @endslot
@@ -575,7 +578,7 @@
       @endslot
       
       @slot('filtros')
-      @if($permisos['canon_agrupamiento_deseliminar'])
+      @if($permisos('canon_agrupamiento_deseliminar'))
       <div class="col-md-4">
         <h5>ELIMINADOS</h5>
         <select class="form-control" name="eliminados">
@@ -601,18 +604,18 @@
         <td class="nombre">NOMBRE</td>
         <td class="operarios">OPERARIOS</td>
         <td>
-          @if($permisos['canon_agrupamiento_ver'])
+          @if($permisos('canon_agrupamiento_ver'))
           <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operador/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
           @endif
-          @if($permisos['canon_agrupamiento_cargar'])
+          @if($permisos('canon_agrupamiento_cargar'))
           <button class="btn" type="button" data-es_individual="|0|" data-js-editar="/canon/grupo_operador/obtener" title="EDITAR"><i class="fas fa-fw fa-pencil-alt"></i></button>
           @endif
-          @if($permisos['canon_agrupamiento_deseliminar'])
+          @if($permisos('canon_agrupamiento_deseliminar'))
           <button data-mostrar-borrado data-es_individual="|0|" class="btn" type="button" data-js-desborrar="/canon/grupo_operador/desborrar" data-mensaje-cambiar-estado='¿Esta seguro que quiere cambiar el estado de "BORRADO" a "ACTIVO"?' title="DESBORRAR">
             <i class="fa fa-backward"></i>
           </button>
           @endif
-          @if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
+          @if($permisos('canon_agrupamiento_ver') || $permisos('canon_agrupamiento_cargar'))
           <button class="btn" type="button" data-es_individual="|0|" data-js-borrar="/canon/grupo_operador/borrar" title="BORRAR">
             <i class="fa fa-fw fa-trash-alt"></i>
           </button>
@@ -668,7 +671,53 @@
 
 @endif
 
-@if($permisos['canon_ver'] || $permisos['canon_cargar'])
+@if($permisos('canon_permiso_ver') || $permisos('canon_permiso_cargar'))
+<div id="pant_permisos" hidden>
+  @component('Components/FiltroTabla')
+    @slot('titulo')
+    <div>Permisos</div>
+    <form style="display: flex;">
+      <input class="form-control" name="permiso" placeholder="Campo" style="flex: 1;">
+      <div data-js-nuevo style="flex: 2;"></div>
+      <div style="flex: 1;">
+        <button class="btn" type="button" data-js-guardar-nuevo="/canon/permiso/ingresar">GUARDAR</button>
+      </div>
+    </form>
+    @endslot
+    
+    @slot('target_buscar')
+    /canon/permiso/buscar
+    @endslot
+    
+    @slot('filtros')
+    @endslot
+    
+    @slot('cabecera')
+    <tr>
+      <th>PERMISO</th>
+      <th>ACCIÓN</th>
+    </tr>
+    @endslot
+    
+    @slot('molde')
+    <tr data-table-id="id_canon_permiso">
+      <td class="permiso">-PERMISO-</td>
+      <td>
+        <button class="btn" type="button" data-js-click-abrir-modal-enlazar-permisos>
+          <i class="fa fa-fw fa-link"></i>
+        </button>
+        <button class="btn" type="button" data-js-click-eliminar-permiso>
+          <i class="fa fa-fw fa-trash-alt"></i>
+        </button>
+      </td>
+    </tr>
+    @endslot
+  @endcomponent
+</div>
+
+@endif
+
+@if($permisos('canon_ver') || $permisos('canon_cargar'))
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon',
@@ -1389,7 +1438,7 @@
   </form>
   @endslot
   @slot('pie')
-  @if($permisos['canon_cargar'])
+  @if($permisos('canon_cargar'))
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]' data-modo-mostrar="ADJUNTAR">ADJUNTAR</button>
   <button class="btn btn-successAceptar" type="button" data-js-enviar="/canon/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
@@ -1612,7 +1661,7 @@
   </form>
   @endslot
   @slot('pie')
-  @if($permisos['canon_cargar'])
+  @if($permisos('canon_cargar'))
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
@@ -1620,7 +1669,7 @@
 
 @endif
 
-@if($permisos['canon_operador_ver'] || $permisos['canon_operador_cargar'])
+@if($permisos('canon_operador_ver') || $permisos('canon_operador_cargar'))
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon VerCargarOperador',
@@ -2035,7 +2084,7 @@
   </table>
   @endslot
   @slot('pie')
-  @if($permisos['canon_operador_cargar'])
+  @if($permisos('canon_operador_cargar'))
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
@@ -2043,7 +2092,7 @@
 
 @endif
 
-@if($permisos['canon_agrupamiento_ver'] || $permisos['canon_agrupamiento_cargar'])
+@if($permisos('canon_agrupamiento_ver') || $permisos('canon_agrupamiento_cargar'))
 
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon VerCargarOperador',
@@ -2129,7 +2178,7 @@
   </table>
   @endslot
   @slot('pie')
-  @if($permisos['canon_agrupamiento_cargar'])
+  @if($permisos('canon_agrupamiento_cargar'))
   <button class="btn btn-successAceptar" type="button" data-js-click-submit-form="form" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
   @endif
   @endslot
@@ -2141,8 +2190,8 @@
 @endif
 
 @if(
-     $permisos['canon_cargar'] || $permisos['canon_operador_cargar'] || $permisos['canon_agrupamiento_cargar']
-  || $permisos['canon_deseliminar'] || $permisos['canon_operador_deseliminar'] || $permisos['canon_agrupamiento_deseliminar']
+     $permisos('canon_cargar') || $permisos('canon_operador_cargar') || $permisos('canon_agrupamiento_cargar')
+  || $permisos('canon_deseliminar') || $permisos('canon_operador_deseliminar') || $permisos('canon_agrupamiento_deseliminar')
 )
 
 @component('Components/modalEliminar')
@@ -2150,7 +2199,7 @@
 
 @endif
 
-@if($permisos['canon_cargar'])
+@if($permisos('canon_cargar'))
 
 @component('Components/modal',[
   'clases_modal' => 'modalCambiarEstado',

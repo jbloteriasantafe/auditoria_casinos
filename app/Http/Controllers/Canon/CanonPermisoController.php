@@ -114,6 +114,15 @@ class CanonPermisoController extends Controller
       ],
       'canon_agrupamiento_deseliminar' => [
         'rol' => ['SUPERUSUARIO']
+      ],
+      'canon_permiso_ver' => [
+        'rol' => ['SUPERUSUARIO']
+      ],
+      'canon_permiso_cargar' => [
+        'rol' => ['SUPERUSUARIO']
+      ],
+      'canon_permiso_eliminar' => [
+        'rol' => ['SUPERUSUARIO']
       ]
     ];
   }
@@ -239,5 +248,42 @@ class CanonPermisoController extends Controller
     ->whereNull('cpu.deleted_at')->get()->groupBy('permiso')->map(function($ops){
       return $ops->pluck('id_operador');
     });
+  }
+  
+  public function buscar($paginate = true){
+    $ret = collect([]);
+    if($this->mocking){
+      $ret = collect(array_keys($this->map_permisos()))->map(function($p){
+        return (object)['id_canon_permiso' => null,'permiso' => $p];
+      });
+    }
+    else{
+      $ret = DB::table('canon_permiso as cp')
+      ->select('cp.id_canon_permiso','cp.descripcion as permiso')
+      ->get();
+    }
+    
+    $permisos = $ret->count();
+    
+    if($paginate) {
+      $page_size = request()->page_size ?? 10;
+      $page = request()->page ?? 1;
+            
+      return [
+        'current_page' => $page,
+        'data' => $ret->slice(($page-1) * $page_size, $page_size)->values(),
+        'from' => (($page-1)*$page_size+1),
+        'to' => min($permisos,$page*$page_size),
+        'last_page' => (intdiv($permisos,$page_size)+1),
+        'next_page_url' => null,
+        'path' => null,
+        'prev_page_url' => null,
+        'per_page' => $page_size,
+        'total' => $permisos
+      ];
+    }
+    else{
+      return $ret;
+    }
   }
 }

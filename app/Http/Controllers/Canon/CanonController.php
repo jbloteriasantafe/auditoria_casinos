@@ -41,32 +41,26 @@ class CanonController extends Controller
   }
           
   public function index(){
-    $permisos = [
-      'canon_ver' => false,
-      'canon_adjuntar' => false,
-      'canon_cargar' => false,
-      'canon_eliminar' => false,
-      'canon_deseliminar' => false,
-      'canon_cuenta_ver' => false,
-      'canon_cuenta_cargar' => false,
-      'canon_operador_ver' => false,
-      'canon_operador_cargar' => false,
-      'canon_operador_eliminar' => false,
-      'canon_operador_deseliminar' => false,
-      'canon_agrupamiento_ver' => false,
-      'canon_agrupamiento_cargar' => false,
-      'canon_agrupamiento_eliminar' => false,
-      'canon_agrupamiento_deseliminar' => false
-    ];
-        
-    $pI = $this->CPe->permisosIntersect($this->u->id_usuario,array_keys($permisos));
+    $permisos_col = $this->CPe->buscar(false)
+    ->pluck('permiso')
+    ->flip()->map(function($_){
+      return false;
+    });
+    
+    $pI = $this->CPe->permisosIntersect($this->u->id_usuario,$permisos_col->keys()->toArray());
+    
     $casinos = [];
     foreach($pI as $p => $ids_operadores){
-      $permisos[$p] = true;
+      $permisos_col[$p] = true;
       foreach($ids_operadores as $ido){
         $casinos[] = $ido;
       }
     }
+    
+    $permisos = function($p) use ($permisos_col){
+      if($this->u->es_superusuario) return true;
+      return $permisos_col[$p] ?? false;
+    };
     
     $casinos = Casino::whereIn('id_casino',$casinos)->get();
     $cuentas = DB::table('canon_cuenta')
@@ -1142,7 +1136,20 @@ class CanonController extends Controller
           LIMIT 1
         )
       ) as intereses_y_cargos'),
-      'c.pago','c.saldo_posterior'
+      DB::raw('(
+        SELECT SUM(cp.pago)
+        FROM canon_pago as cp
+        WHERE cp.id_canon = c.id_canon
+        GROUP BY "constant"
+        LIMIT 1
+      ) as pago'),
+      DB::raw('IF(COALESCE((
+        SELECT SUM(ABS(cc.saldo_posterior))
+        FROM canon_cuenta as cc
+        WHERE cc.id_canon = c.id_canon
+        GROUP BY "constant"
+        LIMIT 1
+      ),0) = 0,"=","≠") as saldo_posterior')
     )
     ->join('casino as cas','cas.id_casino','=','c.id_casino')
     ->whereRaw(($this->u->es_superusuario && ($request->eliminados ?? false))?
