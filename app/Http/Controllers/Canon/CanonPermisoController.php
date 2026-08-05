@@ -239,15 +239,30 @@ class CanonPermisoController extends Controller
     if($this->mocking){
       return $this->mocking_permisosIntersect($id_usuario,$permisos);
     }
-    
-    return DB::table('canon_permiso as cp')
-    ->select('cp.descripcion as permiso','cpu.id_operador')
-    ->join('canon_permiso_usuario as cpu','cpu.id_canon_permiso','=','cp.id_canon_permiso')
-    ->whereIn('cp.descripcion',$permisos)
-    ->where('cpu.id_usuario',$id_usuario)
-    ->whereNull('cpu.deleted_at')->get()->groupBy('permiso')->map(function($ops){
-      return $ops->pluck('id_operador');
-    });
+    else{
+      if(Usuario::find($id_usuario)->tieneRol('SUPERUSUARIO')){
+        return DB::table('canon_permiso as cp')
+        ->select('cp.descripcion as permiso','co.id_operador')
+        ->crossJoin('canon_operador as co')
+        ->whereIn('cp.descripcion',$permisos)
+        ->whereNull('co.deleted_at')->get()->groupBy('permiso')->map(function($ops){
+          return $ops->pluck('id_operador');
+        });
+      }
+      else{
+        return DB::table('canon_permiso as cp')
+        ->select('cp.descripcion as permiso','cpu.id_operador')
+        ->join('canon_permiso_usuario as cpu','cpu.id_canon_permiso','=','cp.id_canon_permiso')
+        ->join('canon_operador as co','co.id_operador','=','cpu.id_operador')
+        ->whereIn('cp.descripcion',$permisos)
+        ->where('cpu.id_usuario',$id_usuario)
+        ->whereNull('cpu.deleted_at')
+        ->whereNull('co.deleted_at')
+        ->get()->groupBy('permiso')->map(function($ops){
+          return $ops->pluck('id_operador');
+        });
+      }
+    }
   }
   
   public function buscar($paginate = true){
