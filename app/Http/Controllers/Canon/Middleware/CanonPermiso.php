@@ -22,6 +22,10 @@ class CanonPermiso
 
       if(is_null($id_usuario)) return $this->errorOut($request);
       
+      if($AC->usuarioTieneRol($id_usuario,'SUPERUSUARIO')){
+        return $next($request);
+      }
+      
       if($CPe->tieneTodosPermisos($id_usuario,$permisos)){
         return $next($request);
       }

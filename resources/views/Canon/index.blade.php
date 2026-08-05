@@ -676,11 +676,11 @@
   @component('Components/FiltroTabla')
     @slot('titulo')
     <div>Permisos</div>
-    <form style="display: flex;">
-      <input class="form-control" name="permiso" placeholder="Campo" style="flex: 1;">
+    <form id="pant_permisos_form" action="/canon/permiso/ingresar" method="POST" style="display: flex;">
+      <input class="form-control" name="permiso" placeholder="nombre_permiso" style="flex: 1;">
       <div data-js-nuevo style="flex: 2;"></div>
       <div style="flex: 1;">
-        <button class="btn" type="button" data-js-guardar-nuevo="/canon/permiso/ingresar">GUARDAR</button>
+        <button class="btn" type="button" data-js-click-submit-form="#pant_permisos_form">GUARDAR</button>
       </div>
     </form>
     @endslot
@@ -706,7 +706,7 @@
         <button class="btn" type="button" data-js-click-abrir-modal-enlazar-permisos>
           <i class="fa fa-fw fa-link"></i>
         </button>
-        <button class="btn" type="button" data-js-click-eliminar-permiso>
+        <button class="btn" type="button" data-js-borrar="/canon/permiso/borrar">
           <i class="fa fa-fw fa-trash-alt"></i>
         </button>
       </td>

@@ -1789,6 +1789,45 @@ $(function(){
         
         tbody.append(fila);
       });
+      
+      tbody.find('[data-js-borrar]').click(function(e){
+        const tgt = $(e.currentTarget);
+        const fd = {};
+        fd[tgt.closest('[data-table-id]').attr('data-table-id')] = tgt.val();
+        
+        $('[data-js-modal-eliminar]').trigger('mostrar',[{
+          url: tgt.attr('data-js-borrar'),
+          url_params: fd,
+          mensaje: 'Esta seguro que desea eliminarlo',
+          success: function(){pant.find('[data-js-filtro-tabla]').trigger('buscar');},
+        }]);
+      });
+    });
+    
+    pant.find('[data-js-click-submit-form]').click(function(e){
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = $(select);
+      const formData = AUX.form_entries($form[0]);
+      const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
+      ocultarErrorValidacion($form.find('[name]'));
+      $.ajax({
+        type: $form.attr('method'),
+        url: $form.attr('action'),
+        data: formData,
+        ...ajax_params,
+        success: function (data) {
+          pant.find('[data-js-filtro-tabla]').trigger('buscar');
+          AUX.mensajeExito(data?.mensaje ?? '');
+          $form.find('[name]').val('');
+        },
+        error: function (data) {
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? '');
+          AUX.mostrarErroresNames($form,json);
+          console.log(data);
+        }
+      });
     });
   });
 });

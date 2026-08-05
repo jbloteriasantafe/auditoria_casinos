@@ -301,4 +301,39 @@ class CanonPermisoController extends Controller
       return $ret;
     }
   }
+  
+  public function ingresar(){
+    if(empty(request()->permiso)){
+      return response()->json(['mensaje' => 'Permiso Vacio'],422);
+    }
+    if($this->mocking){
+      return response()->json(['mensaje' => 'Mocking, realizar migración'],422);
+    }
+    
+    try{
+      DB::table('canon_permiso')
+      ->insert(['descripcion' => request()->permiso]);
+    }
+    catch(\Exception $e){
+      return response()->json(['mensaje' => $e->getMessage()],422);
+    }
+  }
+  
+  public function borrar(){
+    if(empty(request()->id_canon_permiso)){
+      return response()->json(['mensaje' => 'Permiso Vacio'],422);
+    }
+    if($this->mocking){
+      return response()->json(['mensaje' => 'Mocking, realizar migración'],422);
+    }
+    
+    try{
+      DB::table('canon_permiso')
+      ->where('id_canon_permiso',request()->id_canon_permiso)
+      ->delete();
+    }
+    catch(\Exception $e){
+      return response()->json(['mensaje' => $e->getMessage()],422);
+    }
+  }
 }
