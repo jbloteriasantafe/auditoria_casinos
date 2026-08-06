@@ -3888,14 +3888,30 @@ $(document).on("click", "#btn-eliminarTGI_partida", function () {
   const id = $(this).attr("data-id");
   const $tr = $('#tabla-TGI_partida tr[data-id="' + id + '"]');
 
+  function avisoPartida(msg) {
+    // Se cierra el de confirmación y recién ahí se muestra el aviso, para no encimar backdrops.
+    $("#modalEliminarTGI_partida")
+      .one("hidden.bs.modal", function () {
+        $("#texto-aviso-validacion").text(msg);
+        $("#modalAvisoValidacion").modal("show");
+      })
+      .modal("hide");
+  }
+
   $.get("/documentosContables/TGIEliminarPartida/" + id, function (res) {
     if (res.ok) {
       $tr.remove();
       $("#modalEliminarTGI_partida").modal("hide");
     } else {
+      // Antes esto no hacía nada: el modal quedaba abierto y no se sabía por qué no borraba.
+      avisoPartida(res.msg || "No se pudo eliminar la partida.");
     }
   }).fail(function (xhr) {
     console.error(xhr.responseText || xhr);
+    avisoPartida(
+      (xhr.responseJSON && xhr.responseJSON.msg) ||
+        "No se pudo eliminar la partida."
+    );
   });
 });
 

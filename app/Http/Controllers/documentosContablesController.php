@@ -3300,7 +3300,21 @@ public function getTGI_partidaPorCasino(Request $request){
 
 
 public function EliminarTGI_partida($id){
-    RegistroTGI_partida::findOrFail($id)->delete();
+    $partida = RegistroTGI_partida::findOrFail($id);
+
+    // No se puede borrar una partida que ya está usada en registros de TGI: los pagos quedarían
+    // apuntando a una partida inexistente y esos registros no se podrían ni abrir (500 al editar).
+    // Para dejar de usarla está el estado (deshabilitar), que es lo que corresponde.
+    $enUso = RegistroTGI_partida_pago::where('partida', $id)->count();
+    if($enUso > 0){
+        return response()->json([
+            'ok'  => false,
+            'msg' => 'No se puede eliminar: la partida está usada en '.$enUso.' pago(s) de registros de TGI. '
+                   . 'Si no querés que se siga usando, deshabilitala en vez de borrarla.'
+        ], 409);
+    }
+
+    $partida->delete();
     return response()->json(array('ok'=>true));
 }
 
@@ -3551,7 +3565,9 @@ public function llenarTGIEdit($id)
                 'id'                 => $p->id_registroTGI_partida_pago,
                 'partida_id'         => $p->partida,
                 'cuota'              => $p->cuota,
-                'partida'            => $p->partidaTGI->partida,
+                // Si la partida fue eliminada, el pago queda apuntando a nada: sin este
+                // chequeo el registro entero no se puede ni abrir (500 al editar).
+                'partida'            => $p->partidaTGI ? $p->partidaTGI->partida : '(partida eliminada)',
                 'importe'            => $p->importe,
                 'fecha_vencimiento'  => $p->fecha_vencimiento,
                 'observacion'       => $p->observacion,
@@ -3563,7 +3579,7 @@ public function llenarTGIEdit($id)
         'id'            => $t->id_registrotgi,
         'fecha'         => $t->fecha_tgi,
         'casino'        => $t->casino,
-        'casino_nombre' => $t->casinoTGI->nombre,
+        'casino_nombre' => $t->casinoTGI ? $t->casinoTGI->nombre : '-',
         'pagos'         => $pagos,
     ]);
 }
@@ -3578,7 +3594,9 @@ public function llenarTGI($id)
         ->get()
         ->map(function($p){
             return [
-                'partida'            => $p->partidaTGI->partida,
+                // Si la partida fue eliminada, el pago queda apuntando a nada: sin este
+                // chequeo el registro entero no se puede ni abrir (500 al editar).
+                'partida'            => $p->partidaTGI ? $p->partidaTGI->partida : '(partida eliminada)',
                 'importe'            => $p->importe,
                 'cuota'              => $p->cuota,
                 'observacion'       =>$p->observacion,
@@ -3589,7 +3607,7 @@ public function llenarTGI($id)
 
     return response()->json([
         'fecha'          => $t->fecha_tgi,
-        'casino'         => $t->casinoTGI->nombre,
+        'casino'         => $t->casinoTGI ? $t->casinoTGI->nombre : '-',
         'pagos'          => $pagos,
     ]);
 }
@@ -17392,6 +17410,8 @@ public function descargarPatentesXlsxTodos(Request $request)
                     $items[] = [
                         'anio'     => $anio,
                         'mes'      => $mesEsp,
+                        // Ídem: se ordena por número de mes, no por el nombre.
+                        'mes_num'  => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
                         'patente'  => $p->PatenteDe ? $p->PatenteDe->nombre : '-',
                         'cuota'    => isset($p->cuota) ? $p->cuota : '',
                         'fpres'    => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17957,6 +17977,9 @@ public function descargarImpInmobiliarioXlsx(Request $request)
                 $items[] = [
                     'anio'     => $anio,
                     'mes'      => $mesEsp,
+                    // Número de mes para poder ordenar cronológicamente: el nombre en texto
+                    // ordenaba alfabético (Abril, Agosto, Diciembre, Enero...).
+                    'mes_num'  => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
                     'partida'  => ($p->partidaImpInmobiliario)->partida ?? '-',
                     'cuota'    => isset($p->cuota) ? $p->cuota : '',
                     'fpres'    => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17970,7 +17993,7 @@ public function descargarImpInmobiliarioXlsx(Request $request)
     usort($items, function($a,$b){
         if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
         if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-        if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+        if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
         return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
     });
 
@@ -18093,7 +18116,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             usort($items, function($a,$b){
                 if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
                 if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-                if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+                if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
                 return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
             });
 
