@@ -94,7 +94,7 @@ class CanonGrupoOperadorController extends Controller
       FROM canon_grupo_operador_operador as cgoo 
       LEFT JOIN canon_operador as co ON co.id_operador = cgoo.id_operador AND co.deleted_at IS NULL
       WHERE cgoo.id_canon_grupo_operador = cgo.id_canon_grupo_operador GROUP BY "constant"
-    ) as operadors';
+    ) as operadores';
     return DB::table('canon_grupo_operador as cgo')
     ->select('cgo.*',DB::raw($operadores))
     ->where(DB::raw('(deleted_at IS NOT NULL)'),$eliminados)

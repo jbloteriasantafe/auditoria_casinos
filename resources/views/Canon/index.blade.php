@@ -480,7 +480,7 @@
 <div id="pant_operadores" hidden>
   @component('Components/FiltroTabla')
     @slot('titulo')
-    Operarios
+    Operadores
     @if($permisos('canon_operador_cargar'))
     <button class="btn" type="button" data-js-nuevo="/canon/operador/obtener">NUEVO</button>
     @endif
@@ -567,7 +567,7 @@
   <div class="col-md-6" id="pant_grupos_operadores">
     @component('Components/FiltroTabla')
       @slot('titulo')
-      Grupos Operarios
+      Grupos Operadores
       @if($permisos('canon_agrupamiento_cargar'))
       <button class="btn" type="button" data-js-nuevo="/canon/grupo_operador/obtener">NUEVO</button>
       @endif
@@ -593,7 +593,7 @@
       <tr>
         <th>ID</th>
         <th>NOMBRE</th>
-        <th>OPERARIOS</th>
+        <th>OPERADORES</th>
         <th>ACCION</th>
       </tr>
       @endslot
@@ -602,7 +602,7 @@
       <tr data-table-id="id_grupo_operador">
         <td class="id_grupo_operador">ID</td>
         <td class="nombre">NOMBRE</td>
-        <td class="operarios">OPERARIOS</td>
+        <td class="operadores">OPERADORES</td>
         <td>
           @if($permisos('canon_agrupamiento_ver'))
           <button class="btn" type="button" data-es_individual="|0|1|" data-js-ver="/canon/grupo_operador/obtenerConHistorial" title="VER/HISTORIAL"><i class="fa fa-fw fa-search-plus"></i></button>
@@ -2187,7 +2187,7 @@
   <!-- Por fuera del modal así no afecta el <form> -->
   <table hidden>
     <tr data-molde-operador="$idxo">
-      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operadores[$idxo][id_operario]" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="operadores[$idxo][id_operador]" data-readonly='[{"modo": "VER"},{"es_individual": "1"}]'></td>
       <td>
         <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO","es_individual": "0"},{"modo": "EDITAR","es_individual": "0"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>

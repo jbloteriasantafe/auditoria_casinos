@@ -88,6 +88,17 @@ const agregarPopOvers = function(fila){
   fila.find('[data-toggle-popover]').popover();
 }
 
+const setearIdBotonesFila = (fila,obj,dflt='') => {
+  const id_k = fila.attr('data-table-id');
+  const id_val = obj?.[id_k] ?? dflt;
+  fila.find('button').val(id_val);
+  fila.find('a[href]').each(function(_,obj){
+    const data = {};
+    data[id_k] = id_val;
+    $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
+  });
+};
+
 $(function(){
   $('.tituloSeccionPantalla').text('Canon');
   
@@ -116,25 +127,15 @@ $(function(){
           fila.find('.'+k).text(obj[k]);
         });
         
-        const id_k = fila.attr('data-table-id');
-        const id = obj[id_k];
-        
         fila.find('button')
-        .val(id)
         .filter(obj.deleted_at? ':not([data-mostrar-borrado])' : '[data-mostrar-borrado]')
         .remove();
         
-        fila.find('a[href]')
-        .each(function(_,obj){
-          const data = {};
-          data[id_k] = id;
-          $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
-        });
-        
         tbody.append(fila);
-        
+                
         if(pant.is('#pant_defecto')){
           reemplazarPorJsonEditor(fila.find('[data-js-jsoneditor]'),obj?.valor ?? '');
+          setearIdBotonesFila(fila,obj);
         }
         else if(pant.is('#pant_canon')){
           {//Arreglo el rowspan al numero de cuentas del canon
@@ -150,6 +151,19 @@ $(function(){
             filas_cuentas_a_borrar.remove();
             //Arreglo el rowspan al numero de cuentas
             fila.find('[data-cuentas-rowspan]').attr('rowspan',1).attr('data-cuentas-rowspan',fila.filter('[data-cuenta]').length+1);
+          }
+          
+          //Seteo IDs a botones
+          {
+            const $fca = fila.filter('[data-canon]'); 
+            setearIdBotonesFila($fca,obj);
+          }
+          {
+            for(const c of (obj.cuentas ?? [])){
+              const $fcu = fila.filter(`[data-cuenta="${c.cuenta}"]`);
+              if($fcu.length == 0) continue;
+              setearIdBotonesFila($fcu,c);
+            }
           }
           {//Agrego el evento de display
             const f = fila.filter('[data-canon]');
@@ -865,16 +879,10 @@ $(function(){
         const id = obj[id_k];
         
         fila.find('button')
-        .val(id)
         .filter(obj.deleted_at? ':not([data-mostrar-borrado])' : '[data-mostrar-borrado]')
         .remove();
         
-        fila.find('a[href]')
-        .each(function(_,obj){
-          const data = {};
-          data[id_k] = id;
-          $(obj).attr('href',$(obj).attr('href')+'?'+encodeQueryData(data));
-        });
+        setearIdBotonesFila(fila,obj);
         
         if(obj?.es_individual !== undefined){
           fila.attr('data-es_individual',obj.es_individual);
@@ -1167,9 +1175,9 @@ $(function(){
       Mname('abbr',grupo_operador?.abbr);
       Mname('color',grupo_operador?.color).trigger('change');
       
-      $M('[data-contenedor-operadors]').empty();
-      for(const oidx in (grupo_operador?.operadors ?? [])){
-        agregar_fila_operador(oidx,grupo_operador.operadors[oidx]);
+      $M('[data-contenedor-operadores]').empty();
+      for(const oidx in (grupo_operador?.operadores ?? [])){
+        agregar_fila_operador(oidx,grupo_operador.operadores[oidx]);
       }
       
       (mantener_historial?
@@ -1239,7 +1247,7 @@ $(function(){
         data: formData,
         ...ajax_params,
         success: function (data) {
-          $('#pant_operadores [data-js-filtro-tabla]').trigger('buscar');
+          $('#pant_grupos_operadores [data-js-filtro-tabla]').trigger('buscar');
           AUX.mensajeExito(data?.mensaje ?? '');
           $(o).closest('.modal').modal('hide');
         },
@@ -1556,10 +1564,7 @@ $(function(){
           fila.find('.'+k).text(obj[k]);
         });
         
-        const id_k = fila.attr('data-table-id');
-        const id = obj[id_k];
-        fila.find('button').val(id);
-        
+        setearIdBotonesFila(fila,obj);
         tbody.append(fila);
       });
       
@@ -1783,10 +1788,7 @@ $(function(){
           fila.find('.'+k).text(obj[k]);
         });
         
-        const id_k = fila.attr('data-table-id');
-        const id = obj[id_k];
-        fila.find('button').val(id);
-        
+        setearIdBotonesFila(fila,obj);
         tbody.append(fila);
       });
       
