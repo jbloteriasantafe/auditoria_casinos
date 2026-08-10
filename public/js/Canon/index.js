@@ -1777,8 +1777,21 @@ $(function(){
       });
     });
     
-    const getLabel = (id,name,nivel) => {
-      return '('+id+') '+name.trim()+' [Nivel '+(nivel === null? '-' : nivel)+']';
+    const getLabel = (id,name,group,nivel) => {
+      const nivel_str = nivel === 0?
+        ('['+group+']')
+      : ('[Nivel '+(
+        nivel === null? '-' : nivel
+      )+']');
+      return '('+id+') '+name.trim()+' '+nivel_str;
+    };
+    
+    const findNode = (name,group,nivel) => {
+      return nodes.get().find(
+        n => { 
+          return n.name == name && n.group == group && n.nivel === nivel;
+        }
+      );
     };
     
     M.find('[data-js-click-agregar-nodo]').click(function(e){
@@ -1788,22 +1801,28 @@ $(function(){
       
       const name = labelTarget?.val()?.trim();
       if(name === undefined){
-        throw 'Error al obtener el nombre del nuevo nodo';
+        AUX.mensajeError('Error al obtener el nombre del nuevo nodo');
+        return;
+      }
+      if(name.length === 0){
+        AUX.mensajeError('El nombre es vacio');
+        return;
       }
       
       const group = groupTarget?.val()?.trim();
       if(group === undefined){
-        throw 'Error al obtener el nombre del nuevo nodo';
+        AUX.mensajeError('Error al obtener el nombre del nuevo nodo');
+        return;
       }
       
-      const nivel = initialGroupLevel[group];
+      const nivel = initialGroupLevel?.[group];
+      if(nivel === undefined){
+        AUX.mensajeError('Error al obtener el nivel del nuevo nodo');
+        return;
+      }
       
       //No volver a agregar el mismo si ya esta
-      const found = nodes.get().find(
-        n => { 
-          return n.name == name && n.group == group;//@Check nivel?
-        }
-      );
+      const found = findNode(name,group,nivel);
       
       if(!found){
         nodes.add({
@@ -1811,11 +1830,14 @@ $(function(){
           group: group,
           name: name,
           nivel: nivel,
-          label: getLabel(nextNodeId,name,nivel)
+          label: getLabel(nextNodeId,name,group,nivel)
         });
         
         updateState();
         nextNodeId++;
+      }
+      else{
+        AUX.mensajeError('Nodo repetido');
       }
       
       network.fit();
@@ -1840,27 +1862,42 @@ $(function(){
       const nodos_existentes_pero_validos = (desde_n.nivel === (hasta_n.nivel+1) && hasta_n.nivel !== null);
       const enlace_valido_nivel = nuevo_a_nivelado || nivelado_a_nuevo || nodos_existentes_pero_validos;
       
-      if(existen && distintos && enlace_permitido && no_existe_lineaje && enlace_valido_nivel){
-        edges.add({
-          from: desde_id,
-          to: hasta_id
-        });
-        
+      const valido = existen && distintos && enlace_permitido && no_existe_lineaje && enlace_valido_nivel;
+      
+      let duplica_nodo = false;
+      
+      if(valido){
         if(nuevo_a_nivelado){
-          desde_n.nivel = hasta_n.nivel + 1;
-          desde_n.label = getLabel(desde_n.id,desde_n.name,desde_n.nivel);
-          nodes.update(desde_n);
-        }
-        if(nivelado_a_nuevo){
-          hasta_n.nivel = desde_n.nivel - 1;
-          hasta_n.label = getLabel(hasta_n.id,hasta_n.name,hasta_n.nivel);
-          nodes.update(hasta_n);
+          const nivel = hasta_n.nivel + 1;
+          duplica_nodo = findNode(desde_n.name,desde_n.group,nivel);
+          if(!duplica_nodo){
+            desde_n.nivel = nivel;
+            desde_n.label = getLabel(desde_n.id,desde_n.name,desde_n.group,desde_n.nivel);
+            nodes.update(desde_n);
+          }
         }
         
-        updateState();
-        network.fit();
+        if(nivelado_a_nuevo){
+          const nivel = desde_n.nivel - 1;
+          duplica_nodo = findNode(hasta_n.name,hasta_n.group,nivel);
+          if(!duplica_nodo){
+            hasta_n.nivel = nivel;
+            hasta_n.label = getLabel(hasta_n.id,hasta_n.name,hasta_n.group,hasta_n.nivel);
+            nodes.update(hasta_n);
+          }
+        }
+        
+        if(!duplica_nodo){
+          edges.add({
+            from: desde_id,
+            to: hasta_id
+          });
+          updateState();
+          network.fit();
+        }
       }
-      else{
+      
+      if(!valido || duplica_nodo){
         const errores = [];
         if(!existen){
           errores.push('No existe uno de los nodos');
@@ -1876,6 +1913,9 @@ $(function(){
         }
         if(!enlace_valido_nivel){
           errores.push('Enlace invalido porque mezcla niveles');
+        }
+        if(duplica_nodo){
+          errores.push('Al agregarse el enlace duplica un nodo existente en el mismo nivel');
         }
         AUX.mensajeError("<p>"+errores.join("</p><p>")+"</p>");
       }
@@ -1908,7 +1948,7 @@ $(function(){
             break;
           }
         }
-        root.label = getLabel(root.id,root.name,root.nivel);
+        root.label = getLabel(root.id,root.name,root.group,root.nivel);
         nodes.update(root);
       }
       
