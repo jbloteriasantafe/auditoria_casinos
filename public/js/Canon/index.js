@@ -1789,7 +1789,7 @@ $(function(){
     const findNode = (name,group,nivel) => {
       return nodes.get().find(
         n => { 
-          return n.name == name && n.group == group && n.nivel === nivel;
+          return n.name == name && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
         }
       );
     };
@@ -1953,6 +1953,31 @@ $(function(){
       }
       
       network.fit();
+    });
+    
+    let selectedNodes = [];
+    network.on("selectNode", function (params) {
+      if(selectedNodes.length == 0){
+        const desde_id = nodes.get(params.nodes[0]).id;
+        selectedNodes.push(desde_id);
+        M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
+      }
+      else if(selectedNodes.length == 1){
+        const hasta_id = params.nodes.filter(id => !selectedNodes.includes(id))[0];
+        selectedNodes.push(hasta_id);
+        M.find('[data-enlazar-nodo-id="hasta"]').val(hasta_id);
+      }
+      else{
+        selectedNodes.length = 0;//Limpia el array
+        M.find('[data-enlazar-nodo-id]').val('');
+      }
+    });
+    
+    network.on("select", function (params) {
+      if(params.nodes.length == 0){//Selecciona ningun nodo o deselecciona se llama este evento
+        selectedNodes.length = 0;//Limpia el array
+        M.find('[data-enlazar-nodo-id]').val('');
+      }
     });
     
     /*$M('[data-js-click-submit-form]').click(function(e){
