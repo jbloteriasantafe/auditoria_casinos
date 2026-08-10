@@ -258,7 +258,10 @@ class CanonGrupoOperadorController extends Controller
         ]
       ]
     ];
-    return $this->_guardar($cgo,$created_at,$created_by);
+    
+    $ret = $this->_guardar($cgo,$created_at,$created_by);
+    
+    return $ret;
   }
   
   public function borrar_individual($id_operador,$deleted_at,$deleted_by){

@@ -31,7 +31,7 @@ class CanonController extends Controller
     self::$instance = $this;
     $this->CVD = CanonValorPorDefectoController::getInstancia();
     $this->CA = CanonAgrupamientoController::getInstancia();
-    $this->CPa = CanonPagoController::getInstancia();
+    $this->CCu = CanonCuentaController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
     $this->CO = CanonOperadorController::getInstancia();
     $this->middleware(function ($request, $next) {
@@ -41,34 +41,17 @@ class CanonController extends Controller
   }
           
   public function index(){
-    $permisos_col = $this->CPe->buscar(false)
-    ->pluck('permiso')
-    ->flip()->map(function($_){
-      return false;
-    });
+    $iou = $this->CPe->ids_operadores_usuario($this->u->id_usuario);
     
-    $pI = $this->CPe->permisosIntersect($this->u->id_usuario,$permisos_col->keys()->toArray());
+    $operadores = $this->CO->operadores($iou);
+    $cuentas = $this->CCu->cuentas($iou);
     
-    $casinos = [];
-    foreach($pI as $p => $ids_operadores){
-      $permisos_col[$p] = true;
-      foreach($ids_operadores as $ido){
-        $casinos[] = $ido;
-      }
-    }
-    
-    $permisos = function($p) use ($permisos_col){
-      if($this->u->es_superusuario) return true;
-      return $permisos_col[$p] ?? false;
+    $permisos_u = $this->CPe->permisos_usuario($this->u->id_usuario);
+    $permisos = function($p) use (&$permisos_u){
+      return array_key_exists($p,$permisos_u);
     };
     
-    $casinos = Casino::whereIn('id_casino',$casinos)->get();
-    $cuentas = DB::table('canon_cuenta')
-    ->select('cuenta')->distinct()
-    ->orderBy('cuenta','asc')
-    ->get()->pluck('cuenta')->toArray();
-    
-    return View::make('Canon.index', compact('casinos','permisos','cuentas'));
+    return View::make('Canon.index', compact('operadores','permisos','cuentas'));
   }
   
   private static  $errores = [
@@ -101,7 +84,7 @@ class CanonController extends Controller
       //canon
       'id_canon' => ['nullable','integer','exists:canon,id_canon,deleted_at,NULL'],
       'año_mes' => [$requireds_f('año_mes'),'regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
-      'id_casino' => [$requireds_f('id_casino'),'integer','exists:casino,id_casino,deleted_at,NULL'],
+      'id_operador' => [$requireds_f('id_operador'),'integer','exists:canon_operador,id_operador,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'es_antiguo' => [$requireds_f('es_antiguo'),'integer','in:1,0'],
       
@@ -171,12 +154,12 @@ class CanonController extends Controller
     };
     
     $año_mes = $R('año_mes');//@RETORNADO
-    $id_casino = $R('id_casino');//@RETORNADO
-    $op = $this->CO->obtener_operador($id_casino);
+    $id_operador = $R('id_operador');//@RETORNADO
+    $op = $this->CO->obtener_operador($id_operador);
     
     $canon_anterior = collect([]);//@RETORNADO
-    if($año_mes !== null && $id_casino !== null){
-      $canon_anterior  = $this->get_prev_by_id_casino_año_mes($id_casino,$año_mes)->first();
+    if($año_mes !== null && $id_operador !== null){
+      $canon_anterior  = $this->get_prev_by_id_operador_año_mes($id_operador,$año_mes)->first();
       
       if($canon_anterior !== null){
         $canon_anterior = $this->obtener_arr(['id_canon' => $canon_anterior->id_canon]);
@@ -249,13 +232,13 @@ class CanonController extends Controller
     }
     
     if($COT['devengado_fecha_cotizacion'] !== null){
-      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2,$id_casino) ?? '0';
-      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3,$id_casino) ?? '0';
+      $COT['devengado_cotizacion_dolar'] = $COT['devengado_cotizacion_dolar'] ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],2,$id_operador) ?? '0';
+      $COT['devengado_cotizacion_euro']  = $COT['devengado_cotizacion_euro']  ?? $this->cotizacion($COT['devengado_fecha_cotizacion'],3,$id_operador) ?? '0';
     }
     
     if($COT['determinado_fecha_cotizacion'] !== null){
-      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2,$id_casino) ?? '0';
-      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_casino) ?? '0';
+      $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2,$id_operador) ?? '0';
+      $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_operador) ?? '0';
     }
     
     $subcanons = [
@@ -277,7 +260,7 @@ class CanonController extends Controller
         $data_tipo_canon_anterior = $subcanon_canon_anterior[$tipo] ?? [];
         $retsc[$tipo] = $this->{$subcanon.'_recalcular'}(
           $año_mes,
-          $id_casino,
+          $id_operador,
           $es_antiguo,
           $tipo,
           $data_tipo_req,
@@ -321,7 +304,7 @@ class CanonController extends Controller
     
     return array_merge(
       compact(
-        'año_mes','id_casino','estado','es_antiguo',
+        'año_mes','id_operador','estado','es_antiguo',
         'devengado_bruto','devengado_deduccion','devengado',
         'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad'
       ),
@@ -332,7 +315,7 @@ class CanonController extends Controller
   
   public function canon_variable_recalcular(
     $año_mes,
-    $id_casino,
+    $id_operador,
     $es_antiguo,
     $tipo,
     $data,
@@ -358,7 +341,7 @@ class CanonController extends Controller
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
     //$cuenta = $RD('cuenta','Físico y Online');
-    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO    
+    $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_operador)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
     
@@ -373,7 +356,7 @@ class CanonController extends Controller
     $devengado_bruto   = $R('devengado_bruto',null);//@RETORNADO
     $determinado_bruto = $R('determinado_bruto',null);//@RETORNADO
     if($devengado_bruto === null || $determinado_bruto === null){
-      $bruto = $this->bruto($tipo,$año_mes,$id_casino);
+      $bruto = $this->bruto($tipo,$año_mes,$id_operador);
       $devengado_bruto   = $devengado_bruto   ?? $bruto;
       $determinado_bruto = $determinado_bruto ?? $bruto;
     }
@@ -414,7 +397,7 @@ class CanonController extends Controller
   
   public function canon_fijo_mesas_recalcular(
     $año_mes,
-    $id_casino,
+    $id_operador,
     $es_antiguo,
     $tipo,
     $data,
@@ -562,7 +545,7 @@ class CanonController extends Controller
     $determinado_ajuste  = bcadd($RD('determinado_ajuste','0.00'),'0',16);//@RETORNADO
     $devengado_total   = bcadd($devengado_total_dolar_cotizado,$devengado_total_euro_cotizado,16);//@RETORNADO
     $determinado_total = bcadd($determinado_total_dolar_cotizado,$determinado_total_euro_cotizado,16);//@RETORNADO
-    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_casino)),'0',2);//@RETORNADO
+    $bruto = bcadd($R('bruto',$this->bruto($tipo,$año_mes,$id_operador)),'0',2);//@RETORNADO
 
     if($es_antiguo){
       $devengado_total = $R('devengado_total',$devengado_total);
@@ -596,7 +579,7 @@ class CanonController extends Controller
   
   public function canon_fijo_mesas_adicionales_recalcular(
     $año_mes,
-    $id_casino,
+    $id_operador,
     $es_antiguo,
     $tipo,
     $data,
@@ -730,12 +713,12 @@ class CanonController extends Controller
     $created_at = date('Y-m-d h:i:s');
     $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
     
-    $canon_anterior = ($datos['año_mes'] !== null && $datos['id_casino'] !== null)?
+    $canon_anterior = ($datos['año_mes'] !== null && $datos['id_operador'] !== null)?
       DB::table('canon')//Necesito la variable para despues sacarle los archivos
       ->select('id_canon')
       ->whereNull('deleted_at')
       ->where('año_mes',$datos['año_mes'])
-      ->where('id_casino',$datos['id_casino'])
+      ->where('id_operador',$datos['id_operador'])
       ->orderBy('created_at','desc')
       ->get()
     : [];
@@ -747,7 +730,7 @@ class CanonController extends Controller
     $id_canon = DB::table('canon')
     ->insertGetId([
       'año_mes' => $datos['año_mes'],
-      'id_casino' => $datos['id_casino'],
+      'id_operador' => $datos['id_operador'],
       'estado' => $datos['estado'],
       'devengado_bruto' => $datos['devengado_bruto'],
       'devengado_deduccion' => $datos['devengado_deduccion'],
@@ -863,18 +846,23 @@ class CanonController extends Controller
     }
           
     $this->CA->recalcular_agrupamiento($datos['año_mes']);
-    $this->CPa->traspasar_pagos(
-      count($canon_anterior)?
-        $this->get_by_id_canon($canon_anterior[0]->id_canon,false)
-      : null,
-      $this->get_by_id_canon($id_canon)
+    $cuentas_aggr = $this->CA->obtenerArregloSuperior($año_mes,$id_operador,'cuenta');
+    $this->CCu->traspasar_cuentas(
+      count($canon_anterior)? $canon_anterior[0]->id_canon  : null,
+      $id_canon
     );
+    $cuentas_canon = $this->CCu->obtener_cuentas_por_id_canon($id_canon);
+    foreach($cuentas_canon as $c){
+      $det = $cuentas_aggr[$c->cuenta] ?? (new \stdClass());
+      $det = $det->{'determinado¬pos_red'} ?? '0';
+      $this->CCu->actualizar_determinados($c,$det);
+    }
     
     return $id_canon;
   }
   
   public function guardar(Request $request,$recalcular = true){
-    $requeridos = $recalcular? ['año_mes','id_casino','es_antiguo'] : ['id_canon'];
+    $requeridos = $recalcular? ['año_mes','id_operador','es_antiguo'] : ['id_canon'];
     $this->validarCanon($request->all(),$requeridos);
     
     Validator::make($request->all(),[], self::$errores,[])->after(function($validator){
@@ -884,12 +872,12 @@ class CanonController extends Controller
         $ya_existe = DB::table('canon')
         ->whereNull('deleted_at')
         ->where('año_mes',$D['año_mes'])
-        ->where('id_casino',$D['id_casino'])
+        ->where('id_operador',$D['id_operador'])
         ->count() > 0;
         
         if($ya_existe){
           $validator->errors()->add('año_mes','Ya existe un canon para ese periodo');
-          $validator->errors()->add('id_casino','Ya existe un canon para ese periodo');
+          $validator->errors()->add('id_operador','Ya existe un canon para ese periodo');
           return;
         }
       }
@@ -946,9 +934,7 @@ class CanonController extends Controller
       return $adj;
     });
     
-    $ret['canon_pago'] = $this->CPa->obtener_arr(
-      ['id_canon' => $request['id_canon']]
-    )['canon_pago'] ?? [];
+    $ret['canon_cuenta'] = $this->CCu->obtener_cuentas_por_id_canon($request['id_canon']);
     
     $ret = json_decode(json_encode($ret),true);
     
@@ -1034,7 +1020,7 @@ class CanonController extends Controller
       DB::table('canon')
       ->select('created_at','id_canon')->distinct()
       ->where('año_mes',$ultimo['año_mes'])
-      ->where('id_casino',$ultimo['id_casino'])
+      ->where('id_operador',$ultimo['id_operador'])
       ->orderBy('created_at','desc')
       ->get()->map(function($idc,$idc_idx){
         return $this->obtener_arr(['id_canon' => $idc->id_canon]);
@@ -1075,11 +1061,11 @@ class CanonController extends Controller
       ->where('id_canon',$id_canon)
       ->update(compact('deleted_at','deleted_id_usuario'));
       
-      $c = DB::table('canon')->select('id_casino','año_mes')->where('id_canon',$id_canon)
+      $c = DB::table('canon')->select('id_operador','año_mes')->where('id_canon',$id_canon)
       ->first();
       if($c !== null){
         $this->CA->recalcular_agrupamiento($c->año_mes);
-        $this->CPa->cambio_determinado($c->id_casino,$c->año_mes);
+        $this->CPa->cambio_determinado($c->id_operador,$c->año_mes);
       }
       
       return 1;
@@ -1088,8 +1074,8 @@ class CanonController extends Controller
     
   public function buscar(Request $request,bool $paginar = true){
     $reglas = [];
-    if(isset($request->id_casino)){
-      $reglas[] = ['c.id_casino','=',$request->id_casino];
+    if(isset($request->id_operador)){
+      $reglas[] = ['c.id_operador','=',$request->id_operador];
     }
     
     $desde = date('Y-m-d');
@@ -1125,7 +1111,7 @@ class CanonController extends Controller
     ->select('c.id_canon','c.deleted_at',
       DB::raw('IF(c.es_antiguo,"ANT","") as antiguo'),
       DB::raw('DATE_FORMAT(c.año_mes,"%Y-%m") as año_mes'),
-      'cas.nombre as casino','c.estado','c.devengado','c.determinado',
+      'co.nombre as operador','c.estado','c.devengado','c.determinado',
       DB::raw('(
         c.intereses_y_cargos
         +(
@@ -1151,12 +1137,14 @@ class CanonController extends Controller
         LIMIT 1
       ),0) = 0,"=","≠") as saldo_posterior')
     )
-    ->join('casino as cas','cas.id_casino','=','c.id_casino')
+    ->join('canon_operador as co',function($j){
+      return $j->on('co.id_operador','=','c.id_operador')->whereNull('co.deleted_at');
+    })
     ->whereRaw(($this->u->es_superusuario && ($request->eliminados ?? false))?
       'NOT EXISTS (
         SELECT * 
         FROM canon c2 
-        WHERE c2.id_casino = c.id_casino 
+        WHERE c2.id_operador = c.id_operador 
         AND   c2.año_mes   = c.año_mes 
         AND   (c2.deleted_at IS NULL OR c2.created_at > c.created_at)
         LIMIT 1
@@ -1165,9 +1153,9 @@ class CanonController extends Controller
     : 'c.deleted_at IS NULL'
     )
     ->where($reglas)
-    ->whereIn('c.id_casino',$this->u->casinos->pluck('id_casino'))
+    ->whereIn('c.id_operador',$this->CPe->ids_operadores_usuario($this->u->id_usuario))
     ->orderBy($sort_by['columna'],$sort_by['orden'])
-    ->orderBy('cas.nombre','asc');
+    ->orderBy('co.nombre','asc');
     
     if($paginar){
       $ret = $ret->paginate($request->page_size ?? 10);
@@ -1177,7 +1165,7 @@ class CanonController extends Controller
     }
     
     $ret->transform(function($c){
-      $c->cuentas = $this->CPa->obtener_cuentas_por_id_canon($c->id_canon);
+      $c->cuentas = $this->CCu->obtener_cuentas_por_id_canon($c->id_canon);
       return $c;
     });
     
@@ -1185,7 +1173,7 @@ class CanonController extends Controller
   }
     
   private $cotizacion_DB = null;
-  private function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_casino){
+  private function cotizacion($fecha_cotizacion,$id_tipo_moneda,$id_operador){    
     if(empty($fecha_cotizacion) || empty($id_tipo_moneda)) return '0';
     if($id_tipo_moneda == 1){
       return 1;
@@ -1204,7 +1192,7 @@ class CanonController extends Controller
       
       $q_base = DB::table('canon as c')//Busco en otros canons del mismo mes
       ->whereNull('c.deleted_at')
-      ->where('c.id_casino','<>',$id_casino)
+      ->where('c.id_operador','<>',$id_operador)
       ->where('c.año_mes',implode('-',$fecha_cotizacion_arr));//Para buscar entre menos
       
       $q_cfm = (clone $q_base)
@@ -1277,8 +1265,20 @@ class CanonController extends Controller
     return '0';
   }
   
-  private function apostado($tipo,$año_mes,$id_casino){
-    if($año_mes === null || $tipo === null || $id_casino === null) return null;
+  private function apostado($tipo,$año_mes,$id_operador){
+    if($año_mes === null || $tipo === null || $id_operador === null) return null;
+    
+    $operador = $this->CO->operadores([$id_operador])[0] ?? null;
+    if($operador === null){
+      return null;
+    }
+    
+    $id_casino = Casino::where('codigo',$operador->codigo_casino)->first();
+    if($id_casino === null){
+      return null;
+    }
+    $id_casino = $id_casino->id_casino;
+    
     $año_mes_arr = explode('-',$año_mes);
     switch($tipo){
       case 'Maquinas':{
@@ -1298,8 +1298,20 @@ class CanonController extends Controller
     return null;
   }
   
-  public function bruto($tipo,$año_mes,$id_casino){//@TODO: modularizar
-    if($año_mes === null || $tipo === null || $id_casino === null) return null;
+  public function bruto($tipo,$año_mes,$id_operador){//@TODO: modularizar
+    if($año_mes === null || $tipo === null || $id_operador === null) return null;
+    
+    $operador = $this->CO->operadores([$id_operador])[0] ?? null;
+    if($operador === null){
+      return null;
+    }
+    
+    $id_casino = Casino::where('codigo',$operador->codigo_casino)->first();
+    if($id_casino === null){
+      return null;
+    }
+    $id_casino = $id_casino->id_casino;
+    
     $año_mes_arr = explode('-',$año_mes);
     switch($tipo){
       case 'Maquinas':{
@@ -1326,7 +1338,7 @@ class CanonController extends Controller
         return $resultado === null? $resultado : $resultado->valor;
       };
       case 'JOL':{
-        $JOL_connect_config = $this->valorPorDefecto('JOL_connect_config') ?? null;
+        $JOL_connect_config = $this->CVD->get('JOL_connect_config') ?? null;
         $debug = $JOL_connect_config['debug'] ?? false;
         if(empty($JOL_connect_config)) return $debug? '-0.99' : null;
         if(empty($JOL_connect_config['ip_port'])) return $debug? '-0.98' : null;
@@ -1337,6 +1349,7 @@ class CanonController extends Controller
         
         curl_setopt($ch, CURLOPT_URL, "http://{$JOL_connect_config['ip_port']}/api/bruto");
         curl_setopt($ch, CURLOPT_POST, 1);
+        //@TODO: cambiar JOL para que tome el id_plataforma (o el codigo plataforma)
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(compact('año_mes','id_casino')));
         //curl_setopt($ch, CURLOPT_HEADER, FALSE);
         //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
@@ -1424,11 +1437,11 @@ class CanonController extends Controller
       ->where('id_canon',$request->id_canon)
       ->update(['deleted_at' => null]);
       
-      $c = DB::table('canon')->select('id_casino','año_mes')->where('id_canon',$request->id_canon)
+      $c = DB::table('canon')->select('id_operador','año_mes')->where('id_operador',$request->id_canon)
       ->first();
       if($c !== null){
         $this->CA->recalcular_agrupamiento($c->año_mes);
-        $this->CPa->cambio_determinado($c->id_casino,$c->año_mes);
+        $this->CPa->cambio_determinado($c->id_operador,$c->año_mes);
       }
       
       return 1;
@@ -1437,28 +1450,28 @@ class CanonController extends Controller
     
   public function get_by_id_canon(int $id_canon,bool $active = true){    
     return DB::table('canon')
-    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->select('canon.*','co.nombre as operador','usuario.user_name as usuario')
     ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
-    ->join('casino','casino.id_casino','=','canon.id_casino')
+    ->join('canon_operador as co','co.id_operador','=','canon.id_operador')
     ->where('canon.id_canon',$id_canon)
     ->where(DB::raw($active? '(canon.deleted_at IS NULL)' : '1'),'=','1')
     ->first();
   }
-  public function get_by_id_casino_año_mes(int $id_casino,string $año_mes,bool $active = true){
+  public function get_by_id_operador_año_mes(int $id_operador,string $año_mes,bool $active = true){
     return DB::table('canon')
-    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->select('canon.*','co.nombre as operador','usuario.user_name as usuario')
     ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
-    ->join('casino','casino.id_casino','=','canon.id_casino')
-    ->where('canon.id_casino',$id_casino)
+    ->join('canon_operador as co','co.id_operador','=','canon.id_operador')
+    ->where('canon.id_operador',$id_operador)
     ->where('canon.año_mes',$año_mes)
     ->where(DB::raw($active? '(canon.deleted_at IS NULL)' : '1'),'=','1');
   }
-  public function get_prev_by_id_casino_año_mes(int $id_casino,string $año_mes){
+  public function get_prev_by_id_operador_año_mes(int $id_operador,string $año_mes){
     return DB::table('canon')
-    ->select('canon.*','casino.nombre as casino','usuario.user_name as usuario')
+    ->select('canon.*','co.nombre as operador','usuario.user_name as usuario')
     ->join('usuario','usuario.id_usuario','=','canon.created_id_usuario')
-    ->join('casino','casino.id_casino','=','canon.id_casino')
-    ->where('canon.id_casino',$id_casino)
+    ->join('canon_operador as co','co.id_operador','=','canon.id_operador')
+    ->where('canon.id_operador',$id_operador)
     ->where('canon.año_mes','<',$año_mes)
     ->whereNull('canon.deleted_at')
     ->orderBy('canon.año_mes','desc');

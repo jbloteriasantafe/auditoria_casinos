@@ -40,12 +40,10 @@ class CanonInformeController extends Controller
     
   private $u   = null;
   private $CC  = null;
-  private $CP  = null;
   private $CVD = null;
   public function __construct(){   
     self::$instance = $this; 
     $this->CC = CanonController::getInstancia();
-    $this->CP = CanonPagoController::getInstancia();
     $this->CVD = CanonValorPorDefectoController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];

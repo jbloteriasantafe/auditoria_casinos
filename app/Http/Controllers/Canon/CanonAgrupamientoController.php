@@ -424,6 +424,26 @@ class CanonAgrupamientoController extends Controller
     ->insert(array_values($to_insert));
   }
   
+  
+  public function obtenerArregloSuperior($año_mes,$id_grupo_operador,$clave){
+    $max_nivel = DB::table('canon_agrupamiento')
+    ->select(DB::raw('MAX(nivel) as nivel'))
+    ->where('año_mes',$año_mes)
+    ->where('clave',$clave)
+    ->where('id_grupo_operador',$id_grupo_operador)
+    ->groupBy(DB::raw('"constant"'))
+    ->first();
+    
+    if($max_nivel === null) return collect([]);
+    
+    return DB::table('canon_agrupamiento')
+    ->where('año_mes',$año_mes)
+    ->where('clave',$clave)
+    ->where('nivel',$max_nivel->nivel)
+    ->where('id_grupo_operador',$id_grupo_operador)
+    ->get()->keyBy('valor');
+  }
+  
   public function obtener($año_mes,$id_grupo_operador,$nivel,$clave,$valor){
     $data = DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)

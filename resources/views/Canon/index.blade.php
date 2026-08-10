@@ -96,6 +96,13 @@
   #pant_canon [data-js-filtro-tabla] td button {
     padding: 0.3rem;/* @HACK: achivo los botones asi entran que son tantos -___- */
   }
+  
+  #pant_canon [data-js-filtro-tabla] tr td.saldo_posterior.saldo-balanceado {
+    color: #0c0;
+  }
+  #pant_canon [data-js-filtro-tabla] tr td.saldo_posterior.saldo-desbalanceado {
+    color: #ff7800;
+  }
 </style>
 
 <style>
@@ -305,11 +312,11 @@
     
     @slot('filtros')
     <div class="col-md-4">
-      <h5>Casino</h5>
-      <select class="form-control" name="id_casino">
+      <h5>Operador</h5>
+      <select class="form-control" name="id_operador">
         <option value='' selected>- TODOS -</option>
-        @foreach($casinos as $c)
-        <option value='{{$c->id_casino}}'>{{$c->nombre}}</option>
+        @foreach($operadores as $o)
+        <option value='{{$o->id_operador}}'>{{$o->nombre}}</option>
         @endforeach
       </select>
     </div>
@@ -346,7 +353,7 @@
     @slot('cabecera')
     <tr class="canon-table-row">
       <th style="text-align: center;" data-js-sortable="año_mes">AÑO MES</th>
-      <th style="text-align: center;">CASINO</th>
+      <th style="text-align: center;">OPERADOR</th>
       <th style="text-align: center;">ESTADO</th>
       <th style="text-align: center;">DEVENGADO</th>
       <th style="text-align: center;">DETERMINADO</th>
@@ -362,7 +369,7 @@
     <tr class="canon-table-row" data-table-id="id_canon" data-canon>
       <!-- Bootstrap usa data-rowspan -->
       <td data-cuentas-rowspan="{{$rowspan}}" class="año_mes" style="text-align: center;">AÑO MES</td>
-      <td data-cuentas-rowspan="{{$rowspan}}" class="casino"  style="text-align: center;">CASINO</td>
+      <td data-cuentas-rowspan="{{$rowspan}}" class="operador"  style="text-align: center;">OPERADOR</td>
       <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados" style="text-align: center;">
         @if($permisos('canon_ver') || $permisos('canon_cargar'))
         <div data-content-popover data-molde-popover="acciones-canon" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
@@ -766,13 +773,13 @@
         @endcomponent
       </div>
       <div>
-        <h5>Casino</h5>
-        <select class="form-control" name="id_casino"
+        <h5>Operador</h5>
+        <select class="form-control" name="id_operador"
           data-js-empty-si-cambio="[data-canon-variable] [data-js-contenedor],[data-canon-fijo-mesas] [data-js-contenedor],[data-canon-fijo-mesas-adicionales] [data-js-contenedor]"
           data-readonly='[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'>
           <option value="" selected>- SELECCIONE -</option>
-          @foreach($casinos as $c)
-          <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
+          @foreach($operadores as $o)
+          <option value="{{$o->id_operador}}">{{$o->nombre}}</option>
           @endforeach
         </select>
       </div>
@@ -858,7 +865,7 @@
         </div>
         <?php
           $molde_str = '$cv';
-          $n = function($s) use (&$id_casino,&$t,&$molde_str){
+          $n = function($s) use (&$molde_str){
             return "canon_variable[$molde_str][$s]";
           };
           //$cuenta = $n('cuenta');
@@ -887,15 +894,15 @@
           <div class="bloque_interno" style="width: 100%;display: flex;">
             <div class="parametro_chico"  style="flex: 2;">
               <h5>APLICABLE (%)</h5>
-              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_aplicable}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico" style="flex: 2;">
               <h5>IMPUESTO LEY (%)</h5>
-              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" data-name="{{$devengado_apostado_porcentaje_impuesto_ley}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico" style="flex: 3;">
               <h5>ALICUOTA (%)</h5>
-              <input class="form-control" data-name="{{$alicuota}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" data-name="{{$alicuota}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
           <div style="width: 100%;display: flex;">
@@ -929,7 +936,7 @@
                 </div>
                 <div style="grid-area: grid_bruto">
                   <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$devengado_bruto}}" data-depende="id_operador,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
@@ -941,7 +948,7 @@
                 </div>
                 <div style="grid-area: grid_deduccion">
                   <h5>DEDUCCIÓN</h5>
-                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_operador"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_devengado">
                   <h5>DEVENGADO</h5>
@@ -967,7 +974,7 @@
                 </div>
                 <div style="grid-area: grid_bruto">
                   <h5>BRUTO</h5>
-                  <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_casino,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$determinado_bruto}}" data-depende="id_operador,es_antiguo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_subtotal" class="valor_intermedio">
                   <h5>SUBTOTAL</h5>
@@ -979,7 +986,7 @@
                 </div>
                 <div style="grid-area: grid_ajuste">
                   <h5>AJUSTE</h5>
-                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_operador"  data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
                 <div style="grid-area: grid_determinado">
                   <h5>DETERMINADO</h5>
@@ -997,7 +1004,7 @@
         </div>
         <?php
           $molde_str = '$m';
-          $n = function($s) use (&$id_casino,&$t,&$molde_str){
+          $n = function($s) use (&$molde_str){
             return "canon_fijo_mesas[$molde_str][$s]";
           };
           //$cuenta = $n('cuenta');
@@ -1049,35 +1056,35 @@
               <div>
                 <h5>Lunes-Jueves</h5>
                 <div style="display: flex;flex-direction: column;">
-                  <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$dias_lunes_jueves}}" placeholder="DIAS" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <input class="form-control" data-name="{{$mesas_lunes_jueves}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div>
                 <h5>Viernes-Sabados</h5>
                 <div style="display: flex;flex-direction: column;">
-                  <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$dias_viernes_sabados}}" placeholder="DIAS" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <input class="form-control" data-name="{{$mesas_viernes_sabados}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>               
               <div>
                 <h5>Domingos</h5>
                 <div style="display: flex;flex-direction: column;">
-                  <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$dias_domingos}}" placeholder="DIAS" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <input class="form-control" data-name="{{$mesas_domingos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div>
                 <h5>Todos los dias</h5>
                 <div style="display: flex;flex-direction: column;">
-                  <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$dias_todos}}" placeholder="DIAS" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <input class="form-control" data-name="{{$mesas_todos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div>
                 <h5>Fijos</h5>
                 <div style="display: flex;flex-direction: column;">
-                  <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$dias_fijos}}" placeholder="DIAS" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                   <input class="form-control" data-name="{{$mesas_fijos}}" placeholder="MESAS" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
@@ -1087,7 +1094,7 @@
               </div>
               <div>
                 <h5>BRUTO</h5>
-                <input class="form-control" data-name="{{$bruto}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$bruto}}" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
             <div style="display: flex;">
@@ -1097,15 +1104,15 @@
               </div>
               <div>
                 <h5>VALOR DOLAR (USD)</h5>
-                <input class="form-control" data-name="valor_dolar" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="valor_dolar" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div>
                 <h5>VALOR EURO (EUR)</h5>
-                <input class="form-control" data-name="valor_euro" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="valor_euro" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="parametro_chico">
                 <h5>DÍAS VALOR</h5>
-                <input class="form-control" data-name="{{$dias_valor}}" data-depende="{{$id_casino}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$dias_valor}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DÍAS VALOR ≈ (DÍAS VALOR)⁻¹</h5>
@@ -1175,7 +1182,7 @@
                 </div>
                 <div>
                   <h5>DEDUCCIÓN</h5>
-                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1240,7 +1247,7 @@
                 </div>
                 <div>
                   <h5>AJUSTE</h5>
-                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1258,7 +1265,7 @@
         </div>
         <?php
           $molde_str = '$ma';
-          $n = function($s) use (&$id_casino,&$t,&$molde_str){
+          $n = function($s) use (&$molde_str){
             return "canon_fijo_mesas_adicionales[$molde_str][$s]";
           };
           //$cuenta = $n('cuenta');
@@ -1289,11 +1296,11 @@
             <div style="display: flex;">
               <div class="parametro_chico">
                 <h5>DIAS MES</h5>
-                <input class="form-control" data-name="{{$dias_mes}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$dias_mes}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="parametro_chico">
                 <h5>HORAS DÍA</h5>
-                <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$horas_dia}}"  data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
               <div class="aproximado valor_intermedio">
                 <h5>FACTOR DIAS MES ≈ (DÍAS MES)⁻¹</h5>
@@ -1317,7 +1324,7 @@
               </div>
               <div class="parametro_chico">
                 <h5>PORCENTAJE</h5>
-                <input class="form-control" data-name="{{$porcentaje}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                <input class="form-control" data-name="{{$porcentaje}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               </div>
             </div>
           </div>
@@ -1333,11 +1340,11 @@
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_mes}}" data-depende="id_operador" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR DÍA</h5>
-                  <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$devengado_valor_dia}}" data-depende="{{$devengado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_operador" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR HORA</h5>
@@ -1351,7 +1358,7 @@
                 </div>
                 <div>
                   <h5>DEDUCCIÓN</h5>
-                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$devengado_deduccion}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1366,11 +1373,11 @@
               <div style="display: flex;">
                 <div>
                   <h5>VALOR MES</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_mes}}" data-depende="id_operador" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR DÍA</h5>
-                  <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_casino" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$determinado_valor_dia}}" data-depende="{{$determinado_valor_mes}},{{$factor_dias_mes}}" data-depende="id_operador" data-readonly='[{"modo":"*"}]'>
                 </div>
                 <div class="valor_intermedio">
                   <h5>VALOR HORA</h5>
@@ -1384,7 +1391,7 @@
                 </div>
                 <div>
                   <h5>AJUSTE</h5>
-                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+                  <input class="form-control" data-name="{{$determinado_ajuste}}" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
                 </div>
               </div>
               <div style="display: flex;">
@@ -1425,7 +1432,7 @@
           </div>
           <?php
             $molde_str = '$adj';
-            $n = function($s) use (&$id_casino,&$t,&$molde_str){
+            $n = function($s) use (&$molde_str){
               return "canon_archivo[$molde_str][$s]";
             };
             $descripcion = $n('descripcion');
@@ -1437,14 +1444,14 @@
           <div style="width: 100%;" data-js-molde="{{$molde_str}}" data-archivo>
             <div class="grid_fila_adjunto" style="width: 100%;">
               <div class="grid_descripcion">
-                <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "VER"}]'>
+                <input data-js-texto-no-formatear-numero style="width: 100%;text-align: left;" class="form-control" data-name="{{$descripcion}}" data-depende="id_operador,año_mes" data-readonly='[{"modo": "VER"}]'>
               </div>
               <div class="grid_nombre_archivo">
-                <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                <input data-js-texto-no-formatear-numero data-js-click-abrir-val-hermano="[data-es-link]" style="width: 100%;text-align: center;cursor: pointer;" class="form-control" data-name="{{$nombre_archivo}}" data-depende="id_operador,año_mes" data-readonly='[{"modo":"*"}]'>
                 <input data-js-texto-no-formatear-numero data-es-link data-name="{{$link}}" hidden>
               </div>
               <div hidden>
-                <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                <input data-js-texto-no-formatear-numero style="flex: 1;" class="form-control" data-name="{{$id_archivo}}" data-depende="id_operador,año_mes" data-readonly='[{"modo":"*"}]'>
               </div>
               <div class="grid_boton">
                 <button class="btn" type="button" data-js-borrar-archivo data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'><i class="fa fa-fw fa-trash-alt"></i></button>
@@ -1486,10 +1493,10 @@
         <input name="año_mes" data-js-texto-no-formatear-numero data-readonly='[{"modo":"*"}]' class="form-control">
       </div>
       <div>
-        <h5>Casino</h5>
-        <select name="id_casino"  class="form-control" data-readonly='[{"modo":"*"}]'>
-          @foreach($casinos as $c)
-          <option value="{{$c->id_casino}}">{{$c->nombre}}</option>
+        <h5>Operador</h5>
+        <select name="id_operador"  class="form-control" data-readonly='[{"modo":"*"}]'>
+          @foreach($operadores as $o)
+          <option value="{{$o->id_operador}}">{{$o->nombre}}</option>
           @endforeach
         </select>
       </div>
@@ -1522,15 +1529,15 @@
           <div style="width: 100%;display: flex;">
             <div>
               <h5>Saldo anterior</h5>
-              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
+              <input class="form-control" name="saldo_anterior" data-depende="año_mes,id_operador" data-readonly='[{"modo":"*"}]'>
             </div>
             <div data-modo-mostrar='[{"estado": "CERRADO"},{"estado": "PAGADO"}]'>
               <h5>Saldo anterior (CERRADO)</h5>
-              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_casino" data-readonly='[{"modo":"*"}]'>
+              <input class="form-control" name="saldo_anterior_cerrado" data-depende="año_mes,id_operador" data-readonly='[{"modo":"*"}]'>
             </div>
             <div>
               <h5>Intereses y Cargos</h5>
-              <input class="form-control" name="intereses_y_cargos" data-depende="año_mes,id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="intereses_y_cargos" data-depende="año_mes,id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
               <input data-js-texto-no-formatear-numero placeholder="MOTIVO" class="form-control" name="motivo_intereses_y_cargos" data-depende="" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div>
@@ -1552,11 +1559,11 @@
             </div>
             <div class="parametro_chico">
               <h5>Interés Provincial Diario Simple</h5>
-              <input class="form-control" name="interes_provincial_diario_simple" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="interes_provincial_diario_simple" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
             <div class="parametro_chico">
               <h5>Interés Nacional Mensual Compuesto</h5>
-              <input class="form-control" name="interes_nacional_mensual_compuesto" data-depende="id_casino" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+              <input class="form-control" name="interes_nacional_mensual_compuesto" data-depende="id_operador" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             </div>
           </div>
           <div class="bloque_interno">
@@ -1665,7 +1672,7 @@
               <input class="form-control" data-name="{{$a_pagar}}" data-readonly='[{"modo":"*"}]' data-depende="{{$mora_provincial}},{{$mora_nacional}},{{$capital}}">
             </div>
             <div class="grid_pago">
-              <input class="form-control" data-name="{{$pago}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' data-depende="año_mes,id_casino">
+              <input class="form-control" data-name="{{$pago}}" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' data-depende="año_mes,id_operador">
             </div>
             <div class="grid_diferencia">
               <input class="form-control" data-name="{{$diferencia}}" data-depende="{{$a_pagar}},{{$pago}}" data-readonly='[{"modo":"*"}]'>
@@ -2251,8 +2258,7 @@
 @section('contenidoAyuda')
 <div class="col-md-12">
   <p>
-  En esta sección puede cargar en la base de datos las recaudaciones mensuales de cada casino, con la fecha de pago y cotización.
-  Con estos datos el sistema puede calcular el Valor Base y Canon del próximo periodo.
+  En esta sección puede cargar y calcular en la base de datos las recaudaciones mensuales de cada operador
   </p>
 </div>
 @endsection

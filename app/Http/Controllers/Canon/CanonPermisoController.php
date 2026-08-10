@@ -26,8 +26,8 @@ class CanonPermisoController extends Controller
   }
   
   public function down(){
-    DB::unprepared("DROP TABLE IF EXISTS canon_permiso");
     DB::unprepared("DROP TABLE IF EXISTS canon_permiso_usuario");
+    DB::unprepared("DROP TABLE IF EXISTS canon_permiso");
     CANON_STREAM_STR('CANON_PERMISO: DOWN');
   }
   
@@ -247,8 +247,8 @@ class CanonPermisoController extends Controller
         ->crossJoin('canon_operador as co')
         ->whereIn('cp.descripcion',$permisos)
         ->whereNull('co.deleted_at')->get()->groupBy('permiso')->map(function($ops){
-          return $ops->pluck('id_operador');
-        });
+          return $ops->pluck('id_operador')->toArray();
+        })->toArray();
       }
       else{
         return DB::table('canon_permiso as cp')
@@ -260,8 +260,8 @@ class CanonPermisoController extends Controller
         ->whereNull('cpu.deleted_at')
         ->whereNull('co.deleted_at')
         ->get()->groupBy('permiso')->map(function($ops){
-          return $ops->pluck('id_operador');
-        });
+          return $ops->pluck('id_operador')->toArray();
+        })->toArray();
       }
     }
   }
@@ -435,5 +435,55 @@ class CanonPermisoController extends Controller
     catch(\Exception $e){
       return response()->json(['mensaje' => $e->getMessage()],422);
     }
+  }
+  
+  private $permisos_cache = null;
+  public function permisos(){
+    if($this->permisos_cache === null){
+      if($this->mocking){
+        $this->permisos_cache = array_keys($this->map_permisos());
+      }
+      else{
+        $this->permisos_cache = DB::table('canon_permiso')
+        ->select('descripcion')->distinct()
+        ->get()->pluck('descripcion')->toArray();
+      }
+    }
+    return $this->permisos_cache;
+  }
+  
+  private $permisos_usuario_cache = [];
+  public function permisos_usuario($id_usuario){
+    if(!array_key_exists($id_usuario,$this->permisos_usuario_cache)){
+      $permisos = $this->permisos();
+      if($id_usuario === null){
+        $permisos = array_map(function($p){return [];},array_flip($permisos));
+      }
+      else{
+        $permisos = $this->permisosIntersect($id_usuario,$permisos);
+      }
+      $permisos = array_filter($permisos,function($ido){
+        return !empty($ido);
+      });
+      $this->permisos_usuario_cache[$id_usuario] = $permisos;
+    }
+    return $this->permisos_usuario_cache[$id_usuario];
+  }
+  
+  private $ids_operadores_usuario_cache = [];
+  public function ids_operadores_usuario($id_usuario = null){
+    if($id_usuario === null){
+      return [];
+    }  
+    if(!array_key_exists($id_usuario,$this->ids_operadores_usuario_cache)){
+      $ops = [];
+      foreach($this->permisos_usuario($id_usuario) as $p => $idops){
+        foreach($idops as $ido){
+          $ops[$ido] = true;
+        }
+      }
+      $this->ids_operadores_usuario_cache[$id_usuario] = array_keys($ops);
+    }
+    return $this->ids_operadores_usuario_cache[$id_usuario];
   }
 }

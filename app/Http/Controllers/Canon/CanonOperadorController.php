@@ -20,14 +20,14 @@ class CanonOperadorController extends Controller
   private $CV = null;
   private $CGO = null;
   private $CPe = null;
-  private $CPa = null;
+  private $CCu = null;
   private $mocking = true;
   public function __construct(){
     self::$instance = $this;
-    $this->CV = CanonValorPorDefectoController::getInstancia();
+    $this->CV  = CanonValorPorDefectoController::getInstancia();
     $this->CGO = CanonGrupoOperadorController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
-    $this->CPa = CanonPagoController::getInstancia();//Solo usado en la migración... despues borrar
+    $this->CCu = CanonCuentaController::getInstancia();
     $this->mocking = !Schema::hasTable('canon_operador_canon_variable');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas_adicionales');
@@ -36,7 +36,7 @@ class CanonOperadorController extends Controller
   }
   
   public function down(){
-    $this->CPa->down();
+    $this->CCu->down();
     $this->CGO->down();
     
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_variable");
@@ -44,12 +44,19 @@ class CanonOperadorController extends Controller
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas_adicionales");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_cuenta");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador");
+    DB::statement("
+      ALTER TABLE `canon` CHANGE `id_operador` `id_casino` INT(11) NOT NULL
+    ");
     CANON_STREAM_STR('CANON_OPERADOR: DOWN');
     
     $this->CPe->down();
   }
   
   private function up(){
+    DB::statement("
+      ALTER TABLE `canon` CHANGE `id_casino` `id_operador` INT(11) NOT NULL
+    ");
+    
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_operador (
       id_canon_operador INT NOT NULL AUTO_INCREMENT,
@@ -160,7 +167,7 @@ class CanonOperadorController extends Controller
         $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
         
-        $this->CPa->llenado_inicial($created_at,$created_by);
+        $this->CCu->llenado_inicial($created_at,$created_by);
         $this->CGO->llenado_inicial($created_at,$created_by);
         
         $this->up();
@@ -415,7 +422,7 @@ class CanonOperadorController extends Controller
         return $c;
       },$canon_fijo_mesas_adicionales)
     );
-      
+    
     return $this->_obtener($co['id_operador']);
   }
   
@@ -619,5 +626,14 @@ class CanonOperadorController extends Controller
       
     }
     throw new \Exception("No puedo mover fecha ${ISO_yyyymmdd}, Movimiento no soportado: $movimiento");
+  }
+  
+  public function operadores($ids_operadores = null){
+    $ret = DB::table('canon_operador')
+    ->whereNull('deleted_at');
+    if($ids_operadores !== null){
+      $ret = $ret->whereIn('id_operador',$ids_operadores);
+    }
+    return $ret->get();
   }
 }

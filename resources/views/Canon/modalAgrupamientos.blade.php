@@ -46,9 +46,10 @@
             <button style="width: 25%;" data-js-click-agregar-nodo class="btn" type="button">Agregar</button>
             <input  style="width: 50%;" data-nuevo-nodo="label" class="form-control" data-js-texto-no-formatear-numero placeholder="Nombre">
             <select data-nuevo-nodo="group" class="form-control">
-              <option default selected value="grupo_operador">Grupo Operador</option>
-              <option value="superior">Nivel Superior</option>
-              <option value="subcanon">Subcanon</option>
+              <option default selected value="superior">Nivel Superior</option>
+              <option value="base:canon_variable">Subcanon - Canon Variable</option>
+              <option value="base:canon_fijo_mesas">Subcanon - Canon Fijo Mesas</option>
+              <option value="base:canon_fijo_mesas_adicionales">Subcanon - Canon Fijo Mesas Adicionales</option>
             </select>
           </div>
           <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;align-content: stretch;gap: 5px;">

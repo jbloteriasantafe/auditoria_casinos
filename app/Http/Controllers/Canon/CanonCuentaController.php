@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 
 require_once(app_path('BC_extendido.php'));
 
-class CanonPagoController extends Controller
+class CanonCuentaController extends Controller
 {
   private static $instance;
 
@@ -146,21 +146,36 @@ class CanonPagoController extends Controller
       c.id_canon,c.id_casino as id_operador,c.año_mes,c.estado,c.es_antiguo,
       '' as cuenta,
       COALESCE((
-        SELECT cp2.fecha_vencimiento 
+        SELECT IF(
+          MIN(cp2.fecha_vencimiento) = MAX(cp2.fecha_vencimiento),
+          MIN(cp2.fecha_vencimiento),
+          NULL
+        ) as confluido
         FROM canon_pago as cp2 
         WHERE cp2.id_canon = c.id_canon 
+        GROUP BY 'constant'
         LIMIT 1
       ),c.año_mes) as fecha_vencimiento,
       COALESCE((
-        SELECT cp2.interes_provincial_diario_simple 
+        SELECT IF(
+          MIN(cp2.interes_provincial_diario_simple) = MAX(cp2.interes_provincial_diario_simple),
+          MIN(cp2.interes_provincial_diario_simple),
+          NULL
+        ) as confluido
         FROM canon_pago as cp2 
         WHERE cp2.id_canon = c.id_canon 
+        GROUP BY 'constant'
         LIMIT 1
       ),0) as interes_provincial_diario_simple,
       COALESCE((
-        SELECT cp2.interes_nacional_mensual_compuesto 
+        SELECT IF(
+          MIN(cp2.interes_nacional_mensual_compuesto) = MAX(cp2.interes_nacional_mensual_compuesto),
+          MIN(cp2.interes_nacional_mensual_compuesto),
+          NULL
+        ) as confluido
         FROM canon_pago as cp2 
         WHERE cp2.id_canon = c.id_canon 
+        GROUP BY 'constant'
         LIMIT 1
       ),0) as interes_nacional_mensual_compuesto,
       c.determinado,
@@ -554,31 +569,28 @@ class CanonPagoController extends Controller
     });
   }
   
-  public function obtener_arr(array $request,$confluir = true){
-    $ret = (array) (
-      (isset($request['id_canon']) && $request['id_canon'] !== null)?
-        $this->CC->get_by_id_canon($request['id_canon'],false)
-      : new \stdClass()
-    );
-    
-    $ret['canon_pago'] = DB::table('canon_pago')
+  public function get_cuenta($id_canon_cuenta){
+    return DB::table('canon_cuenta')
+    ->where('id_canon_cuenta',$id_canon_cuenta)
+    ->first();
+  }
+  
+  public function get_cuentas($id_canon){
+    return DB::table('canon_cuenta')
+    ->where('id_canon',$id_canon)
+    ->get();
+  }
+  
+  public function obtener_arr(array $request){
+    $ret = $this->get_cuenta($request['id_canon_cuenta']);
+    $ret = $ret ?? (new \stdClass());
+    $ret->canon_pago = DB::table('canon_pago')
     ->where('id_canon',$request['id_canon'])
     ->orderBy('fecha_pago','asc')
     ->get();
         
     $ret = json_decode(json_encode($ret),true);
-    
-    if($confluir){
-      $ret = array_merge(
-        $ret,
-        $this->CC->confluir_datos(
-          $ret,
-          ['canon_pago'],
-          ['interes_provincial_diario_simple','interes_nacional_mensual_compuesto','fecha_vencimiento']
-        )
-      );
-    }
-    
+        
     return $ret;
   }
     
@@ -588,14 +600,14 @@ class CanonPagoController extends Controller
   
   public function obtenerConHistorial(Request $request){
     $ultimo = $this->obtener($request);
-    $ultimo['historial'] = ($ultimo['id_canon'] ?? null) !== null?
-      DB::table('canon')
-      ->select('created_at','id_canon')->distinct()
+    $ultimo['historial'] = ($ultimo['id_canon_cuenta'] ?? null) !== null?
+      DB::table('canon_cuenta')
+      ->select('created_at','id_canon_cuenta')->distinct()
       ->where('año_mes',$ultimo['año_mes'])
-      ->where('id_casino',$ultimo['id_casino'])
+      ->where('id_operador',$ultimo['id_operador'])
       ->orderBy('created_at','desc')
       ->get()->map(function($idc,$idc_idx){
-        return $this->obtener_arr(['id_canon' => $idc->id_canon]);
+        return $this->obtener_arr(['id_canon_cuenta' => $idc->id_canon_cuenta]);
       })
     : collect([]);
     return $ultimo;
@@ -664,17 +676,30 @@ class CanonPagoController extends Controller
       return DB::table('canon_cuenta')->where('id_canon',$id_canon)->get()
       ->map(function($cuenta){
         $cuenta->pagos = DB::table('canon_pago')->where('id_canon',$cuenta->id_canon)
-        ->where('cuenta',$cuenta->cuenta)->get();
-        return $cuenta;
+        ->where('cuenta',$cuenta->cuenta)->get()->toArray();
+        return (array) $cuenta;
       });
     }
     else{
       return DB::table('canon')->where('id_canon',$id_canon)->get()
       ->transform(function($canon){
         $cuenta->pagos = DB::table('canon_pago')->where('id_canon',$canon->id_canon)
-        ->where('cuenta','')->get();
-        return $cuenta;
+        ->where('cuenta','')->get()->toArray();
+        return (array) $cuenta;
       });
     }
+  }
+  
+  public function cuentas($ids_operadores = null){
+    $ret = DB::table('canon_cuenta')
+    ->select('cuenta')->distinct()
+    ->whereNull('deleted_at');
+    
+    if($ids_operadores !== null){
+      $ret = $ret->whereIn('id_operador',$ids_operadores);
+    }
+    
+    return $ret->orderBy('cuenta','asc')
+    ->get()->pluck('cuenta')->toArray();
   }
 }
