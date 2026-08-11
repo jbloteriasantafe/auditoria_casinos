@@ -17188,6 +17188,8 @@ public function descargarPatentesXlsx(Request $request)
                 $items[] = [
                     'anio'   => $anio,
                     'mes'    => $mesEsp,
+                    // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                    'mes_num'=> (int)date('n', strtotime($r->fecha_Patentes)),
                     'elem'   => ($p->PatenteDe)->nombre ?? '-',
                     'cuota'  => isset($p->cuota) ? $p->cuota : '',
                     'fpres'  => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17201,7 +17203,7 @@ public function descargarPatentesXlsx(Request $request)
     usort($items, function($a,$b){
         if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
         if ($a['elem'] != $b['elem']) return strcasecmp($a['elem'],$b['elem']);
-        if ($a['mes']  != $b['mes'])  return strcasecmp($a['mes'],$b['mes']);
+        if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
         return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
     });
 
@@ -17410,8 +17412,8 @@ public function descargarPatentesXlsxTodos(Request $request)
                     $items[] = [
                         'anio'     => $anio,
                         'mes'      => $mesEsp,
-                        // Ídem: se ordena por número de mes, no por el nombre.
-                        'mes_num'  => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
+                        // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                        'mes_num'  => (int)date('n', strtotime($r->fecha_Patentes)),
                         'patente'  => $p->PatenteDe ? $p->PatenteDe->nombre : '-',
                         'cuota'    => isset($p->cuota) ? $p->cuota : '',
                         'fpres'    => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17425,7 +17427,7 @@ public function descargarPatentesXlsxTodos(Request $request)
             usort($items, function($a,$b){
                 if ($a['anio']    != $b['anio'])    return $a['anio'] < $b['anio'] ? -1 : 1;
                 if ($a['patente'] != $b['patente']) return strcasecmp($a['patente'],$b['patente']);
-                if ($a['mes']     != $b['mes'])     return strcasecmp($a['mes'],$b['mes']);
+                if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
                 return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
             });
 
@@ -18103,6 +18105,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
                         $items[] = [
                             'anio'    => $anio,
                             'mes'     => $mesEsp,
+                            // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                            'mes_num' => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
                             'partida' => ($p->partidaImpInmobiliario)->partida ?? '-',
                             'cuota'   => isset($p->cuota) ? $p->cuota : '',
                             'fpres'   => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
