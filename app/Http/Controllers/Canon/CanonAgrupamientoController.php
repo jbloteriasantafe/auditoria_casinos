@@ -700,21 +700,19 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function buscar(){
-    return DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.id_canon_subcanon_a_grupo','cagg_deps.nivel','cagg_deps.clave','cagg_deps.id_grupo_operador',DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operador) as grupo_operador'))
+    return DB::table('canon_subcanon_a_grupo as cagg')
+    ->select('cagg.clave',DB::raw('GROUP_CONCAT(
+      DISTINCT
+      COALESCE(cgo.nombre,cagg.id_grupo_operador)
+      ORDER BY COALESCE(cgo.nombre,cagg.id_grupo_operador) ASC 
+      SEPARATOR ", "
+    ) as grupos_operadores'))
     ->leftJoin('canon_grupo_operador as cgo',function($j){
-      return $j->on('cgo.id_grupo_operador','=','cagg_deps.id_grupo_operador')
+      return $j->on('cgo.id_grupo_operador','=','cagg.id_grupo_operador')
       ->whereNull('cgo.deleted_at');
     })
-    ->where(DB::raw('(NOT EXISTS (
-      SELECT 1
-      FROM canon_subcanon_a_grupo as cagg_deps2
-      WHERE cagg_deps2.id_grupo_operador = cagg_deps.id_grupo_operador
-      AND   cagg_deps2.clave = cagg_deps.clave
-      AND   cagg_deps2.nivel > cagg_deps.nivel
-    ))'),'=','1')
-    ->orderBy('cagg_deps.clave','asc')
-    ->orderBy(DB::raw('COALESCE(cgo.nombre,cagg_deps.id_grupo_operador)'),'asc')
+    ->groupBy('cagg.clave')
+    ->orderBy('clave','asc')
     ->paginate(request()->page_size ?? 10);
   }
   
@@ -727,6 +725,39 @@ class CanonAgrupamientoController extends Controller
     })
     ->where('id_canon_subcanon_a_grupo',request()->id_canon_subcanon_a_grupo ?? null)
     ->first() ?? (new \stdClass());
+    return response()->json($ret);
+  }
+  
+  public function obtener_por_clave(){
+    $valor = 'IF(cagg_deps.nivel = 0,cagg_deps.base_tipo,cagg_deps.valor)';
+    $dependencia = 'IF(cagg_deps.nivel = 0,cagg_deps.base_subcanon_o_superior_dependencia,cagg_deps.base_subcanon_o_superior_dependencia)';
+    $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
+    ->select(
+      'cagg_deps.id_canon_subcanon_a_grupo',
+      'cagg_deps.nivel',
+      'cagg_deps.clave',
+      'cagg_deps.id_grupo_operador',
+      DB::raw("$valor as valor"),
+      DB::raw("$dependencia as dependencia")
+    )
+    ->where('clave',request()->clave ?? null)
+    ->orderBy('nivel','asc')
+    ->orderBy('id_grupo_operador','asc')
+    ->orderBy(DB::raw($valor),'asc')
+    ->orderBy(DB::raw($dependencia),'asc')
+    ->get()
+    ->groupBy('clave')->map(function($clave_group){
+      return $clave_group->groupBy('id_grupo_operador')->map(function($igo_group){
+        return $igo_group->groupBy('nivel')->map(function($nivel_group){
+          return $nivel_group->map(function($entry){
+            $e = new \stdClass();
+            $e->valor = $entry->valor;
+            $e->dependencia = $entry->dependencia;
+            return $e;
+          });
+        });
+      });
+    });
     return response()->json($ret);
   }
   

@@ -1735,7 +1735,7 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
   });
   
   Route::group(['prefix' => 'agrupamientos', 'middleware' => "${CPermiso}:canon_agrupamiento_ver"] ,function() use ($CPermiso){
-    Route::get('/obtener','\App\Http\Controllers\Canon\CanonAgrupamientoController@obtener_por_id');
+    Route::get('/obtener','\App\Http\Controllers\Canon\CanonAgrupamientoController@obtener_por_clave');
     Route::post('/buscar','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar');
     Route::get('/buscar','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar');
     Route::post('/buscar_calculado','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar_calculado');

@@ -1571,6 +1571,10 @@ $(function(){
         tbody.append(fila);
       });
       
+      tbody.find('[data-js-click-ver-agrupamiento]').click(function(e){
+        const tgt = $(e.currentTarget);
+        $('[data-js-modal-ver-agrupamiento]').trigger('mostrar.modal',[tgt.attr('data-js-click-ver-agrupamiento'),tgt.val(),'VER']);
+      });
       tbody.find('[data-js-click-editar-agrupamiento]').click(function(e){
         const tgt = $(e.currentTarget);
         $('[data-js-modal-editar-agrupamiento]').trigger('mostrar.modal',[tgt.attr('data-js-click-editar-agrupamiento'),tgt.val(),'EDITAR']);
@@ -1584,20 +1588,34 @@ import "/js/lib/vis-network.js";
 $(function(){
   $('[data-js-modal-editar-agrupamiento]').each(function(){
     const  M = $(this);
-    const $M = M.find.bind(M);
+        
+    M.find('[data-js-keypress-solo-numeros]').on('keydown', function(e) {
+      if (
+          [46, 8, 9, 27, 13, 110].includes(e.keyCode) || //backspace, delete, tab, escape, enter
+          (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) || // Ctrl+A
+          (e.keyCode === 67 && (e.ctrlKey === true || e.metaKey === true)) || // Ctrl+C
+          (e.keyCode === 86 && (e.ctrlKey === true || e.metaKey === true)) || // Ctrl+V
+          (e.keyCode === 88 && (e.ctrlKey === true || e.metaKey === true)) || // Ctrl+X
+          (e.keyCode >= 35 && e.keyCode <= 40) // Home, End, Left, Right arrows
+      ) {
+          return;
+      }
+
+      // Ensure that it is a number (0-9 from main keyboard or numpad) and stop the keypress if not
+      if (
+          (e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+          (e.keyCode < 96 || e.keyCode > 105)
+      ) {
+          e.preventDefault();
+      }
+    });
+    
     const Mname = function(name,val,O=M){
       return O.find(`[name="${name}"]`).val(val ?? '');
     };
   
     const container = M.find('[data-grafo-agrupamiento]')?.[0];
 
-    // Define DAG nodes
-    const nodes = new vis.DataSet([]);
-    let nextNodeId = 1;
-
-    // Define directed edges (from parent to child)
-    const edges = new vis.DataSet([]);
-    
     const allowedGroupLinks = {
       "superior": {
         "superior": true,
@@ -1626,15 +1644,23 @@ $(function(){
     }
     
     const initialGroupLevel = {
-      "superior": null,//Calculated.
+      "grupo_operador": null,
+      "superior": null,//Calculated
       "base:canon_variable": 0,
       "base:canon_fijo_mesas": 0,
       "base:canon_fijo_mesas_adicionales": 0,
     };
     
+    const groupAbbr = {
+      "superior": null,//Calculated.
+      "base:canon_variable": 'CV',
+      "base:canon_fijo_mesas": 'CFM',
+      "base:canon_fijo_mesas_adicionales": 'CFMA',
+    };
+    
     let adjacencyMatrix = {};
-    let distanceMatrix = {};
-    const updateState = () => {
+    let distanceMatrix  = {};
+    const updateState = (nodes,edges) => {
       {
         adjacencyMatrix = {};
         nodes.get().forEach(n1 => {
@@ -1690,6 +1716,13 @@ $(function(){
       console.log(nodes.get(),edges.get(),adjacencyMatrix,distanceMatrix);
     }
     
+    // Define DAG nodes
+    let nodes      = null;
+    let nextNodeId = null;
+    let edges      = null;
+    let network    = null;
+    let selectedNodes = [];
+    
     // Configure for a DAG visual layout
     const options = {
       layout: {
@@ -1709,12 +1742,12 @@ $(function(){
         },
         "base:canon_variable": {
           color: { background: '#2a9d8f', border: '#145249', highlight: { background: '#76c893', border: '#145249' } },
-          shape: 'ellipse',
+          shape: 'box',
           font: { color: '#ffffff', face: 'arial', size: 14 }
         },
         "base:canon_fijo_mesas": {
           color: { background: '#e0a96d', border: '#8c592b', highlight: { background: '#f2c48d', border: '#8c592b' } },
-          shape: 'ellipse',
+          shape: 'box',
           font: { color: '#ffffff', face: 'arial', size: 14 }
         },
         "base:canon_fijo_mesas_adicionales": {
@@ -1736,27 +1769,108 @@ $(function(){
       physics: false // Disabling physics keeps the DAG locked in rank order
     };
 
-    const network = new vis.Network(container, { nodes, edges }, options);
-        
+    
+    let selected_radio_grupo_operador = $();
+    M.on('change','[data-radio-grupo-operador]',function(e){
+      const selected = $(e.currentTarget);
+      
+      //Guardo el progreso
+      selected_radio_grupo_operador.data('nodes',nodes);
+      selected_radio_grupo_operador.data('edges',edges);
+      selected_radio_grupo_operador.data('nextNodeId',nextNodeId);
+      
+      //Seteo los que tiene la opcion
+      selected_radio_grupo_operador = selected;
+      nodes = selected.data('nodes');
+      edges = selected.data('edges');
+      nextNodeId = selected.data('nextNodeId');
+      updateState(nodes,edges);
+      selectedNodes = [];
+      if(network !== null){
+        network.setData({
+          nodes: selected.data('nodes'),
+          edges: selected.data('edges')
+        });
+      }
+      else{
+        network = new vis.Network(container, { nodes, edges }, options);
+        network.on("selectNode", function (params) {      
+          if(selectedNodes.length == 0){
+            const desde_id = nodes.get(params.nodes[0]).id;
+            selectedNodes.push(desde_id);
+            M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
+          }
+          else if(selectedNodes.length == 1){
+            const hasta_id = params.nodes.filter(id => !selectedNodes.includes(id))[0];
+            selectedNodes.push(hasta_id);
+            M.find('[data-enlazar-nodo-id="hasta"]').val(hasta_id);
+          }
+          else{
+            selectedNodes.length = 0;//Limpia el array
+            M.find('[data-enlazar-nodo-id]').val('');
+          }
+        });
+        network.on("select", function (params) {
+          if(params.nodes.length == 0){//Selecciona ningun nodo o deselecciona se llama este evento
+            selectedNodes.length = 0;//Limpia el array
+            M.find('[data-enlazar-nodo-id]').val('');
+          }
+        });
+      }
+      
+      //Limpio los checkbox
+      M.find('[data-radio-grupo-operador]').not(selected).each(function(_,o){
+        o.checked = false;
+      });
+    });
+    
+    const agregarGrupoOperador = (id_grupo_operador) => {
+      if(M.find(`[data-radio-grupo-operador="${id_grupo_operador}"]`).length > 0){
+        return;
+      }
+      
+      const GOp = M.find('[data-molde-grupo-operador]').clone().removeAttr('data-molde-grupo-operador');
+      M.find('[data-contenedor-grupos-operadores]').append(GOp);
+      GOp.find('[data-radio-grupo-operador]').attr('data-radio-grupo-operador',id_grupo_operador);
+      GOp.find('[data-radio-grupo-operador-label]').text(id_grupo_operador);
+      GOp.find('[data-radio-grupo-operador]').data('nodes',new vis.DataSet([]));
+      GOp.find('[data-radio-grupo-operador]').data('edges',new vis.DataSet([]));
+      GOp.find('[data-radio-grupo-operador]').data('nextNodeId',1);
+    };
+    
+    M.find('[data-js-click-agregar-grupo-operador]').click(function(e){
+      const id_grupo_operador = $(e.currentTarget).siblings('[data-nuevo-grupo-operador]').val().trim();
+      agregarGrupoOperador(id_grupo_operador);
+      $(e.currentTarget).siblings('[data-nuevo-grupo-operador]').val('');
+    });
+    
     const render = function(agg,mantener_historial = false){
       ocultarErrorValidacion(M.find('[name]'));
-      Mname('id_canon_subcanon_a_grupo',agg?.id_canon_subcanon_a_grupo);
-      Mname('clave',agg?.clave);
-      Mname('id_grupo_operador',agg?.id_grupo_operador);
-      Mname('grupo_operador',agg?.grupo_operador);
+      const clave = Object.keys(agg)?.[0];
+      Mname('clave',clave);
       
-      (mantener_historial?
-         M.find('[data-js-select-historial]')
-       : M.find('[data-js-select-historial]').empty())
-       .append(
-        (agg?.historial ?? []).map(function(h,hidx){
-          const o = $('<option>');
-          o.val(h.id_canon_subcanon_a_grupo);
-          o.text(h.usuario + ' - '+h.created_at);
-          o.data('instancia',h);
-          return o;
-        })
-      );
+      /*if(clave !== undefined){
+        for(const id_grupo_operador in agg[clave]){
+          const domObj = M.find(`[data-radio-grupo-operador="${id_grupo_operador}"]`);
+          const domObj_nodes = domObj.data('nodes');
+          const domObj_edges = domObj.data('edges');
+          const domObj_nextNodeId = domObj.data('nextNodeId');
+          
+          let id_parent = agregarNodo("grupo_operador",id_grupo_operador);
+          const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
+          const min_nivel = Math.min(...Object.keys(agg[clave][id_grupo_operador] ?? []));
+          for(let n=max_nivel;n>=min_nivel;n--){
+            for(
+            let id_child = null;
+            if(n > 0){
+              agregarNodo("superior")
+            }
+            else{
+              agregarNodo("base:"+)
+            }
+          }
+        }        
+      }*/
       
       M.trigger('regenerarInputsFormatear')
       .trigger('formatearCampos');
@@ -1765,11 +1879,17 @@ $(function(){
     M.on('render',function(e,data,mantener_historial){
       render(data,mantener_historial);
     });
-    
-    M.on('mostrar.modal',function(e,url,id_canon_subcanon_a_grupo,modo){
+        
+    M.on('mostrar.modal',function(e,url,clave,modo){
       M.trigger('setModo',[modo]);
       
-      AUX.GET(url,{id_canon_subcanon_a_grupo: id_canon_subcanon_a_grupo},function(agrupamiento){
+      M.find('[data-contenedor-grupos-operadores]').empty();
+      network = null;
+      nodes = null;
+      edges = null;
+      nextNodeId = null;
+      
+      AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
         M.trigger('setVisible');
         M.trigger('setReadonly');
@@ -1777,74 +1897,97 @@ $(function(){
       });
     });
     
-    const getLabel = (id,name,group,nivel) => {
-      const nivel_str = nivel === 0?
-        ('['+group+']')
-      : ('[Nivel '+(
-        nivel === null? '-' : nivel
-      )+']');
-      return '('+id+') '+name.trim()+' '+nivel_str;
+    const getLabel = (id,valor,group,nivel) => {
+      let nivel_str = '';
+      
+      switch(group){
+        case 'superior':{
+          if(nivel === null){
+            nivel_str = 'Nivel -';
+          }
+          else{
+            nivel_str = 'Nivel '+nivel;
+          }
+        }break;
+        default:{
+          if(nivel !== 0){
+            AUX.mensajeError('ERROR AL ASIGNAR LABEL');
+            throw 'ERROR AL ASIGNAR LABEL';
+          }
+          nivel_str = groupAbbr?.[group] ?? 'ERROR';
+        }break;
+      }
+      
+      return id+' | '+valor.trim()+' | '+nivel_str;
     };
     
-    const findNode = (name,group,nivel) => {
+    const findNode = (nodes,edges,valor,group,nivel) => {
       return nodes.get().find(
         n => { 
-          return n.name == name && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
+          return n.valor == valor && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
         }
       );
     };
     
-    M.find('[data-js-click-agregar-nodo]').click(function(e){
-      const tgt = $(e.currentTarget);
-      const labelTarget = M.find('[data-nuevo-nodo="label"]');
-      const groupTarget = M.find('[data-nuevo-nodo="group"]');
-      
-      const name = labelTarget?.val()?.trim();
-      if(name === undefined){
-        AUX.mensajeError('Error al obtener el nombre del nuevo nodo');
-        return;
-      }
-      if(name.length === 0){
-        AUX.mensajeError('El nombre es vacio');
-        return;
-      }
-      
-      const group = groupTarget?.val()?.trim();
-      if(group === undefined){
-        AUX.mensajeError('Error al obtener el nombre del nuevo nodo');
-        return;
-      }
-      
-      const nivel = initialGroupLevel?.[group];
-      if(nivel === undefined){
-        AUX.mensajeError('Error al obtener el nivel del nuevo nodo');
-        return;
-      }
-      
-      //No volver a agregar el mismo si ya esta
-      const found = findNode(name,group,nivel);
-      
-      if(!found){
-        nodes.add({
-          id: nextNodeId,
-          group: group,
-          name: name,
-          nivel: nivel,
-          label: getLabel(nextNodeId,name,group,nivel)
-        });
+    M.find('[data-js-click-agregar-nodo]').each(function(_,b){
+      $(b).click(function(e){
+        if(network === null) return;
         
-        updateState();
-        nextNodeId++;
-      }
-      else{
-        AUX.mensajeError('Nodo repetido');
-      }
-      
-      network.fit();
-      labelTarget.val('');
+        const tgt = $(e.currentTarget);
+        const div = tgt.closest('[data-agregar-nodo]');
+        const labelTarget = div.find('[data-nuevo-nodo="label"]');
+        const groupTarget = div.find('[data-nuevo-nodo="group"]');
+        
+        const valor = labelTarget?.val()?.trim();
+        if(valor === undefined){
+          AUX.mensajeError('Error al obtener el valor del nuevo nodo');
+          return;
+        }
+        if(valor.length === 0){
+          AUX.mensajeError('El valor es vacio');
+          return;
+        }
+        
+        const group = groupTarget?.val()?.trim();
+        if(group === undefined){
+          AUX.mensajeError('Error al obtener el nombre del nuevo nodo');
+          return;
+        }
+        
+        const nivel = initialGroupLevel?.[group];
+        if(nivel === undefined){
+          AUX.mensajeError('Error al obtener el nivel del nuevo nodo');
+          return;
+        }
+                
+        //No volver a agregar el mismo si ya esta
+        const found = findNode(nodes,edges,valor,group,nivel);
+        
+        if(!found){
+          nodes.add({
+            id: nextNodeId,
+            group: group,
+            label: getLabel(nextNodeId,valor,group,nivel),
+            valor: valor,
+            nivel: nivel
+          });
+          
+          updateState(nodes,edges);
+          
+          nextNodeId++;
+        }
+        else{
+          AUX.mensajeError('Nodo repetido');
+        }
+        
+        network.fit();
+        labelTarget.val('');
+      });
     });
     
     M.find('[data-js-click-enlazar-nodo]').click(function(e){
+      if(network === null) return;
+      
       const tgt = $(e.currentTarget);
       const desde_hasta = M.find(tgt.attr('data-js-click-enlazar-nodo'));
       const desde_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="desde"]')?.val()?.trim());
@@ -1869,20 +2012,20 @@ $(function(){
       if(valido){
         if(nuevo_a_nivelado){
           const nivel = hasta_n.nivel + 1;
-          duplica_nodo = findNode(desde_n.name,desde_n.group,nivel);
+          duplica_nodo = findNode(nodes,edges,desde_n.valor,desde_n.group,nivel);
           if(!duplica_nodo){
             desde_n.nivel = nivel;
-            desde_n.label = getLabel(desde_n.id,desde_n.name,desde_n.group,desde_n.nivel);
+            desde_n.label = getLabel(desde_n.id,desde_n.valor,desde_n.group,desde_n.nivel);
             nodes.update(desde_n);
           }
         }
         
         if(nivelado_a_nuevo){
           const nivel = desde_n.nivel - 1;
-          duplica_nodo = findNode(hasta_n.name,hasta_n.group,nivel);
+          duplica_nodo = findNode(nodes,edges,hasta_n.valor,hasta_n.group,nivel);
           if(!duplica_nodo){
             hasta_n.nivel = nivel;
-            hasta_n.label = getLabel(hasta_n.id,hasta_n.name,hasta_n.group,hasta_n.nivel);
+            hasta_n.label = getLabel(hasta_n.id,hasta_n.valor,hasta_n.group,hasta_n.nivel);
             nodes.update(hasta_n);
           }
         }
@@ -1892,7 +2035,7 @@ $(function(){
             from: desde_id,
             to: hasta_id
           });
-          updateState();
+          updateState(nodes,edges);
           network.fit();
         }
       }
@@ -1923,7 +2066,14 @@ $(function(){
       desde_hasta.val('');
     });
     
+    M.find('[data-js-click-centrar]').click(function(e){
+      if(network === null) return;
+      network.fit();
+    });
+    
     M.find('[data-js-click-borrar-objetos]').click(function(e){
+      if(network === null) return;
+      
       const selectedNodes = network.getSelectedNodes();
       const selectedEdges = network.getSelectedEdges();
       if (selectedNodes.length > 0) {
@@ -1932,55 +2082,31 @@ $(function(){
       if (selectedEdges.length > 0) {
         edges.remove(selectedEdges);
       }
-      updateState();
+      updateState(nodes,edges);
       
-      //Actualizo todos los niveles y labels porque no se que se puede haber borrado
+      //Re asigno los niveles, busco el primer nodo base que este conectado
       for(const root of nodes.get()){
-        if(root.nivel === 0) continue;
+        if(root.group !== 'superior') continue;
+        
         root.nivel = null;
         for(const target_node_id in distanceMatrix[root.id]){
           if(root.id === target_node_id) continue;
           
-          const target_node = nodes.get(parseInt(target_node_id));
           const distance = distanceMatrix[root.id][target_node_id];
+          const target_node = nodes.get(parseInt(target_node_id));
           if(target_node.nivel == 0 && distance > 0 && isFinite(distance)) {
             root.nivel = distance;
             break;
           }
         }
-        root.label = getLabel(root.id,root.name,root.group,root.nivel);
+        root.label = getLabel(root.id,root.valor,root.group,root.nivel);
         nodes.update(root);
       }
       
       network.fit();
     });
     
-    let selectedNodes = [];
-    network.on("selectNode", function (params) {
-      if(selectedNodes.length == 0){
-        const desde_id = nodes.get(params.nodes[0]).id;
-        selectedNodes.push(desde_id);
-        M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
-      }
-      else if(selectedNodes.length == 1){
-        const hasta_id = params.nodes.filter(id => !selectedNodes.includes(id))[0];
-        selectedNodes.push(hasta_id);
-        M.find('[data-enlazar-nodo-id="hasta"]').val(hasta_id);
-      }
-      else{
-        selectedNodes.length = 0;//Limpia el array
-        M.find('[data-enlazar-nodo-id]').val('');
-      }
-    });
-    
-    network.on("select", function (params) {
-      if(params.nodes.length == 0){//Selecciona ningun nodo o deselecciona se llama este evento
-        selectedNodes.length = 0;//Limpia el array
-        M.find('[data-enlazar-nodo-id]').val('');
-      }
-    });
-    
-    /*$M('[data-js-click-submit-form]').click(function(e){
+    /*M.find('[data-js-click-submit-form]').click(function(e){
       const o = e.currentTarget;
       const select = $(o).attr('data-js-click-submit-form');
       const $form = $M(select);

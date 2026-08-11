@@ -567,7 +567,7 @@
 @if($permisos('canon_agrupamiento_cargar') || $permisos('canon_agrupamiento_ver'))
 <div id="pant_agrupamientos_todos">
   <div class="col-md-6" id="pant_agrupamientos">
-    @component('Canon.bAgrupamientos')
+    @component('Canon.bAgrupamientos',compact('permisos'))
     @endcomponent
   </div>
   
@@ -2210,7 +2210,7 @@
   @endslot
 @endcomponent
 
-@component('Canon.modalAgrupamientos')
+@component('Canon.modalAgrupamientos',['subcanons' => $subcanons])
 @endcomponent
 
 @endif

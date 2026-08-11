@@ -377,4 +377,13 @@ class CanonGrupoOperadorController extends Controller
       'deleted_by' => $deleted_by
     ]);
   }
+  
+  public function grupos_operadores($ids_grupos_operadores = null){
+    $ret = DB::table('canon_grupo_operador')
+    ->whereNull('deleted_at');
+    if($ids_grupos_operadores !== null){
+      $ret = $ret->whereIn('id_grupo_operador',$ids_grupos_operadores);
+    }
+    return $ret->get();
+  }
 }

@@ -34,10 +34,15 @@ class CanonController extends Controller
     $this->CCu = CanonCuentaController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
     $this->CO = CanonOperadorController::getInstancia();
+    $this->CGO = CanonGrupoOperadorController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
     });
+  }
+  
+  private function subcanons() {
+    return ['canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'];
   }
           
   public function index(){
@@ -51,7 +56,8 @@ class CanonController extends Controller
       return array_key_exists($p,$permisos_u);
     };
     
-    return View::make('Canon.index', compact('operadores','permisos','cuentas'));
+    $subcanons = $this->subcanons();
+    return View::make('Canon.index', compact('operadores','permisos','cuentas','subcanons'));
   }
   
   private static  $errores = [
@@ -177,9 +183,6 @@ class CanonController extends Controller
     $determinado_bruto = '0.00';//@RETORNADO
     $determinado_ajuste = '0.00';//@RETORNADO
     $determinado = '0.00';//@RETORNADO
-    $canon_variable = [];//@RETORNADO
-    $canon_fijo_mesas = [];//@RETORNADO
-    $canon_fijo_mesas_adicionales = [];//@RETORNADO
     
     //Esto se hace asi porque originalmente se pensaba que las mesas tenian c/u fechas y cotizaciones distintas
     //despues me entere que eran la misma. De todos modos al guardarse en cada tabla de BD, facilita su recalculo en caso
@@ -241,11 +244,7 @@ class CanonController extends Controller
       $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_operador) ?? '0';
     }
     
-    $subcanons = [
-      'canon_variable' => [],//Varios tipos (JOL, Bingo, Maquinas)
-      'canon_fijo_mesas' => [],//Dos tipos muy parecidos (Fijas y Diarias), se hace asi mas que nada para que sea homogeneo
-      'canon_fijo_mesas_adicionales' => []//Las mesas adicionales pueden ser varios tipos (Torneo Truco, Torneo Poker, etc)
-    ];
+    $subcanons = array_map(function($sc){ return []; },array_flip($this->subcanons()));
     
     foreach($subcanons as $subcanon => &$retsc){
       $defecto = $op[$subcanon] ?? [];
