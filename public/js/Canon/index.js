@@ -1573,7 +1573,7 @@ $(function(){
       
       tbody.find('[data-js-click-ver-agrupamiento]').click(function(e){
         const tgt = $(e.currentTarget);
-        $('[data-js-modal-ver-agrupamiento]').trigger('mostrar.modal',[tgt.attr('data-js-click-ver-agrupamiento'),tgt.val(),'VER']);
+        $('[data-js-modal-editar-agrupamiento]').trigger('mostrar.modal',[tgt.attr('data-js-click-ver-agrupamiento'),tgt.val(),'VER']);
       });
       tbody.find('[data-js-click-editar-agrupamiento]').click(function(e){
         const tgt = $(e.currentTarget);
@@ -1658,11 +1658,45 @@ $(function(){
       "base:canon_fijo_mesas_adicionales": 'CFMA',
     };
     
-    let adjacencyMatrix = {};
-    let distanceMatrix  = {};
-    const updateState = (nodes,edges) => {
+    const getLabel = (id,valor,group,nivel) => {
+      let nivel_str = '';
+      
+      switch(group){
+        case 'superior':{
+          if(nivel === null){
+            nivel_str = 'Nivel -';
+          }
+          else{
+            nivel_str = 'Nivel '+nivel;
+          }
+        }break;
+        default:{
+          if(nivel !== 0){
+            AUX.mensajeError('ERROR AL ASIGNAR LABEL');
+            throw 'ERROR AL ASIGNAR LABEL';
+          }
+          nivel_str = groupAbbr?.[group] ?? 'ERROR';
+        }break;
+      }
+      
+      return id+' | '+valor.trim()+' | '+nivel_str;
+    };
+    
+    const findNode = (nodes,valor,group,nivel) => {
+      return nodes.get().find(
+        n => { 
+          return n.valor == valor && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
+        }
+      );
+    };
+    
+    const clearObject = (obj) => {
+      Object.keys(obj).forEach(key => delete obj[key]);
+    };
+    
+    const updateMatrixes = (nodes,edges,adjacencyMatrix,distanceMatrix) => {
       {
-        adjacencyMatrix = {};
+        clearObject(adjacencyMatrix);
         nodes.get().forEach(n1 => {
           adjacencyMatrix[n1.id] = {};
           nodes.get().forEach(n2 => {
@@ -1680,7 +1714,7 @@ $(function(){
       }
       {
         //Se inicializa en base a la matriz de adyacencia
-        distanceMatrix = {};
+        clearObject(distanceMatrix);
         nodes.get().forEach(n1 => {
           distanceMatrix[n1.id] = {};
           nodes.get().forEach(n2 => {
@@ -1716,11 +1750,47 @@ $(function(){
       console.log(nodes.get(),edges.get(),adjacencyMatrix,distanceMatrix);
     }
     
+    const agregarNodo = (nodes,edges,adjacencyMatrix,distanceMatrix,id,group,valor,nivel) => {
+      nodes.add({
+        id: id,
+        group: group,
+        label: getLabel(nextNodeId,valor,group,nivel),
+        valor: valor,
+        nivel: nivel
+      });
+      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+    };
+    
+    const agregarVertice = (nodes,edges,adjacencyMatrix,distanceMatrix,desde_id,hasta_id) => {
+      const desde = nodes.get(parseInt(desde_id));
+      const hasta = nodes.get(parseInt(hasta_id));
+      if(hasta.nivel !== null && desde.nivel === null){
+        desde.nivel = hasta.nivel+1;
+        desde.label = getLabel(desde.id,desde.valor,desde.group,desde.nivel);
+        nodes.update(desde);
+      }
+      else if(hasta.nivel === null && desde.nivel !== null){
+        hasta.nivel = desde.nivel-1;
+        hasta.label = getLabel(hasta.id,hasta.valor,hasta.group,hasta.nivel);
+        nodes.update(hasta);
+      }
+      else if(hasta.nivel !== (desde.nivel-1)){
+        throw 'ERROR MALFORMADO '+JSON.stringify(desde)+' a '+JSON.stringify(hasta);
+      }
+      edges.add({
+        from: desde_id,
+        to: hasta_id
+      });
+      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+    };
+    
     // Define DAG nodes
     let nodes      = null;
     let nextNodeId = null;
     let edges      = null;
     let network    = null;
+    let adjacencyMatrix = null;
+    let distanceMatrix  = null;
     let selectedNodes = [];
     
     // Configure for a DAG visual layout
@@ -1771,25 +1841,31 @@ $(function(){
 
     
     let selected_radio_grupo_operador = $();
-    M.on('change','[data-radio-grupo-operador]',function(e){
+    M.on('change','[data-contenedor-grupos-operadores] [data-radio-grupo-operador]',function(e){
       const selected = $(e.currentTarget);
       
       //Guardo el progreso
       selected_radio_grupo_operador.data('nodes',nodes);
       selected_radio_grupo_operador.data('edges',edges);
       selected_radio_grupo_operador.data('nextNodeId',nextNodeId);
+      selected_radio_grupo_operador.data('adjacencyMatrix',adjacencyMatrix);
+      selected_radio_grupo_operador.data('distanceMatrix',distanceMatrix);
       
       //Seteo los que tiene la opcion
       selected_radio_grupo_operador = selected;
       nodes = selected.data('nodes');
       edges = selected.data('edges');
       nextNodeId = selected.data('nextNodeId');
-      updateState(nodes,edges);
+      adjacencyMatrix = selected.data('adjacencyMatrix');
+      distanceMatrix  = selected.data('distanceMatrix');
+      //@HACK: useless?
+      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+      
       selectedNodes = [];
       if(network !== null){
         network.setData({
-          nodes: selected.data('nodes'),
-          edges: selected.data('edges')
+          nodes: nodes,
+          edges: edges
         });
       }
       else{
@@ -1819,9 +1895,10 @@ $(function(){
       }
       
       //Limpio los checkbox
-      M.find('[data-radio-grupo-operador]').not(selected).each(function(_,o){
+      M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,o){
         o.checked = false;
       });
+      selected[0].checked = true;
     });
     
     const agregarGrupoOperador = (id_grupo_operador) => {
@@ -1831,11 +1908,15 @@ $(function(){
       
       const GOp = M.find('[data-molde-grupo-operador]').clone().removeAttr('data-molde-grupo-operador');
       M.find('[data-contenedor-grupos-operadores]').append(GOp);
-      GOp.find('[data-radio-grupo-operador]').attr('data-radio-grupo-operador',id_grupo_operador);
       GOp.find('[data-radio-grupo-operador-label]').text(id_grupo_operador);
-      GOp.find('[data-radio-grupo-operador]').data('nodes',new vis.DataSet([]));
-      GOp.find('[data-radio-grupo-operador]').data('edges',new vis.DataSet([]));
-      GOp.find('[data-radio-grupo-operador]').data('nextNodeId',1);
+      const GOp_obj = GOp.find('[data-radio-grupo-operador]');
+      GOp_obj.attr('data-radio-grupo-operador',id_grupo_operador);
+      GOp_obj.data('nodes',new vis.DataSet([]));
+      GOp_obj.data('edges',new vis.DataSet([]));
+      GOp_obj.data('adjacencyMatrix',{});
+      GOp_obj.data('distanceMatrix',{});
+      GOp_obj.data('nextNodeId',1);
+      return GOp_obj;
     };
     
     M.find('[data-js-click-agregar-grupo-operador]').click(function(e){
@@ -1849,27 +1930,43 @@ $(function(){
       const clave = Object.keys(agg)?.[0];
       Mname('clave',clave);
       
-      /*if(clave !== undefined){
+      /*
+      if(clave !== undefined){
         for(const id_grupo_operador in agg[clave]){
-          const domObj = M.find(`[data-radio-grupo-operador="${id_grupo_operador}"]`);
-          const domObj_nodes = domObj.data('nodes');
-          const domObj_edges = domObj.data('edges');
-          const domObj_nextNodeId = domObj.data('nextNodeId');
+          const GOp_obj = agregarGrupoOperador(id_grupo_operador);
+          const _nodes = GOp_obj.data('nodes');
+          const _edges = GOp_obj.data('edges');
+          let _nextNodeId = GOp_obj.data('nextNodeId');
           
-          let id_parent = agregarNodo("grupo_operador",id_grupo_operador);
           const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
-          const min_nivel = Math.min(...Object.keys(agg[clave][id_grupo_operador] ?? []));
-          for(let n=max_nivel;n>=min_nivel;n--){
-            for(
-            let id_child = null;
-            if(n > 0){
-              agregarNodo("superior")
-            }
-            else{
-              agregarNodo("base:"+)
+          let aux = {0: {}};
+          for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
+            aux[0][n.valor] = _nextNodeId;
+            agregarNodo(_nodes,_nextNodeId,'base:'+n.dependencia,n.valor,0);
+            _nextNodeId++;
+          }
+          for(let nivel=1;nivel<=max_nivel;nivel++){
+            for(const n of (agg[clave][id_grupo_operador]?.[nivel] ?? [])){             
+              const dependencia_id = aux?.[nivel-1]?.[n.dependencia] ?? null;
+              if(dependencia_id !== null){
+                aux[nivel][n.valor] = _nextNodeId;
+                agregarNodo(_nodes,_nextNodeId,'superior',n.valor,null);
+                _nextNodeId++;
+                agregarVertice(_nodes,_edges,aux[nivel][n.valor],dependencia_id);
+              }
+              else{
+                AUX.mensajeError('ERROR AGRUPAMIENTO MAL FORMADO');
+                console.log(agg[clave][id_grupo_operador],nivel);
+                throw 'ERROR AGRUPAMIENTO MAL FORMADO';
+              }
+              updateState(nodes,edges);
             }
           }
-        }        
+          
+          GOp_obj.data('nodes',_nodes);
+          GOp_obj.data('edges',_edges);
+          GOp_obj.data('nextNodeId',_nextNodeId);
+        }
       }*/
       
       M.trigger('regenerarInputsFormatear')
@@ -1888,6 +1985,8 @@ $(function(){
       nodes = null;
       edges = null;
       nextNodeId = null;
+      adjacencyMatrix = null;
+      distanceMatrix = null;
       
       AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
@@ -1896,38 +1995,6 @@ $(function(){
         M.modal('show');
       });
     });
-    
-    const getLabel = (id,valor,group,nivel) => {
-      let nivel_str = '';
-      
-      switch(group){
-        case 'superior':{
-          if(nivel === null){
-            nivel_str = 'Nivel -';
-          }
-          else{
-            nivel_str = 'Nivel '+nivel;
-          }
-        }break;
-        default:{
-          if(nivel !== 0){
-            AUX.mensajeError('ERROR AL ASIGNAR LABEL');
-            throw 'ERROR AL ASIGNAR LABEL';
-          }
-          nivel_str = groupAbbr?.[group] ?? 'ERROR';
-        }break;
-      }
-      
-      return id+' | '+valor.trim()+' | '+nivel_str;
-    };
-    
-    const findNode = (nodes,edges,valor,group,nivel) => {
-      return nodes.get().find(
-        n => { 
-          return n.valor == valor && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
-        }
-      );
-    };
     
     M.find('[data-js-click-agregar-nodo]').each(function(_,b){
       $(b).click(function(e){
@@ -1961,19 +2028,10 @@ $(function(){
         }
                 
         //No volver a agregar el mismo si ya esta
-        const found = findNode(nodes,edges,valor,group,nivel);
+        const found = findNode(nodes,valor,group,nivel);
         
         if(!found){
-          nodes.add({
-            id: nextNodeId,
-            group: group,
-            label: getLabel(nextNodeId,valor,group,nivel),
-            valor: valor,
-            nivel: nivel
-          });
-          
-          updateState(nodes,edges);
-          
+          agregarNodo(nodes,edges,adjacencyMatrix,distanceMatrix,nextNodeId,group,valor,nivel);
           nextNodeId++;
         }
         else{
@@ -1997,12 +2055,12 @@ $(function(){
       
       const existen = desde_n && hasta_n;
       const distintos = (desde_id != hasta_id);
-      const enlace_permitido = !!(allowedGroupLinks?.[desde_n.group]?.[hasta_n.group]);
+      const enlace_permitido =  !!(allowedGroupLinks?.[desde_n?.group]?.[hasta_n?.group]);
       const no_existe_lineaje = !isFinite(distanceMatrix[desde_id][hasta_id]);
       
-      const nuevo_a_nivelado = (desde_n.nivel === null && hasta_n.nivel !== null);
-      const nivelado_a_nuevo = (desde_n.nivel !== null && hasta_n.nivel === null && desde_n.nivel !== 1);
-      const nodos_existentes_pero_validos = (desde_n.nivel === (hasta_n.nivel+1) && hasta_n.nivel !== null);
+      const nuevo_a_nivelado = (desde_n?.nivel === null && hasta_n?.nivel !== null);
+      const nivelado_a_nuevo = (desde_n?.nivel !== null && hasta_n?.nivel === null && desde_n?.nivel !== 1);
+      const nodos_existentes_pero_validos = (desde_n?.nivel === (hasta_n?.nivel+1) && hasta_n?.nivel !== null);
       const enlace_valido_nivel = nuevo_a_nivelado || nivelado_a_nuevo || nodos_existentes_pero_validos;
       
       const valido = existen && distintos && enlace_permitido && no_existe_lineaje && enlace_valido_nivel;
@@ -2013,29 +2071,15 @@ $(function(){
         if(nuevo_a_nivelado){
           const nivel = hasta_n.nivel + 1;
           duplica_nodo = findNode(nodes,edges,desde_n.valor,desde_n.group,nivel);
-          if(!duplica_nodo){
-            desde_n.nivel = nivel;
-            desde_n.label = getLabel(desde_n.id,desde_n.valor,desde_n.group,desde_n.nivel);
-            nodes.update(desde_n);
-          }
         }
         
         if(nivelado_a_nuevo){
           const nivel = desde_n.nivel - 1;
           duplica_nodo = findNode(nodes,edges,hasta_n.valor,hasta_n.group,nivel);
-          if(!duplica_nodo){
-            hasta_n.nivel = nivel;
-            hasta_n.label = getLabel(hasta_n.id,hasta_n.valor,hasta_n.group,hasta_n.nivel);
-            nodes.update(hasta_n);
-          }
         }
         
         if(!duplica_nodo){
-          edges.add({
-            from: desde_id,
-            to: hasta_id
-          });
-          updateState(nodes,edges);
+          agregarVertice(nodes,edges,adjacencyMatrix,distanceMatrix,desde_id,hasta_id);
           network.fit();
         }
       }
@@ -2082,7 +2126,7 @@ $(function(){
       if (selectedEdges.length > 0) {
         edges.remove(selectedEdges);
       }
-      updateState(nodes,edges);
+      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
       
       //Re asigno los niveles, busco el primer nodo base que este conectado
       for(const root of nodes.get()){
