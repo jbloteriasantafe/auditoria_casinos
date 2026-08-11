@@ -1682,8 +1682,8 @@ $(function(){
       return id+' | '+valor.trim()+' | '+nivel_str;
     };
     
-    const findNode = (nodes,valor,group,nivel) => {
-      return nodes.get().find(
+    const findNode = (state,valor,group,nivel) => {
+      return state.nodes.get().find(
         n => { 
           return n.valor == valor && n.group == group && n.nivel === nivel && n.nivel !== null && nivel !== null;
         }
@@ -1694,19 +1694,19 @@ $(function(){
       Object.keys(obj).forEach(key => delete obj[key]);
     };
     
-    const updateMatrixes = (nodes,edges,adjacencyMatrix,distanceMatrix) => {
+    const updateMatrixes = (state) => {
       {
-        clearObject(adjacencyMatrix);
-        nodes.get().forEach(n1 => {
-          adjacencyMatrix[n1.id] = {};
-          nodes.get().forEach(n2 => {
-            adjacencyMatrix[n1.id][n2.id] = 0;
+        clearObject(state.adjacencyMatrix);
+        state.nodes.get().forEach(n1 => {
+          state.adjacencyMatrix[n1.id] = {};
+          state.nodes.get().forEach(n2 => {
+            state.adjacencyMatrix[n1.id][n2.id] = 0;
           });
         });
         
-        edges.get().forEach(e => {
-          if (adjacencyMatrix?.[e.from]?.[e.to] === 0) {
-            adjacencyMatrix[e.from][e.to] = 1;
+        state.edges.get().forEach(e => {
+          if (state.adjacencyMatrix?.[e.from]?.[e.to] === 0) {
+            state.adjacencyMatrix[e.from][e.to] = 1;
             // Undirected:
             //adjacencyList[e.to][e.from] = 1;
           }
@@ -1714,83 +1714,86 @@ $(function(){
       }
       {
         //Se inicializa en base a la matriz de adyacencia
-        clearObject(distanceMatrix);
-        nodes.get().forEach(n1 => {
-          distanceMatrix[n1.id] = {};
-          nodes.get().forEach(n2 => {
-            distanceMatrix[n1.id][n2.id] = adjacencyMatrix[n1.id][n2.id] === 1? 1 : Infinity;
+        clearObject(state.distanceMatrix);
+        state.nodes.get().forEach(n1 => {
+          state.distanceMatrix[n1.id] = {};
+          state.nodes.get().forEach(n2 => {
+            state.distanceMatrix[n1.id][n2.id] = state.adjacencyMatrix[n1.id][n2.id] === 1? 1 : Infinity;
           });
-          distanceMatrix[n1.id][n1.id] = 0;
+          state.distanceMatrix[n1.id][n1.id] = 0;
         });
 
         // Floyd-Warshall
-        nodes.get().forEach(k => {
-          nodes.get().forEach(i => {
-            nodes.get().forEach(j => {
-              const sin_k = distanceMatrix[i.id][j.id];
-              const por_k = distanceMatrix[i.id][k.id] + distanceMatrix[k.id][j.id];
+        state.nodes.get().forEach(k => {
+          state.nodes.get().forEach(i => {
+            state.nodes.get().forEach(j => {
+              const sin_k = state.distanceMatrix[i.id][j.id];
+              const por_k = state.distanceMatrix[i.id][k.id] + state.distanceMatrix[k.id][j.id];
               if (sin_k > por_k) {
-                distanceMatrix[i.id][j.id] = por_k;
+                state.distanceMatrix[i.id][j.id] = por_k;
               }
             });
           });
         });
         
         //Guardo los padres como valores negativos
-        nodes.get().forEach(n1 => {
-          nodes.get().forEach(n2 => {
-            const distance = distanceMatrix[n1.id][n2.id];
+        state.nodes.get().forEach(n1 => {
+          state.nodes.get().forEach(n2 => {
+            const distance = state.distanceMatrix[n1.id][n2.id];
             if(distance > 0 && isFinite(distance)){
-              distanceMatrix[n2.id][n1.id] = -distance;
+              state.distanceMatrix[n2.id][n1.id] = -distance;
             }
           });
         });
       }
       
-      console.log(nodes.get(),edges.get(),adjacencyMatrix,distanceMatrix);
+      console.log(state);
     }
     
-    const agregarNodo = (nodes,edges,adjacencyMatrix,distanceMatrix,id,group,valor,nivel) => {
-      nodes.add({
-        id: id,
+    const agregarNodo = (state,group,valor,nivel) => {
+      state.nodes.add({
+        id: state.nextNodeId,
         group: group,
-        label: getLabel(nextNodeId,valor,group,nivel),
+        label: getLabel(state.nextNodeId,valor,group,nivel),
         valor: valor,
         nivel: nivel
       });
-      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+      state.nextNodeId++;
+      updateMatrixes(state);
     };
     
-    const agregarVertice = (nodes,edges,adjacencyMatrix,distanceMatrix,desde_id,hasta_id) => {
-      const desde = nodes.get(parseInt(desde_id));
-      const hasta = nodes.get(parseInt(hasta_id));
+    const agregarVertice = (state,desde_id,hasta_id) => {
+      const desde = state.nodes.get(parseInt(desde_id));
+      const hasta = state.nodes.get(parseInt(hasta_id));
       if(hasta.nivel !== null && desde.nivel === null){
         desde.nivel = hasta.nivel+1;
         desde.label = getLabel(desde.id,desde.valor,desde.group,desde.nivel);
-        nodes.update(desde);
+        state.nodes.update(desde);
       }
       else if(hasta.nivel === null && desde.nivel !== null){
         hasta.nivel = desde.nivel-1;
         hasta.label = getLabel(hasta.id,hasta.valor,hasta.group,hasta.nivel);
-        nodes.update(hasta);
+        state.nodes.update(hasta);
       }
       else if(hasta.nivel !== (desde.nivel-1)){
         throw 'ERROR MALFORMADO '+JSON.stringify(desde)+' a '+JSON.stringify(hasta);
       }
-      edges.add({
+      state.edges.add({
         from: desde_id,
         to: hasta_id
       });
-      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+      updateMatrixes(state);
     };
     
     // Define DAG nodes
-    let nodes      = null;
-    let nextNodeId = null;
-    let edges      = null;
-    let network    = null;
-    let adjacencyMatrix = null;
-    let distanceMatrix  = null;
+    let state = {
+      nodes: null,
+      nextNodeId: null,
+      edges: null,
+      adjacencyMatrix: null,
+      distanceMatrix: null
+    };
+    let network = null;
     let selectedNodes = [];
     
     // Configure for a DAG visual layout
@@ -1845,34 +1848,25 @@ $(function(){
       const selected = $(e.currentTarget);
       
       //Guardo el progreso
-      selected_radio_grupo_operador.data('nodes',nodes);
-      selected_radio_grupo_operador.data('edges',edges);
-      selected_radio_grupo_operador.data('nextNodeId',nextNodeId);
-      selected_radio_grupo_operador.data('adjacencyMatrix',adjacencyMatrix);
-      selected_radio_grupo_operador.data('distanceMatrix',distanceMatrix);
-      
+      selected_radio_grupo_operador.data('state',state);
       //Seteo los que tiene la opcion
       selected_radio_grupo_operador = selected;
-      nodes = selected.data('nodes');
-      edges = selected.data('edges');
-      nextNodeId = selected.data('nextNodeId');
-      adjacencyMatrix = selected.data('adjacencyMatrix');
-      distanceMatrix  = selected.data('distanceMatrix');
+      state = selected.data('state');
       //@HACK: useless?
-      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
-      
+      updateMatrixes(state);
       selectedNodes = [];
+      
       if(network !== null){
         network.setData({
-          nodes: nodes,
-          edges: edges
+          nodes: state.nodes,
+          edges: state.edges
         });
       }
       else{
-        network = new vis.Network(container, { nodes, edges }, options);
+        network = new vis.Network(container, { nodes: state.nodes, edges: state.edges }, options);
         network.on("selectNode", function (params) {      
           if(selectedNodes.length == 0){
-            const desde_id = nodes.get(params.nodes[0]).id;
+            const desde_id = state.nodes.get(params.nodes[0]).id;
             selectedNodes.push(desde_id);
             M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
           }
@@ -1911,11 +1905,13 @@ $(function(){
       GOp.find('[data-radio-grupo-operador-label]').text(id_grupo_operador);
       const GOp_obj = GOp.find('[data-radio-grupo-operador]');
       GOp_obj.attr('data-radio-grupo-operador',id_grupo_operador);
-      GOp_obj.data('nodes',new vis.DataSet([]));
-      GOp_obj.data('edges',new vis.DataSet([]));
-      GOp_obj.data('adjacencyMatrix',{});
-      GOp_obj.data('distanceMatrix',{});
-      GOp_obj.data('nextNodeId',1);
+      GOp_obj.data('state',{
+        nodes: new vis.DataSet([]),
+        edges: new vis.DataSet([]),
+        adjacencyMatrix: {},
+        distanceMatrix: {},
+        nextNodeId: 1
+      });
       return GOp_obj;
     };
     
@@ -1981,12 +1977,15 @@ $(function(){
       M.trigger('setModo',[modo]);
       
       M.find('[data-contenedor-grupos-operadores]').empty();
+      state = {
+        nodes: null,
+        nextNodeId: null,
+        edges: null,
+        adjacencyMatrix: null,
+        distanceMatrix: null
+      };
       network = null;
-      nodes = null;
-      edges = null;
-      nextNodeId = null;
-      adjacencyMatrix = null;
-      distanceMatrix = null;
+      selectedNodes = [];
       
       AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
@@ -2028,11 +2027,10 @@ $(function(){
         }
                 
         //No volver a agregar el mismo si ya esta
-        const found = findNode(nodes,valor,group,nivel);
+        const found = findNode(state,valor,group,nivel);
         
         if(!found){
-          agregarNodo(nodes,edges,adjacencyMatrix,distanceMatrix,nextNodeId,group,valor,nivel);
-          nextNodeId++;
+          agregarNodo(state,group,valor,nivel);
         }
         else{
           AUX.mensajeError('Nodo repetido');
@@ -2050,13 +2048,13 @@ $(function(){
       const desde_hasta = M.find(tgt.attr('data-js-click-enlazar-nodo'));
       const desde_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="desde"]')?.val()?.trim());
       const hasta_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="hasta"]')?.val()?.trim());
-      const desde_n = !isNaN(desde_id)? nodes.get(desde_id) : undefined;
-      const hasta_n = !isNaN(hasta_id)? nodes.get(hasta_id) : undefined;
+      const desde_n = !isNaN(desde_id)? state.nodes.get(desde_id) : undefined;
+      const hasta_n = !isNaN(hasta_id)? state.nodes.get(hasta_id) : undefined;
       
       const existen = desde_n && hasta_n;
       const distintos = (desde_id != hasta_id);
       const enlace_permitido =  !!(allowedGroupLinks?.[desde_n?.group]?.[hasta_n?.group]);
-      const no_existe_lineaje = !isFinite(distanceMatrix[desde_id][hasta_id]);
+      const no_existe_lineaje = !isFinite(state.distanceMatrix[desde_id][hasta_id]);
       
       const nuevo_a_nivelado = (desde_n?.nivel === null && hasta_n?.nivel !== null);
       const nivelado_a_nuevo = (desde_n?.nivel !== null && hasta_n?.nivel === null && desde_n?.nivel !== 1);
@@ -2070,16 +2068,16 @@ $(function(){
       if(valido){
         if(nuevo_a_nivelado){
           const nivel = hasta_n.nivel + 1;
-          duplica_nodo = findNode(nodes,edges,desde_n.valor,desde_n.group,nivel);
+          duplica_nodo = findNode(state,desde_n.valor,desde_n.group,nivel);
         }
         
         if(nivelado_a_nuevo){
           const nivel = desde_n.nivel - 1;
-          duplica_nodo = findNode(nodes,edges,hasta_n.valor,hasta_n.group,nivel);
+          duplica_nodo = findNode(state,hasta_n.valor,hasta_n.group,nivel);
         }
         
         if(!duplica_nodo){
-          agregarVertice(nodes,edges,adjacencyMatrix,distanceMatrix,desde_id,hasta_id);
+          agregarVertice(state,desde_id,hasta_id);
           network.fit();
         }
       }
@@ -2121,30 +2119,30 @@ $(function(){
       const selectedNodes = network.getSelectedNodes();
       const selectedEdges = network.getSelectedEdges();
       if (selectedNodes.length > 0) {
-        nodes.remove(selectedNodes);
+        state.nodes.remove(selectedNodes);
       } 
       if (selectedEdges.length > 0) {
-        edges.remove(selectedEdges);
+        state.edges.remove(selectedEdges);
       }
-      updateMatrixes(nodes,edges,adjacencyMatrix,distanceMatrix);
+      updateMatrixes(state);
       
       //Re asigno los niveles, busco el primer nodo base que este conectado
-      for(const root of nodes.get()){
+      for(const root of state.nodes.get()){
         if(root.group !== 'superior') continue;
         
         root.nivel = null;
-        for(const target_node_id in distanceMatrix[root.id]){
+        for(const target_node_id in state.distanceMatrix[root.id]){
           if(root.id === target_node_id) continue;
           
-          const distance = distanceMatrix[root.id][target_node_id];
-          const target_node = nodes.get(parseInt(target_node_id));
+          const distance = state.distanceMatrix[root.id][target_node_id];
+          const target_node = state.nodes.get(parseInt(target_node_id));
           if(target_node.nivel == 0 && distance > 0 && isFinite(distance)) {
             root.nivel = distance;
             break;
           }
         }
         root.label = getLabel(root.id,root.valor,root.group,root.nivel);
-        nodes.update(root);
+        state.nodes.update(root);
       }
       
       network.fit();
