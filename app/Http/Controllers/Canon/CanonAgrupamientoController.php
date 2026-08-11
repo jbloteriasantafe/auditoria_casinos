@@ -729,16 +729,15 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function obtener_por_clave(){
-    $valor = 'IF(cagg_deps.nivel = 0,cagg_deps.base_tipo,cagg_deps.valor)';
-    $dependencia = 'IF(cagg_deps.nivel = 0,cagg_deps.base_subcanon_o_superior_dependencia,cagg_deps.base_subcanon_o_superior_dependencia)';
     $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
     ->select(
       'cagg_deps.id_canon_subcanon_a_grupo',
       'cagg_deps.nivel',
       'cagg_deps.clave',
       'cagg_deps.id_grupo_operador',
-      DB::raw("$valor as valor"),
-      DB::raw("$dependencia as dependencia")
+      'cagg_deps.valor',
+      'cagg_deps.base_subcanon_o_superior_dependencia',
+      'cagg_deps.base_tipo'
     )
     ->where('clave',request()->clave ?? null)
     ->orderBy('nivel','asc')

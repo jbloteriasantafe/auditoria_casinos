@@ -1926,44 +1926,38 @@ $(function(){
       const clave = Object.keys(agg)?.[0];
       Mname('clave',clave);
       
-      /*
+      
       if(clave !== undefined){
         for(const id_grupo_operador in agg[clave]){
           const GOp_obj = agregarGrupoOperador(id_grupo_operador);
-          const _nodes = GOp_obj.data('nodes');
-          const _edges = GOp_obj.data('edges');
-          let _nextNodeId = GOp_obj.data('nextNodeId');
+          
+          const _state = GOp_obj.data('state');
           
           const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
           let aux = {0: {}};
           for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
-            aux[0][n.valor] = _nextNodeId;
-            agregarNodo(_nodes,_nextNodeId,'base:'+n.dependencia,n.valor,0);
-            _nextNodeId++;
+            aux[0][n.valor] = _state.nextNodeId;
+            agregarNodo(_state,'base:'+n.base_subcanon_o_superior_dependencia,n.base_tipo,0);
           }
+          
           for(let nivel=1;nivel<=max_nivel;nivel++){
+            aux[nivel] = {};
             for(const n of (agg[clave][id_grupo_operador]?.[nivel] ?? [])){             
               const dependencia_id = aux?.[nivel-1]?.[n.dependencia] ?? null;
               if(dependencia_id !== null){
-                aux[nivel][n.valor] = _nextNodeId;
-                agregarNodo(_nodes,_nextNodeId,'superior',n.valor,null);
-                _nextNodeId++;
-                agregarVertice(_nodes,_edges,aux[nivel][n.valor],dependencia_id);
+                aux[nivel][n.valor] = _state.nextNodeId;
+                agregarNodo(_state,'superior',n.valor,null);
+                agregarVertice(_state,aux[nivel][n.valor],dependencia_id);
               }
-              else{
+              /*else{
                 AUX.mensajeError('ERROR AGRUPAMIENTO MAL FORMADO');
                 console.log(agg[clave][id_grupo_operador],nivel);
                 throw 'ERROR AGRUPAMIENTO MAL FORMADO';
-              }
-              updateState(nodes,edges);
+              }*/
             }
           }
-          
-          GOp_obj.data('nodes',_nodes);
-          GOp_obj.data('edges',_edges);
-          GOp_obj.data('nextNodeId',_nextNodeId);
         }
-      }*/
+      }
       
       M.trigger('regenerarInputsFormatear')
       .trigger('formatearCampos');
