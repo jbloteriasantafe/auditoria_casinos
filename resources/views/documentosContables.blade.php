@@ -3,7 +3,10 @@
   @section('headerLogo')
   <span class="etiquetaLogoExpedientes">@svg('expedientes','iconoExpedientes')</span>
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  @endsection
+  
+
+
+@endsection
   @section('contenidoVista')
 
   @section('estilos')
@@ -15,6 +18,17 @@
   <link rel="stylesheet" href="css/lista-datos.css">
 
   <style>
+    /* Documento validado: el modal se abre en solo lectura, así que no se puede eliminar archivos.
+       Va por CSS porque la lista de archivos se carga por AJAX (después de bloquear el modal). */
+    .doc-solo-lectura .lista-archivos-doc [class*="btn-del-archivo-"] {
+      display: none !important;
+    }
+    /* Ídem para el alta/baja de directores del registro de autónomos: si el documento ya está
+       validado no se pueden sumar ni sacar directores. */
+    .doc-solo-lectura #zona-agregar-director,
+    .doc-solo-lectura .btn-quitar-director {
+      display: none !important;
+    }
     #mensajeExito {
       animation: salida 1.5s forwards;
     }
@@ -92,7 +106,10 @@
       background-color: var(--fondo);
     }
   </style>
-  @endsection
+  
+
+
+@endsection
 
   <div class="row">
     <!-- FILTROS GLOBALES -->
@@ -191,6 +208,7 @@
         <div><a data-js-tab="#pant_aportes" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">APORTES PATRONALES</a></div>
         <div><a data-js-tab="#pant_rrhh" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">RRHH</a></div>
         <div><a data-js-tab="#pant_oper" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">REPORTE LAVADO</a></div>
+                <div><a data-js-tab="#pant_publico_casino" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">PÚBLICO CASINO</a></div>
         <div><a data-js-tab="#pant_seguros" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">SEGUROS</a></div>
         <div id="div_tab_validados" hidden><a data-js-tab="#pant_validados" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">VALIDADOS</a></div>
         <div id="div_tab_control_documentos" hidden><a data-js-tab="#pant_control_documentos" style="border-radius: 0; border-bottom: 1px solid var(--borde-tab);">CONTROL DOCUMENTOS</a></div>
@@ -276,10 +294,10 @@
     <div class="modal fade" id="modalCargarEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog" style="width: 70%;">
              <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
+               <div class="modal-header modalNuevo" style="background-color: #00695c;">
                  <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                  <button id="btn-minimizarEstadoContable" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoEstadoContable" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #6dc7be;">| NUEVO ESTADO CONTABLE</h3>
+                 <h3 class="modal-title" style="background-color: #00695c;">| NUEVO ESTADO CONTABLE</h3>
                 </div>
                 <!-- TODO: Add missing custom inputs based on specific schema request -->
                 <div id="colapsadoEstadoContable" class="collapse in">
@@ -554,6 +572,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                   </table>
                                 </div>
                                 <div id="uploadsEstadoContableContainer" style="display:none;"></div>
+                                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                                <div id="listaArchivosWrap_EstadoContable" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                  <div id="listaArchivos_EstadoContable" class="list-group"></div>
+                                </div>
                               </div>
                             </div>
 
@@ -1684,6 +1707,54 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
     </div>
   </div>
 
+  
+  <div id="pant_publico_casino" hidden>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-6">
+                <br/><br/>
+                <h4>REGISTROS DE PÚBLICO CASINO EN EL SISTEMA</h4>
+              </div>
+              <div class="col-md-6 text-right">
+                <button type="button" class="btn btn-infoBuscar" id="btn-totalesAnualesPublicoCasino" style="margin-top: 30px;">
+                  <i class="fa fa-calendar-alt"></i> TOTALES ANUALES
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table id="tablaResultadosPublicoCasino" class="table table-fixed">
+              <thead>
+                <tr>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">DÍAS COMPLETADOS</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpoTablaPublicoCasino" style="max-height: none;">
+              </tbody>
+            </table>
+            <div class="row">
+              <div class="col-md-12 text-center">
+                <button id="btn-descargarPublicoCasinoExcel" class="btn btn-infoBuscar">
+                  <i class="fa fa-download"></i> .xlsx
+                </button>
+                <button id="btn-descargarPublicoCasinoCsv" class="btn btn-infoBuscar">
+                  <i class="fa fa-download"></i> .csv
+                </button>
+              </div>
+            </div>
+            <div id="herramientasPaginacionPublicoCasino" class="row zonaPaginacion"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="pant_seguros" hidden>
     <div class="row">
       <div class="col-md-12">
@@ -2003,6 +2074,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsIvaContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_Iva" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_Iva" class="list-group"></div>
+              </div>
               </div>
           </div>
         </div>
@@ -2253,6 +2329,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsiibbContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_iibb" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_iibb" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -2710,6 +2791,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsDREIContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_DREI" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_DREI" class="list-group"></div>
+            </div>
             </div>
     </div>
 
@@ -3343,6 +3429,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsTGIContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_TGI" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_TGI" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -3560,6 +3651,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                               </div>
 
                               <div id="uploadsIMP_AP_OLContainer" style="display:none;"></div>
+                              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                              <div id="listaArchivosWrap_IMP_AP_OL" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                <div id="listaArchivos_IMP_AP_OL" class="list-group"></div>
+                              </div>
                               </div>
                       </div>
           </div>
@@ -3807,6 +3903,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     </div>
 
                     <div id="uploadsIMP_AP_MTMContainer" style="display:none;"></div>
+                    <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                    <div id="listaArchivosWrap_IMP_AP_MTM" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                      <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                      <div id="listaArchivos_IMP_AP_MTM" class="list-group"></div>
+                    </div>
                     </div>
             </div>
             </div>
@@ -4032,6 +4133,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     </div>
 
                     <div id="uploadsDeudaEstadoContainer" style="display:none;"></div>
+                    <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                    <div id="listaArchivosWrap_DeudaEstado" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                      <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                      <div id="listaArchivos_DeudaEstado" class="list-group"></div>
+                    </div>
                     </div>
             </div>
 
@@ -4200,6 +4306,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPagosMayoresMesasContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PagosMayoresMesas" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PagosMayoresMesas" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -4382,6 +4493,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsReporteYLavadoContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_ReporteYLavado" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_ReporteYLavado" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -4624,6 +4740,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsRegistrosContablesContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_RegistrosContables" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_RegistrosContables" class="list-group"></div>
+              </div>
               </div>
       </div>
               </div>
@@ -4890,6 +5011,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsAportesPatronalesContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_AportesPatronales" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_AportesPatronales" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5083,6 +5209,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPromoTicketsContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PromoTickets" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PromoTickets" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -5273,6 +5404,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsPozosAcumuladosLinkeadosContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_PozosAcumuladosLinkeados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_PozosAcumuladosLinkeados" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5500,6 +5636,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsContribEnteTuristicoContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_ContribEnteTuristico" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_ContribEnteTuristico" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -5808,6 +5949,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
           </div>
           </br>
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Observaciones</h5>
+        <textarea class="form-control" maxlength="4000" name="obs_RRHH" id="obs_RRHH" rows="3"></textarea>
+      </div>
+    </div>
+    </br>
           <div class="row">
     <div class="col-md-3">
       <h5>Archivo</h5>
@@ -5840,6 +5988,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
 
         <div id="uploadsRRHHContainer" style="display:none;"></div>
+        <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+        <div id="listaArchivosWrap_RRHH" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+          <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+          <div id="listaArchivos_RRHH" class="list-group"></div>
+        </div>
         </div>
 </div>
               </div>
@@ -6068,6 +6221,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
                </div>
 
+               <div class="row">
+                 <div class="col-md-12">
+                   <h5>Observaciones</h5>
+                   <textarea class="form-control" id="ver_obs_RRHH" rows="3" readonly></textarea>
+                 </div>
+               </div>
+
                    </div>
 
                     <div class="modal-footer">
@@ -6197,6 +6357,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   </div>
 
                   <div id="uploadsGananciasContainer" style="display:none;"></div>
+                  <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                  <div id="listaArchivosWrap_Ganancias" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                    <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                    <div id="listaArchivos_Ganancias" class="list-group"></div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -6422,6 +6587,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               </div>
 
               <div id="uploadsGanancias_periodoContainer" style="display:none;"></div>
+              <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+              <div id="listaArchivosWrap_Ganancias_periodo" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                <div id="listaArchivos_Ganancias_periodo" class="list-group"></div>
+              </div>
               </div>
       </div>
 
@@ -6611,6 +6781,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsJackpotsPagadosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_JackpotsPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_JackpotsPagados" class="list-group"></div>
+            </div>
             </div>
     </div>
 
@@ -6802,6 +6977,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsPremiosPagadosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_PremiosPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_PremiosPagados" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -6983,7 +7163,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosMTM" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PremiosMTM" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PremiosMTM" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PremiosMTM" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosMTM">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7017,7 +7201,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PromoTickets" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PromoTickets" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PromoTickets" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PromoTickets" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PromoTickets">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7050,7 +7238,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_Pozos" name="uploadPozos[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Pozos" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_Pozos" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_Pozos" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_Pozos" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Pozos">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7084,7 +7276,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_Jackpots" name="uploadJackpots[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="Jackpots" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_Jackpots" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_Jackpots" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_Jackpots" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Jackpots">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7119,7 +7315,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PremiosPagados" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PremiosPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PremiosPagados" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PremiosPagados" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosPagados">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7154,7 +7354,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_PagosMesas" name="uploadPagosMesas[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="PagosMesas" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_PagosMesas" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_PagosMesas" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_PagosMesas" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PagosMesas">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7196,7 +7400,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                             <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="No se ha seleccionado ningún archivo" readonly>
                                             <input type="file" class="inputUnified" id="upload_RegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
                                         </div>
-                                        <button type="button" class="btn btn-infoBuscar btn-ver-archivos-unified" data-type="RegistrosContables" style="display:none;"><i class="fa fa-file"></i> VER ARCHIVOS</button>
+                                        <!-- archivos ya cargados (inline) -->
+                                        <div id="listaArchivosWrap_U_RegistrosContables" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                            <div id="listaArchivos_U_RegistrosContables" class="list-group"></div>
+                                        </div>
                                         <div class="table-responsive wrapUnified" id="wrap_RegistrosContables" style="margin-top:8px; display:none;">
                                             <table class="table table-striped table-bordered table-condensed tableUnified" id="table_RegistrosContables">
                                                 <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
@@ -7255,7 +7463,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <form id="frmEliminar" name="frmCasino" class="form-horizontal" novalidate="">
                       <div class="form-group error ">
                         <div class="col-xs-12">
-                            <strong id="titulo-modal-eliminar">¿Seguro desea eliminar el registro del premio mtm?</strong>
+                            <strong id="titulo-modal-eliminarPremiosMTM">¿Seguro desea eliminar el registro del premio mtm?</strong>
                         </div>
                       </div>
                   </form>
@@ -7601,6 +7809,23 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
                 <br/>
 
+                <!-- Alta de directores al registro: permite sumar directores del casino que no están
+                     habilitados, o volver a agregar uno que se sacó. -->
+                <div class="row" id="zona-agregar-director" style="display:none;">
+                  <div class="col-md-7">
+                    <select id="selectAgregarDirector" class="form-control input-sm">
+                      <option value="">Elegí un director para agregar…</option>
+                    </select>
+                  </div>
+                  <div class="col-md-5">
+                    <button type="button" id="btnAgregarDirector" class="btn btn-infoBuscar btn-sm">
+                      <i class="fa fa-plus"></i> AGREGAR AL REGISTRO
+                    </button>
+                    <span id="avisoAgregarDirector" class="text-muted" style="margin-left:8px;"></span>
+                  </div>
+                </div>
+                <br/>
+
                 <div id="zona-directores" class="row">
 
                 </div>
@@ -7639,6 +7864,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsAutDirectoresContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_AutDirectores" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_AutDirectores" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -7993,6 +8223,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
 
             <div id="uploadsSegurosContainer" style="display:none;"></div>
+            <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+            <div id="listaArchivosWrap_Seguros" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+              <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+              <div id="listaArchivos_Seguros" class="list-group"></div>
+            </div>
             </div>
     </div>
               </div>
@@ -8236,6 +8471,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
 
           <div id="uploadsDerechoAccesoContainer" style="display:none;"></div>
+          <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+          <div id="listaArchivosWrap_DerechoAcceso" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+            <div id="listaArchivos_DerechoAcceso" class="list-group"></div>
+          </div>
           </div>
   </div>
               </div>
@@ -8470,12 +8710,12 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 <div class="modal fade" id="modalCargarPatentes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" style="width:95%">
     <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color:#6dc7be;">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
         <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
         <button id="btn-minimizarCrearPatentes" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearPatentes" style="position:relative; right:20px; top:5px">
           <i class="fa fa-minus"></i>
         </button>
-        <h3 class="modal-title" style="background-color:#6dc7be;">| NUEVO PAGO DE PATENTES</h3>
+        <h3 class="modal-title" style="background-color:#00695c;">| NUEVO PAGO DE PATENTES</h3>
       </div>
 
       <div id="colapsadoCrearPatentes" class="collapse in">
@@ -8549,6 +8789,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
 
                 <div id="uploadsPatentesContainer" style="display:none;"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_Patentes" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_Patentes" class="list-group"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -8887,6 +9132,11 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 </div>
 
                 <div id="uploadsImpInmobiliarioContainer" style="display:none;"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_ImpInmobiliario" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_ImpInmobiliario" class="list-group"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -8976,6 +9226,9 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 
 
+
+
+
 @endsection
 @section('scripts')
   <!-- JavaScript paginacion -->
@@ -9026,4 +9279,204 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
       </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalAvisoValidacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <h3 class="modal-titleEliminar">NO SE PUEDE VALIDAR</h3>
+          </div>
+
+          <div class="modal-body franjaRojaModal">
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <strong id="texto-aviso-validacion">No se puede validar el documento.</strong>
+                </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">ENTENDIDO</button>
+          </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header modalNuevo" style="background-color: #00695c;">
+        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+        <h3 class="modal-title">PÚBLICO CASINO</h3>
+      </div>
+      <div class="modal-body">
+        <form id="frmPublicoCasino" class="form-horizontal" novalidate="">
+          <div class="row">
+            <div class="col-md-3">
+  <label>Día 1</label><input type="text" class="form-control input-publico-dia" id="pc_dia_1" name="dia_1">
+  <label>Día 2</label><input type="text" class="form-control input-publico-dia" id="pc_dia_2" name="dia_2">
+  <label>Día 3</label><input type="text" class="form-control input-publico-dia" id="pc_dia_3" name="dia_3">
+  <label>Día 4</label><input type="text" class="form-control input-publico-dia" id="pc_dia_4" name="dia_4">
+  <label>Día 5</label><input type="text" class="form-control input-publico-dia" id="pc_dia_5" name="dia_5">
+  <label>Día 6</label><input type="text" class="form-control input-publico-dia" id="pc_dia_6" name="dia_6">
+  <label>Día 7</label><input type="text" class="form-control input-publico-dia" id="pc_dia_7" name="dia_7">
+  <label>Día 8</label><input type="text" class="form-control input-publico-dia" id="pc_dia_8" name="dia_8">
+</div>
+<div class="col-md-3">
+  <label>Día 9</label><input type="text" class="form-control input-publico-dia" id="pc_dia_9" name="dia_9">
+  <label>Día 10</label><input type="text" class="form-control input-publico-dia" id="pc_dia_10" name="dia_10">
+  <label>Día 11</label><input type="text" class="form-control input-publico-dia" id="pc_dia_11" name="dia_11">
+  <label>Día 12</label><input type="text" class="form-control input-publico-dia" id="pc_dia_12" name="dia_12">
+  <label>Día 13</label><input type="text" class="form-control input-publico-dia" id="pc_dia_13" name="dia_13">
+  <label>Día 14</label><input type="text" class="form-control input-publico-dia" id="pc_dia_14" name="dia_14">
+  <label>Día 15</label><input type="text" class="form-control input-publico-dia" id="pc_dia_15" name="dia_15">
+  <label>Día 16</label><input type="text" class="form-control input-publico-dia" id="pc_dia_16" name="dia_16">
+</div>
+<div class="col-md-3">
+  <label>Día 17</label><input type="text" class="form-control input-publico-dia" id="pc_dia_17" name="dia_17">
+  <label>Día 18</label><input type="text" class="form-control input-publico-dia" id="pc_dia_18" name="dia_18">
+  <label>Día 19</label><input type="text" class="form-control input-publico-dia" id="pc_dia_19" name="dia_19">
+  <label>Día 20</label><input type="text" class="form-control input-publico-dia" id="pc_dia_20" name="dia_20">
+  <label>Día 21</label><input type="text" class="form-control input-publico-dia" id="pc_dia_21" name="dia_21">
+  <label>Día 22</label><input type="text" class="form-control input-publico-dia" id="pc_dia_22" name="dia_22">
+  <label>Día 23</label><input type="text" class="form-control input-publico-dia" id="pc_dia_23" name="dia_23">
+  <label>Día 24</label><input type="text" class="form-control input-publico-dia" id="pc_dia_24" name="dia_24">
+</div>
+<div class="col-md-3">
+  <label>Día 25</label><input type="text" class="form-control input-publico-dia" id="pc_dia_25" name="dia_25">
+  <label>Día 26</label><input type="text" class="form-control input-publico-dia" id="pc_dia_26" name="dia_26">
+  <label>Día 27</label><input type="text" class="form-control input-publico-dia" id="pc_dia_27" name="dia_27">
+  <label>Día 28</label><input type="text" class="form-control input-publico-dia" id="pc_dia_28" name="dia_28">
+  <label>Día 29</label><input type="text" class="form-control input-publico-dia" id="pc_dia_29" name="dia_29">
+  <label>Día 30</label><input type="text" class="form-control input-publico-dia" id="pc_dia_30" name="dia_30">
+  <label>Día 31</label><input type="text" class="form-control input-publico-dia" id="pc_dia_31" name="dia_31">
+</div>
+
+          </div>
+          <div class="row">
+            <div class="col-md-12 text-center" style="margin-top: 20px;">
+              <h4>TOTAL MENSUAL: <input type="text" id="pc_total_mensual_input" class="form-control" readonly style="display:inline-block; width:150px; text-align:center; font-weight:bold;"></h4>
+            </div>
+          </div>
+          
+          <!-- SUBIR ARCHIVOS -->
+          <div class="row">
+            <div class="col-md-3">
+              <h5>Archivo</h5>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <div class="input-group col-md-8">
+                <span class="input-group-btn">
+                  <button class="btn btn-primary" type="button" id="btnPickPublicoCasino">
+                    <i class="fa fa-folder-open"></i> Examinar…
+                  </button>
+                </span>
+                <input type="text" id="fileNamePublicoCasino" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">
+                <div id="uploadsPublicoCasinoContainer"></div>
+                <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->
+                <div id="listaArchivosWrap_PublicoCasino" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                  <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                  <div id="listaArchivos_PublicoCasino" class="list-group"></div>
+                </div>
+              </div>
+              <div class="table-responsive" id="uploadsPublicoCasinoWrap" style="margin-top:8px; display:none;">
+                <table class="table table-striped table-bordered table-condensed" id="uploadsPublicoCasinoTable">
+                  <thead>
+                    <tr>
+                      <th style="width:48px;">#</th>
+                      <th>Archivo</th>
+                      <th style="width:200px;">Tamaño</th>
+                      <th style="width:70px;">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="id_registroPublicoCasino" name="id_registroPublicoCasino">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-successAceptar" id="btn-guardarPublicoCasino">ACEPTAR</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TOTALES ANUALES PUBLICO CASINO -->
+<div class="modal fade" id="modalTotalesAnualesPublicoCasino" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" style="width: 95%;">
+    <div class="modal-content">
+      <div class="modal-header" style="font-family: Roboto-Black; background-color: #6dc7be; color: #fff">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h3 class="modal-title">TOTALES ANUALES PÚBLICO CASINO</h3>
+      </div>
+      <div class="modal-body">
+        <div class="row" style="margin-bottom: 20px;">
+          <div class="col-md-3">
+            <label>Casino</label>
+            <select id="ta_casino" class="form-control">
+              @foreach ($casinos as $cas)
+              <option value="{{$cas->id_casino}}">{{$cas->nombre}}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label>Año</label>
+            <select id="ta_anio" class="form-control">
+              <!-- JS will populate -->
+            </select>
+          </div>
+          <div class="col-md-2" style="padding-top: 25px; display: none;">
+            <button id="btn-buscarTotalesAnuales" class="btn btn-infoBuscar"><i class="fa fa-search"></i> BUSCAR</button>
+          </div>
+        </div>
+        
+        <br/><br/>
+        
+        <div class="row">
+          <div class="col-md-12" style="overflow-x: auto;">
+            <table class="table table-bordered table-condensed" style="font-size: 11px; text-align: center; white-space: nowrap;">
+              <thead>
+                <tr id="ta_thead_row" style="background-color: #f5f5f5;">
+                  <th style="text-align: center; font-weight: bold;">Día</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Enero</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Febrero</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Marzo</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Abril</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Mayo</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Junio</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Julio</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Agosto</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Septiembre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Octubre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Noviembre</th>
+                  <th style="text-align: center; background-color: #e0f7fa;">Diciembre</th>
+                  <th style="text-align: center; background-color: #ffeb3b; font-weight: bold;">Total ANUAL</th>
+                </tr>
+              </thead>
+              <tbody id="ta_tbody">
+              </tbody>
+              <tfoot>
+                <tr id="ta_tfoot_row" style="font-weight: bold; background-color: #f5f5f5;">
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection

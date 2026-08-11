@@ -81,11 +81,11 @@ function instalarAutoPorcentajeAR(opts) {
 
   function leerNum(sel) {
     var $el = $(sel);
-    var n = $el.data("num");
-    if (n == null) {
-      n = _smartParseNum($el.val());
-    }
-    return n;
+    if (!$el.length) return null;
+    // Manda el valor que se ve. data("num") solo se actualiza cuando el usuario tipea, así que al
+    // abrir un registro para editar (los campos se llenan con .val()) quedaba con el número del
+    // registro anterior y los campos calculados no se actualizaban.
+    return _smartParseNum($el.val());
   }
 
   function recalc() {
@@ -145,11 +145,11 @@ function instalarAutoImpuestoAR(options) {
 
   function leerNum(sel) {
     var $el = $(sel);
-    var n = $el.data("num");
-    if (n == null) {
-      n = _smartParseNum($el.val());
-    }
-    return n;
+    if (!$el.length) return null;
+    // Manda el valor que se ve. data("num") solo se actualiza cuando el usuario tipea, así que al
+    // abrir un registro para editar (los campos se llenan con .val()) quedaba con el número del
+    // registro anterior y los campos calculados no se actualizaban.
+    return _smartParseNum($el.val());
   }
 
   function recalc() {
@@ -238,8 +238,13 @@ function _smartParseNum(v) {
   } else if (lastDot !== -1) {
     // Solo puntos: 1.000.000 (AR) o 1000.50 (Standard)
     var dots = (s.match(/\./g) || []).length;
+    var digitosDespues = s.length - lastDot - 1;
     if (dots > 1) {
       // Miles AR
+      numStr = s.replace(/\./g, "");
+    } else if (digitosDespues === 3 && lastDot > 0) {
+      // Un solo punto con exactamente 3 dígitos detrás: en formato AR es separador de miles,
+      // no decimal ("1.000" es mil). El decimal en esta pantalla se escribe con coma ("1000,50").
       numStr = s.replace(/\./g, "");
     } else {
       // Decimal Standard
@@ -312,7 +317,10 @@ function instalarNumeroFlexibleAR(selector, opts) {
     }
     if (!neg && n < 0) n = Math.abs(n);
 
-    var formatted = formatoAR(n, decs);
+    // `decimales` es el MÍNIMO a mostrar, no un relleno fijo: si el valor tiene más decimales se
+    // respetan. Antes, un campo configurado con 5 mostraba "1.500,00000" para un monto redondo.
+    // decs === 0 (conteos, ej. RRHH) sí fuerza entero.
+    var formatted = formatoAR(n, decs === 0 ? 0 : decimalesUtiles(n, Math.min(decs, 2)));
     if (this.value !== formatted) {
       this.value = formatted;
     }
@@ -328,11 +336,8 @@ function instalarAutoSumaAR(opts) {
   if (!o.target || !o.sources.length) return;
 
   function leerNum($el) {
-    var n = $el.data("num");
-    if (n == null) {
-      n = _smartParseNum($el.val());
-    }
-    return Number(n || 0);
+    // Ídem: manda el valor visible, no el data("num") que puede haber quedado del registro anterior.
+    return Number(_smartParseNum($el.val()) || 0);
   }
 
   function signoDe(sel) {
@@ -371,14 +376,25 @@ function parseNumeroFlexible(input) {
   return { num: n, str: String(n) };
 }
 
+// Cuántos decimales mostrar para un número: mínimo 2, y hasta los que tenga de verdad (máx. 6,
+// para no arrastrar la basura de punto flotante).
+function decimalesUtiles(n, minimo) {
+  var min = minimo == null ? 2 : minimo;
+  // toFixed y no n*1e6: multiplicar pierde precisión con montos grandes (269481731462.25 * 1e6 se
+  // pasa del entero seguro de JS y terminaba mostrando 5 decimales).
+  var redondeado = Number(Number(n).toFixed(6));
+  var dec = (String(redondeado).split(".")[1] || "").length;
+  return Math.max(min, Math.min(dec, 6));
+}
+
 function formatoAR(value, decs = null) {
   if (value === null || value === undefined || value === "") return "";
   const n = Number(value);
   if (!isFinite(n)) return "";
-  const frac =
-    decs === null
-      ? Math.max(2, (String(value).split(".")[1] || "").length)
-      : decs;
+  // Sin decimales explícitos: se muestran 2 y se respetan los que el valor realmente tenga.
+  // El redondeo previo saca los ceros de relleno que llegan del back ("1500.00000" => 1500) y la
+  // basura de punto flotante (0.30000000000000004 => 0.3), que antes hacían mostrar 5 o más ceros.
+  const frac = decs === null ? decimalesUtiles(n) : decs;
   return n.toLocaleString("es-AR", {
     minimumFractionDigits: frac,
     maximumFractionDigits: frac,
@@ -415,6 +431,17 @@ function setDateSmart($group, val) {
   }
 }
 
+// Al subir, el archivo se guarda como "<timestamp>_<6 al azar>_<nombre original>" para que dos
+// archivos con el mismo nombre no se pisen. Esto saca ese prefijo para MOSTRAR, así se ve el
+// nombre que subió el usuario.
+// OJO: es solo cosmético. El href y el borrado tienen que seguir usando el nombre REAL guardado,
+// que es el que existe en disco.
+// Si el nombre no tiene exactamente esa forma (archivos viejos, subidos con otra convención) se
+// devuelve tal cual, para no recortar de más.
+function nombreVisibleArchivo(nombre) {
+  return String(nombre == null ? "" : nombre).replace(/^\d+_[A-Za-z0-9]{6}_/, "");
+}
+
 function iconoExt(nombre) {
   var n = (nombre || "").toLowerCase();
   if (/\.(pdf)$/.test(n)) return "📄";
@@ -444,7 +471,9 @@ function buildArchivoRow(item, registro) {
     .attr("class", faIconClassByExt(nombre))
     .css({ marginRight: "8px", fontSize: "16px", lineHeight: "1" });
 
-  var $link = $('<a target="_blank">').attr("href", href).text(nombre);
+  var $link = $('<a target="_blank">')
+    .attr("href", href)
+    .text(nombreVisibleArchivo(nombre));
 
   var $del = $(
     '<button type="button" class="btn btn-xs btn-danger btn-del-archivo" title="Quitar">'
@@ -603,47 +632,56 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
   const fileId = $modal.data("id");
   const regId = $modal.data("regId");
   const scope = $modal.data("scope");
+  // Contenedor exacto donde estaba el archivo (lo guarda el hook de abajo). Hace falta porque en el
+  // modal unificado cada sub-documento tiene su propia lista (#listaArchivos_U_*) y resolver el
+  // destino solo por tipo terminaba refrescando la lista del modal suelto (#listaArchivos_*).
+  const contenedor = $modal.data("contenedor") || null;
 
   $.getJSON("/documentosContables/eliminarArchivo", { id: fileId })
     .done(function (r) {
       if (r && r.success) {
         const reloaders = {
-          Iva: (id) => cargarArchivosIvaLista(id),
-          iibb: (id) => cargarArchivosiibbLista(id),
-          DREI: (id) => cargarArchivosDREILista(id),
-          TGI: (id) => cargarArchivosTGILista(id),
-          IMP_AP_MTM: (id) => cargarArchivosIMP_AP_MTMLista(id),
-          IMP_AP_OL: (id) => cargarArchivosIMP_AP_OLLista(id),
-          Ganancias: (id) => cargarArchivosGananciasLista(id),
-          Ganancias_periodo: (id) => cargarArchivosGanancias_periodoLista(id),
-          Patentes: (id) => cargarArchivosPatentesLista(id),
-          ImpInmobiliario: (id) => cargarArchivosImpInmobiliarioLista(id),
-          ContribEnteTuristico: (id) =>
-            cargarArchivosContribEnteTuristicoLista(id),
-          DerechoAcceso: (id) => cargarArchivosDerechoAccesoLista(id),
-          DeudaEstado: (id) => cargarArchivosDeudaEstadoLista(id),
-          AutDirectores: (id) => cargarArchivosAutDirectoresLista(id),
-          PremiosMTM: (id) => cargarArchivosPremiosMTMLista(id),
-          PromoTickets: (id) => cargarArchivosPromoTicketsLista(id),
-          PozosAcumuladosLinkeados: (id) =>
-            cargarArchivosPozosAcumuladosLinkeadosLista(id),
-          JackpotsPagados: (id) => cargarArchivosJackpotsPagadosLista(id),
-          PremiosPagados: (id) => cargarArchivosPremiosPagadosLista(id),
-          PagosMayoresMesas: (id) => cargarArchivosPagosMayoresMesasLista(id),
-          RegistrosContables: (id) => cargarArchivosRegistrosContablesLista(id),
-          AportesPatronales: (id) => cargarArchivosAportesPatronalesLista(id),
-          RRHH: (id) => cargarArchivosRRHHLista(id),
-          ReporteYLavado: (id) => cargarArchivosReporteYLavadoLista(id),
-          Seguros: (id) => cargarArchivosSegurosLista(id),
+          Iva: (id, target) => cargarArchivosIvaLista(id, target),
+          iibb: (id, target) => cargarArchivosiibbLista(id, target),
+          DREI: (id, target) => cargarArchivosDREILista(id, target),
+          TGI: (id, target) => cargarArchivosTGILista(id, target),
+          IMP_AP_MTM: (id, target) => cargarArchivosIMP_AP_MTMLista(id, target),
+          IMP_AP_OL: (id, target) => cargarArchivosIMP_AP_OLLista(id, target),
+          Ganancias: (id, target) => cargarArchivosGananciasLista(id, target),
+          Ganancias_periodo: (id, target) => cargarArchivosGanancias_periodoLista(id, target),
+          Patentes: (id, target) => cargarArchivosPatentesLista(id, target),
+          ImpInmobiliario: (id, target) => cargarArchivosImpInmobiliarioLista(id, target),
+          ContribEnteTuristico: (id, target) => cargarArchivosContribEnteTuristicoLista(id, target),
+          DerechoAcceso: (id, target) => cargarArchivosDerechoAccesoLista(id, target),
+          DeudaEstado: (id, target) => cargarArchivosDeudaEstadoLista(id, target),
+          AutDirectores: (id, target) => cargarArchivosAutDirectoresLista(id, target),
+          PremiosMTM: (id, target) => cargarArchivosPremiosMTMLista(id, target),
+          PromoTickets: (id, target) => cargarArchivosPromoTicketsLista(id, target),
+          PozosAcumuladosLinkeados: (id, target) => cargarArchivosPozosAcumuladosLinkeadosLista(id, target),
+          JackpotsPagados: (id, target) => cargarArchivosJackpotsPagadosLista(id, target),
+          PremiosPagados: (id, target) => cargarArchivosPremiosPagadosLista(id, target),
+          PagosMayoresMesas: (id, target) => cargarArchivosPagosMayoresMesasLista(id, target),
+          RegistrosContables: (id, target) => cargarArchivosRegistrosContablesLista(id, target),
+          AportesPatronales: (id, target) => cargarArchivosAportesPatronalesLista(id, target),
+          RRHH: (id, target) => cargarArchivosRRHHLista(id, target),
+          ReporteYLavado: (id, target) => cargarArchivosReporteYLavadoLista(id, target),
+          Seguros: (id, target) => cargarArchivosSegurosLista(id, target),
+          publicoCasino: (id, target) => cargarArchivosPublicoCasinoLista(id, target),
+          EstadoContable: (id, target) => cargarArchivosEstadoContableLista(id, target),
         };
 
         if (reloaders[scope]) {
-          reloaders[scope](regId);
+          reloaders[scope](regId, contenedor);
+          var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+          if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+          buscarPestana(activeTab, true);
         } else {
           $(`[data-archivo-id="${fileId}"]`).remove();
         }
 
-        $("#modalEliminarArchivo").modal("hide").removeData("id regId scope");
+        $("#modalEliminarArchivo")
+          .modal("hide")
+          .removeData("id regId scope contenedor");
       } else {
         alert("No se pudo eliminar");
       }
@@ -690,10 +728,10 @@ $(function () {
   });
 });
 
-function cargarArchivosiibbLista(id) {
+function cargarArchivosiibbLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("iibbId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("iibb", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -722,7 +760,7 @@ function cargarArchivosiibbLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -977,6 +1015,9 @@ function abrirModaliibbEditar(id) {
 
 function resetFormiibb() {
   var $f = $("#formNuevoRegistroiibb");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -1006,6 +1047,9 @@ function recalcularSumaDeduccionesIibb() {
 }
 
 function abrirModaliibbCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormiibb();
   $("#iibb_modo").val("create");
   $("#id_registroiibb").val("");
   $("#modalCargariibb .modal-title").text("| NUEVO REGISTRO DE IIBB");
@@ -1263,7 +1307,7 @@ function generarFilaiibb(iibb, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO IIBB")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (iibb.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -1274,7 +1318,7 @@ function generarFilaiibb(iibb, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
 
   var btnEdit = $("<button>")
@@ -1284,7 +1328,7 @@ function generarFilaiibb(iibb, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", iibb.id_registroiibb)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -1666,10 +1710,10 @@ instalarAutoSumaAR({
   decimales: 2,
 });
 
-function cargarArchivosDREILista(id) {
+function cargarArchivosDREILista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("DREIId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("DREI", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -1698,7 +1742,7 @@ function cargarArchivosDREILista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -1975,6 +2019,9 @@ function abrirModalDREIEditar(id) {
 
 function resetFormDREI() {
   var $f = $("#formNuevoRegistroDREI");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -1990,6 +2037,9 @@ function resetFormDREI() {
 }
 
 function abrirModalDREICrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormDREI();
   $("#DREI_modo").val("create");
   $("#id_registroDREI").val("");
   $("#modalCargarDREI .modal-title").text("| NUEVO REGISTRO DE DREI");
@@ -2197,7 +2247,7 @@ function generarFilaDREI(drei, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO DREI")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (drei.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -2208,7 +2258,7 @@ function generarFilaDREI(drei, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DREI")
@@ -2217,7 +2267,7 @@ function generarFilaDREI(drei, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", drei.id_registroDREI)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -2677,10 +2727,10 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
 });
 
 //IVA
-function cargarArchivosIvaLista(id) {
+function cargarArchivosIvaLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("ivaId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("Iva", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -2709,7 +2759,7 @@ function cargarArchivosIvaLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -2773,6 +2823,9 @@ function clickIndiceIva(e, pageNumber, pageSize) {
 
 function resetFormIva() {
   var $f = $("#formNuevoRegistroIva");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -2786,6 +2839,9 @@ function resetFormIva() {
 }
 
 function abrirModalIvaCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormIva();
   $("#iva_modo").val("create");
   $("#id_registroIva").val("");
   $("#modalCargarIva .modal-title").text("| NUEVO REGISTRO DE IVA");
@@ -3030,7 +3086,7 @@ function generarFilaIva(iva, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO IVA")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (iva.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -3041,7 +3097,7 @@ function generarFilaIva(iva, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-iva")
@@ -3050,7 +3106,7 @@ function generarFilaIva(iva, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", iva.id_registroIva)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
   const btnDelete = $("<button>")
     .addClass("btn btn-danger btn-sm btn-deleteIva")
@@ -3226,10 +3282,10 @@ $(function () {
   );
 });
 
-function cargarArchivosTGILista(id) {
+function cargarArchivosTGILista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("TGIId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("TGI", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -3258,7 +3314,7 @@ function cargarArchivosTGILista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -3431,6 +3487,9 @@ function resetFormTGI() {
 }
 
 function abrirModalTGICrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormTGI();
   $("#TGI_modo").val("create");
   $("#id_registroTGI").val("");
   $("#modalCargarTGI .modal-title").text("| NUEVO REGISTRO DE TGI");
@@ -3501,7 +3560,7 @@ function renderFilaTGI_partida(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editTGI_partida" title="MODIFICAR PARTIDA">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimTGI_partida" title="ELIMINAR PARTIDA">' +
     '<i class="fa fa-trash"></i>' +
@@ -3829,14 +3888,30 @@ $(document).on("click", "#btn-eliminarTGI_partida", function () {
   const id = $(this).attr("data-id");
   const $tr = $('#tabla-TGI_partida tr[data-id="' + id + '"]');
 
+  function avisoPartida(msg) {
+    // Se cierra el de confirmación y recién ahí se muestra el aviso, para no encimar backdrops.
+    $("#modalEliminarTGI_partida")
+      .one("hidden.bs.modal", function () {
+        $("#texto-aviso-validacion").text(msg);
+        $("#modalAvisoValidacion").modal("show");
+      })
+      .modal("hide");
+  }
+
   $.get("/documentosContables/TGIEliminarPartida/" + id, function (res) {
     if (res.ok) {
       $tr.remove();
       $("#modalEliminarTGI_partida").modal("hide");
     } else {
+      // Antes esto no hacía nada: el modal quedaba abierto y no se sabía por qué no borraba.
+      avisoPartida(res.msg || "No se pudo eliminar la partida.");
     }
   }).fail(function (xhr) {
     console.error(xhr.responseText || xhr);
+    avisoPartida(
+      (xhr.responseJSON && xhr.responseJSON.msg) ||
+        "No se pudo eliminar la partida."
+    );
   });
 });
 
@@ -4120,7 +4195,7 @@ function generarFilaTGI(TGI, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO TGI")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (TGI.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -4129,7 +4204,7 @@ function generarFilaTGI(TGI, controlador) {
       .attr("data-id", TGI.id_registroTGI)
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-TGI")
@@ -4138,7 +4213,7 @@ function generarFilaTGI(TGI, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", TGI.id_registroTGI)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -4397,10 +4472,10 @@ $(function () {
   });
 });
 
-function cargarArchivosIMP_AP_OLLista(id) {
+function cargarArchivosIMP_AP_OLLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("IMP_AP_OLId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("IMP_AP_OL", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -4429,7 +4504,7 @@ function cargarArchivosIMP_AP_OLLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -4523,6 +4598,9 @@ function abrirModalIMP_AP_OLEditar(id) {
 
 function resetFormIMP_AP_OL() {
   var $f = $("#formNuevoRegistroIMP_AP_OL");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -4536,6 +4614,9 @@ function resetFormIMP_AP_OL() {
 }
 
 function abrirModalIMP_AP_OLCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormIMP_AP_OL();
   $("#IMP_AP_OL_modo").val("create");
   $("#id_registroIMP_AP_OL").val("");
   $("#modalCargarIMP_AP_OL .modal-title").text(
@@ -4776,7 +4857,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO IMPUESTO A APUESTAS ONLINE")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
   if (IMP_AP_OL.tiene_archivos) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-IMP_AP_OL")
@@ -4786,7 +4867,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-IMP_AP_OL")
@@ -4795,7 +4876,7 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", IMP_AP_OL.id_registroIMP_AP_OL)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -4989,10 +5070,10 @@ $(function () {
   });
 });
 
-function cargarArchivosIMP_AP_MTMLista(id) {
+function cargarArchivosIMP_AP_MTMLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("IMP_AP_MTMId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("IMP_AP_MTM", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -5021,7 +5102,7 @@ function cargarArchivosIMP_AP_MTMLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -5116,6 +5197,9 @@ function abrirModalIMP_AP_MTMEditar(id) {
 
 function resetFormIMP_AP_MTM() {
   var $f = $("#formNuevoRegistroIMP_AP_MTM");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -5129,6 +5213,9 @@ function resetFormIMP_AP_MTM() {
 }
 
 function abrirModalIMP_AP_MTMCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormIMP_AP_MTM();
   $("#IMP_AP_MTM_modo").val("create");
   $("#id_registroIMP_AP_MTM").val("");
   $("#modalCargarIMP_AP_MTM .modal-title").text(
@@ -5375,7 +5462,7 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO IMPUESTO A APUESTAS MTM")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
   if (IMP_AP_MTM.tiene_archivos) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-IMP_AP_MTM")
@@ -5385,7 +5472,7 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-IMP_AP_MTM")
@@ -5394,7 +5481,7 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", IMP_AP_MTM.id_registroIMP_AP_MTM)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -5565,10 +5652,10 @@ instalarNumeroFlexibleAR("#importe_dolares_PagosMayoresMesas", {
   permitirNegativos: true,
 });
 
-function cargarArchivosPagosMayoresMesasLista(id) {
+function cargarArchivosPagosMayoresMesasLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PagosMayoresMesasId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("PagosMayoresMesas", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -5597,7 +5684,7 @@ function cargarArchivosPagosMayoresMesasLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -5673,6 +5760,9 @@ function abrirModalPagosMayoresMesasEditar(id) {
 
 function resetFormPagosMayoresMesas() {
   var $f = $("#formNuevoRegistroPagosMayoresMesas");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -5686,6 +5776,9 @@ function resetFormPagosMayoresMesas() {
 }
 
 function abrirModalPagosMayoresMesasCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPagosMayoresMesas();
   $("#PagosMayoresMesas_modo").val("create");
   $("#id_registroPagosMayoresMesas").val("");
   $("#modalCargarPagosMayoresMesas .modal-title").text(
@@ -5909,7 +6002,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER PAGO MAYOR DE MESA DE PAÑO")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (PagosMayoresMesas.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -5920,7 +6013,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PagosMayoresMesas")
@@ -5929,7 +6022,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PagosMayoresMesas.id_registroPagosMayoresMesas)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -5962,7 +6055,7 @@ $("#btn-eliminarPagosMayoresMesas").on("click", function () {
       if (res == 1) {
         $("#modalEliminarPagosMayoresMesas").modal("hide");
         cargarPagosMayoresMesas({
-          page: $("#herramientasPaginacionPAgosMayoresMesas").getCurrentPage(),
+          page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage(),
           perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
           casino: $("#filtro_global_casino").val(),
           desde: $("#filtro_global_desde_input").val(),
@@ -6078,10 +6171,10 @@ $("#btn-descargarPagosMayoresMesasCsv").on("click", function () {
 
 //IMPUESTOS A DEUDA ESTADO
 
-function cargarArchivosDeudaEstadoLista(id) {
+function cargarArchivosDeudaEstadoLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("DeudaEstadoId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("DeudaEstado", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -6110,7 +6203,7 @@ function cargarArchivosDeudaEstadoLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -6192,6 +6285,9 @@ function abrirModalDeudaEstadoEditar(id) {
 
 function resetFormDeudaEstado() {
   var $f = $("#formNuevoRegistroDeudaEstado");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -6205,6 +6301,9 @@ function resetFormDeudaEstado() {
 }
 
 function abrirModalDeudaEstadoCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormDeudaEstado();
   $("#DeudaEstado_modo").val("create");
   $("#id_registroDeudaEstado").val("");
   $("#modalCargarDeudaEstado .modal-title").text(
@@ -6414,7 +6513,7 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER INCUMPLIMIENTO")
       .append($("<i>").addClass("fa fa-fw fa-eye"));
-    tdAcc.append(btnView);
+    // [ver/archivos removidos] tdAcc.append(btnView);
   }
   if (DeudaEstado.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -6425,7 +6524,7 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DeudaEstado")
@@ -6434,7 +6533,7 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", DeudaEstado.id_registroDeudaEstado)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -6580,10 +6679,10 @@ $("#btn-descargarDeudaEstadoCsv").on("click", function () {
 
 //REPORTE DE OPERACIONES Y LAVADO DE ACTIVOS
 
-function cargarArchivosReporteYLavadoLista(id) {
+function cargarArchivosReporteYLavadoLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("ReporteYLavadoId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("ReporteYLavado", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -6612,7 +6711,7 @@ function cargarArchivosReporteYLavadoLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -6688,6 +6787,9 @@ function abrirModalReporteYLavadoEditar(id) {
 
 function resetFormReporteYLavado() {
   var $f = $("#formNuevoRegistroReporteYLavado");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -6701,6 +6803,9 @@ function resetFormReporteYLavado() {
 }
 
 function abrirModalReporteYLavadoCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormReporteYLavado();
   $("#ReporteYLavado_modo").val("create");
   $("#id_registroReporteYLavado").val("");
   $("#modalCargarReporteYLavado .modal-title").text(
@@ -7017,21 +7122,37 @@ $(document).ready(function () {
         });
         $("#cabeceraTablaControlDocumentos").append(trHead);
 
+        function iconoControlDoc(c) {
+          if (c.estado === "valido") {
+            return '<i class="fa fa-check icono-validado" data-toggle="tooltip" title="Válido (' + c.validos + '/' + c.total + ')"></i>';
+          } else if (c.estado === "no_valido") {
+            return '<i class="fa fa-times icono-no-validado" data-toggle="tooltip" title="No válido (' + c.validos + '/' + c.total + ' validados)"></i>';
+          }
+          return '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
+        }
+
+        function iconosDetalleControl(items) {
+          // un ícono por registro (ej. cada anticipo del mes): tilde si validado, cruz si no.
+          return items.map(function (it) {
+            return it.valido == 1
+              ? '<i class="fa fa-check icono-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': validado"></i>'
+              : '<i class="fa fa-times icono-no-validado" style="margin:0 3px;" data-toggle="tooltip" title="Anticipo ' + it.nro + ': no validado"></i>';
+          }).join('');
+        }
+
         res.filas.forEach(function (fila) {
           var tr = $("<tr>").append(
-            $("<td>").attr("style", estiloPrimeraCol).text(fila.documento + (fila.anual ? " (ANUAL)" : ""))
+            $("<td>").attr("style", estiloPrimeraCol).text(fila.documento)
           );
           res.meses.forEach(function (mes) {
             var celda = fila.celdas[mes.key];
-            var icono;
-            if (celda.estado === "valido") {
-              icono = '<i class="fa fa-check icono-validado" data-toggle="tooltip" title="Válido (' + celda.validos + '/' + celda.total + ')"></i>';
-            } else if (celda.estado === "no_valido") {
-              icono = '<i class="fa fa-times icono-no-validado" data-toggle="tooltip" title="No válido (' + celda.validos + '/' + celda.total + ' validados)"></i>';
+            var td = $("<td>").addClass("text-center");
+            if (fila.detalle && celda.items && celda.items.length) {
+              td.html(iconosDetalleControl(celda.items));
             } else {
-              icono = '<i class="fa fa-minus" style="color: #999;" data-toggle="tooltip" title="No subido"></i>';
+              td.html(iconoControlDoc(celda));
             }
-            tr.append($("<td>").addClass("text-center").html(icono));
+            tr.append(td);
           });
           $("#cuerpoTablaControlDocumentos").append(tr);
         });
@@ -7112,6 +7233,15 @@ function buscarPestana(tabId, preservePage) {
   // Si el ID del tab no coincide exactamente con el nombre de la función, mapeamos aquí
 
   switch (key) {
+    case "publico_casino":
+      cargarPublicoCasino({
+        page: getPg("cargarPublicoCasino"),
+        perPage: getSz("cargarPublicoCasino"),
+        casino: casino,
+        desde: desde,
+        hasta: hasta,
+      });
+      break;
     case "iva":
       cargarIva({
         page: getPg(cargarIva),
@@ -7429,7 +7559,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REPORTE")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (ReporteYLavado.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -7440,7 +7570,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ReporteYLavado")
@@ -7449,7 +7579,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ReporteYLavado.id_registroReporteYLavado)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -7632,10 +7762,10 @@ $(function () {
   });
 });
 
-function cargarArchivosRegistrosContablesLista(id) {
+function cargarArchivosRegistrosContablesLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("RegistrosContablesId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("RegistrosContables", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -7664,7 +7794,7 @@ function cargarArchivosRegistrosContablesLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -7754,6 +7884,9 @@ function abrirModalRegistrosContablesEditar(id) {
 
 function resetFormRegistrosContables() {
   var $f = $("#formNuevoRegistroRegistrosContables");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -7767,6 +7900,9 @@ function resetFormRegistrosContables() {
 }
 
 function abrirModalRegistrosContablesCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormRegistrosContables();
   $("#RegistrosContables_modo").val("create");
   $("#id_registroRegistrosContables").val("");
   $("#modalCargarRegistrosContables .modal-title").text(
@@ -8035,7 +8171,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO CONTABLE")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (RegistrosContables.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -8046,7 +8182,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-RegistrosContables")
@@ -8055,7 +8191,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", RegistrosContables.id_registroRegistrosContables)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -8224,10 +8360,10 @@ instalarNumeroFlexibleAR("#monto_pagado_AportesPatronales", {
   permitirNegativos: true,
 });
 
-function cargarArchivosAportesPatronalesLista(id) {
+function cargarArchivosAportesPatronalesLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("AportesPatronalesId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("AportesPatronales", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -8256,7 +8392,7 @@ function cargarArchivosAportesPatronalesLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -8346,6 +8482,9 @@ function abrirModalAportesPatronalesEditar(id) {
 
 function resetFormAportesPatronales() {
   var $f = $("#formNuevoRegistroAportesPatronales");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -8359,6 +8498,9 @@ function resetFormAportesPatronales() {
 }
 
 function abrirModalAportesPatronalesCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormAportesPatronales();
   $("#AportesPatronales_modo").val("create");
   $("#id_registroAportesPatronales").val("");
   $("#modalCargarAportesPatronales .modal-title").text(
@@ -8594,7 +8736,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER APORTE PATRONAL")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (AportesPatronales.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -8605,7 +8747,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-AportesPatronales")
@@ -8614,7 +8756,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", AportesPatronales.id_registroAportesPatronales)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -8778,10 +8920,10 @@ instalarNumeroFlexibleAR("#importe_PromoTickets", {
   permitirNegativos: true,
 });
 
-function cargarArchivosPromoTicketsLista(id) {
+function cargarArchivosPromoTicketsLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PromoTicketsId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("PromoTickets", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -8810,7 +8952,7 @@ function cargarArchivosPromoTicketsLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -8880,6 +9022,9 @@ function abrirModalPromoTicketsEditar(id) {
 
 function resetFormPromoTickets() {
   var $f = $("#formNuevoRegistroPromoTickets");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -8893,6 +9038,9 @@ function resetFormPromoTickets() {
 }
 
 function abrirModalPromoTicketsCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPromoTickets();
   $("#PromoTickets_modo").val("create");
   $("#id_registroPromoTickets").val("");
   $("#modalCargarPromoTickets .modal-title").text(
@@ -9108,7 +9256,7 @@ function generarFilaPromoTickets(PromoTickets, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PromoTickets")
@@ -9117,7 +9265,7 @@ function generarFilaPromoTickets(PromoTickets, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PromoTickets.id_registroPromoTickets)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -9279,10 +9427,10 @@ instalarNumeroFlexibleAR("#importe_PozosAcumuladosLinkeados", {
   permitirNegativos: true,
 });
 
-function cargarArchivosPozosAcumuladosLinkeadosLista(id) {
+function cargarArchivosPozosAcumuladosLinkeadosLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PozosAcumuladosLinkeadosId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("PozosAcumuladosLinkeados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -9311,7 +9459,7 @@ function cargarArchivosPozosAcumuladosLinkeadosLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -9394,6 +9542,9 @@ function abrirModalPozosAcumuladosLinkeadosEditar(id) {
 
 function resetFormPozosAcumuladosLinkeados() {
   var $f = $("#formNuevoRegistroPozosAcumuladosLinkeados");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -9411,6 +9562,9 @@ function resetFormPozosAcumuladosLinkeados() {
 }
 
 function abrirModalPozosAcumuladosLinkeadosCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPozosAcumuladosLinkeados();
   $("#PozosAcumuladosLinkeados_modo").val("create");
   $("#id_registroPozosAcumuladosLinkeados").val("");
   $("#modalCargarPozosAcumuladosLinkeados .modal-title").text(
@@ -9647,7 +9801,7 @@ function generarFilaPozosAcumuladosLinkeados(
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PozosAcumuladosLinkeados")
@@ -9659,7 +9813,7 @@ function generarFilaPozosAcumuladosLinkeados(
       PozosAcumuladosLinkeados.id_registroPozosAcumuladosLinkeados
     )
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -9851,10 +10005,10 @@ $(function () {
   });
 });
 
-function cargarArchivosContribEnteTuristicoLista(id) {
+function cargarArchivosContribEnteTuristicoLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("ContribEnteTuristicoId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("ContribEnteTuristico", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -9883,7 +10037,7 @@ function cargarArchivosContribEnteTuristicoLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -9979,6 +10133,9 @@ function abrirModalContribEnteTuristicoEditar(id) {
 
 function resetFormContribEnteTuristico() {
   var $f = $("#formNuevoRegistroContribEnteTuristico");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -9996,6 +10153,9 @@ function resetFormContribEnteTuristico() {
 }
 
 function abrirModalContribEnteTuristicoCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormContribEnteTuristico();
   $("#ContribEnteTuristico_modo").val("create");
   $("#id_registroContribEnteTuristico").val("");
   $("#modalCargarContribEnteTuristico .modal-title").text(
@@ -10244,7 +10404,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER CONTRIBUCIÓN ENTE TURISTICO")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (ContribEnteTuristico.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -10255,7 +10415,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ContribEnteTuristico")
@@ -10264,7 +10424,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ContribEnteTuristico.id_registroContribEnteTuristico)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -10491,10 +10651,10 @@ instalarAutoPorcentajeAR({
   blankIfZeroBase: true,
 });
 
-function cargarArchivosRRHHLista(id) {
+function cargarArchivosRRHHLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("RRHHId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("RRHH", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -10523,7 +10683,7 @@ function cargarArchivosRRHHLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -10616,6 +10776,7 @@ function abrirModalRRHHEditar(id) {
     $('input[name="dif_nomina_RRHH"]').val(d.diferencia_nomina_ddjj ?? "");
     $('input[name="ludicos_vivivendo_RRHH"]').val(d.ludico_viviendo ?? "");
     $('input[name="no_ludicos_viviendo_RRHH"]').val(d.no_ludico_viviendo ?? "");
+    $('textarea[name="obs_RRHH"]').val(d.observaciones ?? "");
     $('input[name="total_ludicos_viviendo_RRHH"]').val(
       d.total_ludico_viviendo ?? ""
     );
@@ -10636,6 +10797,9 @@ $(document).on("hidden.bs.modal", "#modalCargarRRHH", function () {
 
 function resetFormRRHH() {
   var $f = $("#formNuevoRegistroRRHH");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -10649,6 +10813,9 @@ function resetFormRRHH() {
 }
 
 function abrirModalRRHHCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormRRHH();
   $("#RRHH_modo").val("create");
   $("#id_registroRRHH").val("");
   $("#modalCargarRRHH .modal-title").text("| NUEVO REGISTRO DE RRHH");
@@ -11008,7 +11175,7 @@ function generarFilaRRHH(RRHH, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO RRHH")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (RRHH.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -11019,7 +11186,7 @@ function generarFilaRRHH(RRHH, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-RRHH")
@@ -11028,7 +11195,7 @@ function generarFilaRRHH(RRHH, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", RRHH.id_registroRRHH)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -11148,6 +11315,7 @@ $(document).on("click", ".btn-verRegRRHH", function () {
     $("#ver_total_viviendo_RRHH").val(data.total_viviendo);
 
     $("#ver_dif_nomina_RRHH").val(data.diferencia_nomina);
+    $("#ver_obs_RRHH").val(data.observaciones || "");
 
     var total = Number(data.total_personal);
     var adj = Number(data.ofertado_adjudicado);
@@ -11265,10 +11433,10 @@ $(function () {
   });
 });
 
-function cargarArchivosGananciasLista(id) {
+function cargarArchivosGananciasLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("GananciasId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("Ganancias", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -11297,7 +11465,7 @@ function cargarArchivosGananciasLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -11380,6 +11548,9 @@ function abrirModalGananciasEditar(id) {
 
 function resetFormGanancias() {
   var $f = $("#formNuevoRegistroGanancias");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -11393,6 +11564,9 @@ function resetFormGanancias() {
 }
 
 function abrirModalGananciasCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormGanancias();
   $("#Ganancias_modo").val("create");
   $("#id_registroGanancias").val("");
   $("#modalCargarGanancias .modal-title").text("| NUEVO REGISTRO DE GANANCIAS");
@@ -11550,10 +11724,10 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
   });
 });
 
-function cargarArchivosGanancias_periodoLista(id) {
+function cargarArchivosGanancias_periodoLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("Ganancias_periodoId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("Ganancias_periodo", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -11582,7 +11756,7 @@ function cargarArchivosGanancias_periodoLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -11663,6 +11837,9 @@ function abrirModalGanancias_periodoEditar(id) {
 
 function resetFormGanancias_periodo() {
   var $f = $("#formNuevoRegistroGanancias_periodo");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -11676,6 +11853,9 @@ function resetFormGanancias_periodo() {
 }
 
 function abrirModalGanancias_periodoCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormGanancias_periodo();
   $("#Ganancias_periodo_modo").val("create");
   $("#id_registroGanancias_periodo").val("");
   $("#modalCargarGanancias_periodo .modal-title").text(
@@ -11932,7 +12112,7 @@ function generarFilaGanancias(Ganancias, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO GANANCIAS")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
   if (Ganancias.tiene_archivos) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-Ganancias")
@@ -11942,7 +12122,7 @@ function generarFilaGanancias(Ganancias, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
 
   // Check if this removal is correct pattern
@@ -11953,7 +12133,7 @@ function generarFilaGanancias(Ganancias, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Ganancias.id_registroGanancias)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -12032,7 +12212,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO PERIODO FISCAL")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (Ganancias_periodo.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -12043,7 +12223,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-Ganancias_periodo")
@@ -12052,7 +12232,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Ganancias_periodo.id_registroGanancias_periodo)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -12285,10 +12465,10 @@ instalarNumeroFlexibleAR("#importe_JackpotsPagados", {
   permitirNegativos: true,
 });
 
-function cargarArchivosJackpotsPagadosLista(id) {
+function cargarArchivosJackpotsPagadosLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("JackpotsPagadosId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("JackpotsPagados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -12317,7 +12497,7 @@ function cargarArchivosJackpotsPagadosLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -12389,6 +12569,9 @@ function abrirModalJackpotsPagadosEditar(id) {
 
 function resetFormJackpotsPagados() {
   var $f = $("#formNuevoRegistroJackpotsPagados");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -12402,6 +12585,9 @@ function resetFormJackpotsPagados() {
 }
 
 function abrirModalJackpotsPagadosCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormJackpotsPagados();
   $("#JackpotsPagados_modo").val("create");
   $("#id_registroJackpotsPagados").val("");
   $("#modalCargarJackpotsPagados .modal-title").text(
@@ -12616,7 +12802,7 @@ function generarFilaJackpotsPagados(JackpotsPagados, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-JackpotsPagados")
@@ -12625,7 +12811,7 @@ function generarFilaJackpotsPagados(JackpotsPagados, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", JackpotsPagados.id_registroJackpotsPagados)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -12787,10 +12973,10 @@ instalarNumeroFlexibleAR("#importe_PremiosPagados", {
   permitirNegativos: true,
 });
 
-function cargarArchivosPremiosPagadosLista(id) {
+function cargarArchivosPremiosPagadosLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PremiosPagadosId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("PremiosPagados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -12819,7 +13005,7 @@ function cargarArchivosPremiosPagadosLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -12891,6 +13077,9 @@ function abrirModalPremiosPagadosEditar(id) {
 
 function resetFormPremiosPagados() {
   var $f = $("#formNuevoRegistroPremiosPagados");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -12904,6 +13093,9 @@ function resetFormPremiosPagados() {
 }
 
 function abrirModalPremiosPagadosCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPremiosPagados();
   $("#PremiosPagados_modo").val("create");
   $("#id_registroPremiosPagados").val("");
   $("#modalCargarPremiosPagados .modal-title").text(
@@ -13110,7 +13302,7 @@ function generarFilaPremiosPagados(PremiosPagados, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PremiosPagados")
@@ -13119,7 +13311,7 @@ function generarFilaPremiosPagados(PremiosPagados, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", PremiosPagados.id_registroPremiosPagados)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -13315,10 +13507,10 @@ $(document).on('shown.bs.modal', '#modalCargarPremiosMTM', function(){
 });
 */
 
-function cargarArchivosPremiosMTMLista(id) {
+function cargarArchivosPremiosMTMLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PremiosMTMId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("PremiosMTM", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -13347,7 +13539,7 @@ function cargarArchivosPremiosMTMLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -13395,7 +13587,7 @@ function abrirModalPremiosMTMEditar(id) {
   $("#modalCargarPremiosMTM .modal-title").text(
     "| EDITAR REGISTRO DE PREMIOS MTM"
   );
-  $("#guardarRegistroPremiosMTM").text("ACTUALIZAR");
+  $("#guardarRegistroPremiosMTM_Unificado").text("ACTUALIZAR");
   $("#modalCargarPremiosMTM").modal("show");
 
   $.getJSON("/documentosContables/llenarPremiosMTMEdit/" + id, function (d) {
@@ -13432,6 +13624,9 @@ function abrirModalPremiosMTMEditar(id) {
 
 function resetFormPremiosMTM() {
   var $f = $("#formNuevoRegistroPremiosMTM");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -13445,12 +13640,15 @@ function resetFormPremiosMTM() {
 }
 
 function abrirModalPremiosMTMCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPremiosMTM();
   $("#PremiosMTM_modo").val("create");
   $("#id_registroPremiosMTM").val("");
   $("#modalCargarPremiosMTM .modal-title").text(
     "| NUEVO REGISTRO DE PREMIOS MTM"
   );
-  $("#guardarRegistroPremiosMTM").text("GENERAR");
+  $("#guardarRegistroPremiosMTM_Unificado").text("GENERAR");
   $("#modalCargarPremiosMTM").modal("show");
 }
 
@@ -13691,7 +13889,7 @@ function generarFilaPremiosMTM(reg) {
     .attr("data-toggle", "tooltip")
     .attr("title", "VER PREMIOS")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   const btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PremiosMTM_Unificado")
@@ -13699,14 +13897,19 @@ function generarFilaPremiosMTM(reg) {
     .attr("data-casino", reg.casino)
     .attr("data-toggle", "tooltip")
     .attr("title", "EDITAR PREMIOS")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
   
+  // La fila agrupa los 7 documentos del mes+casino, así que el borrado se identifica por mes+casino
+  // y no por el id de Premios MTM: ese id viene vacío si el mes no tiene Premios MTM cargado.
   const btnDelete = $("<button>")
     .addClass("btn btn-danger btn-sm mr-1 btn-deletePremiosMTM")
-    .attr("id", reg.id_registroPremiosMTM)
+    .attr("data-fecha", reg.fecha)
+    .attr("data-casino", reg.casino)
+    .attr("data-casino-nombre", casino)
+    .attr("data-mes", fecha)
     .attr("data-toggle", "tooltip")
-    .attr("title", "ELIMINAR PREMIOS")
+    .attr("title", "ELIMINAR REGISTROS DEL MES")
     .append($("<i>").addClass("fa fa-trash"));
   tdAcc.append(btnDelete);
   tdAcc.append(
@@ -13738,8 +13941,18 @@ $(document).on("click", "#PremiosMTM_nuevo", function () {
 });
 
 $(document).on("click", ".btn-deletePremiosMTM", function () {
-  const id = $(this).attr("id");
-  $("#btn-eliminarPremiosMTM").attr("data-id", id);
+  const $b = $(this);
+  $("#btn-eliminarPremiosMTM")
+    .attr("data-fecha", $b.attr("data-fecha"))
+    .attr("data-casino", $b.attr("data-casino"));
+  // Se aclara qué se va a borrar: son todos los documentos de ese mes y casino, no uno solo.
+  $("#titulo-modal-eliminarPremiosMTM").text(
+    "¿Seguro desea eliminar TODOS los registros contables y premios de " +
+      ($b.attr("data-mes") || "") +
+      " - " +
+      ($b.attr("data-casino-nombre") || "") +
+      "? Se borran también sus archivos adjuntos."
+  );
   $("#modalEliminarPremiosMTM").modal("show");
 });
 
@@ -13768,6 +13981,35 @@ const prizeSectionsByCasino = {
     "sec_RegistrosContables",
   ],
 };
+
+// CSV de cada pseudo-documento del unificado, con la MISMA clave de sección que usa
+// prizeSectionsByCasino: así se bajan solo los documentos que ese casino carga, y no archivos
+// vacíos de documentos que no le corresponden (ej. Jackpots en Santa Fe).
+// (El Excel no está acá: va en un único archivo que arma el backend.)
+const csvUnificadoPorSeccion = {
+  sec_PremiosMTM: "descargarPremiosMTMCsv",
+  sec_PromoTickets: "descargarPromoTicketsCsv",
+  sec_Pozos: "descargarPozosAcumuladosLinkeadosCsv",
+  sec_Jackpots: "descargarJackpotsPagadosCsv",
+  sec_PremiosPagados: "descargarPremiosPagadosCsv",
+  sec_PagosMesas: "descargarPagosMayoresMesasCsv",
+  sec_RegistrosContables: "descargarRegistrosContablesCsv",
+};
+
+// CSV que corresponden al casino elegido. Con "Todos" (4) van los 7, porque entre los tres casinos
+// se cargan todos los documentos.
+function endpointsCsvUnificado(id_casino) {
+  var secciones =
+    String(id_casino) === "4" || !prizeSectionsByCasino[id_casino]
+      ? Object.keys(csvUnificadoPorSeccion)
+      : prizeSectionsByCasino[id_casino];
+
+  return secciones
+    .map(function (sec) {
+      return csvUnificadoPorSeccion[sec];
+    })
+    .filter(Boolean);
+}
 
 function updateUnifiedSections(id_casino) {
   $(".prize-section").hide();
@@ -14139,7 +14381,12 @@ $(document).on(
   "click",
   ".btn-edit-PremiosMTM_Unificado, .btn-verRegPremiosMTM_Unificado",
   function () {
-    const isView = $(this).hasClass("btn-verRegPremiosMTM_Unificado");
+    // El botón "ver" se quitó de la tabla: ahora se entra siempre por el de editar. En registros
+    // contables y premios se validan todos juntos, así que el estado de la fila gobierna todo el
+    // modal: si está validado se abre en el modo de solo lectura que ya tenía el unificado.
+    const isView =
+      $(this).hasClass("btn-verRegPremiosMTM_Unificado") || docContableValidado($(this));
+    $("#modalCargarPremiosMTM").toggleClass("doc-solo-lectura", isView);
     const fecha = $(this).data("fecha");
     const casino = $(this).data("casino");
 
@@ -14301,80 +14548,74 @@ $(document).on(
           $("#fecha_Unificado").show().attr("disabled", true);
         }
 
+        // Archivos ya cargados de cada sub-documento, inline debajo de cada botón de subir.
+        cargarArchivosUnificadoInline();
+
         $("#modalCargarPremiosMTM").modal("show");
       }
     );
   }
 );
 
-$(document).on("click", ".btn-ver-archivos-unified", function () {
-  const type = $(this).data("type");
-  const idMap = {
-    PremiosMTM: "#id_registroPremiosMTM_Unified",
-    PromoTickets: "#id_registroPromoTickets_Unified",
-    PozosAcumuladosLinkeados: "#id_registroPozos_Unified",
-    JackpotsPagados: "#id_registroJackpots_Unified",
-    PremiosPagados: "#id_registroPremiosPagados_Unified",
-    PagosMayoresMesas: "#id_registroPagosMesas_Unified",
-    RegistrosContables: "#id_registroRegistrosContables_Unified",
-  };
-  const id = $(idMap[type]).val();
+// Modal unificado: la lista de archivos de cada sub-documento se muestra inline, debajo de su
+// botón de subir archivos (antes había un botón "VER ARCHIVOS" que abría un modal aparte).
+// OJO: las claves son los nombres cortos (Pozos/Jackpots/PagosMesas), igual que la respuesta
+// del backend, los contenedores del blade y unifiedFilesData.
+var MAP_ARCHIVOS_UNIFICADO = {
+  PremiosMTM: { id: "#id_registroPremiosMTM_Unified", fn: "cargarArchivosPremiosMTMLista" },
+  PromoTickets: { id: "#id_registroPromoTickets_Unified", fn: "cargarArchivosPromoTicketsLista" },
+  Pozos: { id: "#id_registroPozos_Unified", fn: "cargarArchivosPozosAcumuladosLinkeadosLista" },
+  Jackpots: { id: "#id_registroJackpots_Unified", fn: "cargarArchivosJackpotsPagadosLista" },
+  PremiosPagados: { id: "#id_registroPremiosPagados_Unified", fn: "cargarArchivosPremiosPagadosLista" },
+  PagosMesas: { id: "#id_registroPagosMesas_Unified", fn: "cargarArchivosPagosMayoresMesasLista" },
+  RegistrosContables: { id: "#id_registroRegistrosContables_Unified", fn: "cargarArchivosRegistrosContablesLista" },
+};
 
-  // Mapping keys to function names (assuming they exist or are global)
-  // Based on previous checks:
-  const funcMap = {
-    PremiosMTM: "cargarArchivosPremiosMTMLista",
-    PromoTickets: "cargarArchivosPromoTicketsLista",
-    PozosAcumuladosLinkeados: "cargarArchivosPozosAcumuladosLinkeadosLista",
-    JackpotsPagados: "cargarArchivosJackpotsPagadosLista",
-    PremiosPagados: "cargarArchivosPremiosPagadosLista",
-    PagosMayoresMesas: "cargarArchivosPagosMayoresMesasLista",
-    RegistrosContables: "cargarArchivosRegistrosContablesLista",
-  };
-  const funcName = funcMap[type];
-
-  // Check if files exist for this type
-  if (unifiedFilesData[type] && unifiedFilesData[type].length > 0) {
-    // Proceed to show
-  } else {
-    // If no files in data, maybe we can fetch them? But logic above relies on data loaded.
-    // Show alert and return
-    // But wait, if we are in VIEW mode, we might want to see "No files" in the modal?
-    // User said: "y los que si tiene, me abre el modal para ver los documentos pero adentro me dice 'no tiene archivos asociados'"
-    // This implies empty list.
-    // User also said: "los documentos que no tienen archivos asociados, no hace nada"
-    // If I return here, it does nothing.
-    // Let's show the modal anyway but with "No files" message which is handled inside.
-    // But if id is missing, it logs error.
-  }
-
-  if (id && funcName && typeof window[funcName] === "function") {
-    $("#tituloArchivos").text("Archivos del registro " + type);
-    // We only call the loading function if we want to fetch fresh.
-    // But unifiedFilesData already has them?
-    // Actually the current implementation of `cargarArchivos...` calls AJAX to fetch files.
-    // So we should rely on that fn.
-    window[funcName](id);
-    $("#modalArchivosAsociados").modal("show");
-  } else {
-    console.log("Function not found or invalid ID:", type, id, funcName);
-  }
-});
+function cargarArchivosUnificadoInline() {
+  Object.keys(MAP_ARCHIVOS_UNIFICADO).forEach(function (type) {
+    var cfg = MAP_ARCHIVOS_UNIFICADO[type];
+    var id = $(cfg.id).val();
+    var fn = window[cfg.fn];
+    var $wrap = $("#listaArchivosWrap_U_" + type);
+    if (id && typeof fn === "function") {
+      $wrap.show();
+      fn(id, "#listaArchivos_U_" + type); // target explícito: contenedor del unificado
+    } else {
+      $("#listaArchivos_U_" + type).empty();
+      $wrap.hide();
+    }
+  });
+}
 
 $("#btn-eliminarPremiosMTM").on("click", function () {
-  const id = $(this).attr("data-id");
+  const fecha = $(this).attr("data-fecha");
+  const casino = $(this).attr("data-casino");
+  if (!fecha || !casino) return;
+
   $.ajax({
-    url: `/documentosContables/eliminarPremiosMTM/${id}`,
+    url: "/documentosContables/eliminarPremiosMTM_Unificado",
     method: "GET",
+    data: { fecha: fecha, casino: casino },
   })
     .done((res) => {
-      if (res == 1) {
-        $("#modalEliminarPremiosMTM").modal("hide");
+      $("#modalEliminarPremiosMTM").modal("hide");
+      if (res && res.success) {
         clickIndicePremiosMTM(null, $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1, 15);
       } else {
+        $("#texto-aviso-validacion").text(
+          (res && res.msg) || "No se pudieron eliminar los registros."
+        );
+        $("#modalAvisoValidacion").modal("show");
       }
     })
-    .fail(() => {});
+    .fail((xhr) => {
+      $("#modalEliminarPremiosMTM").modal("hide");
+      $("#texto-aviso-validacion").text(
+        (xhr.responseJSON && xhr.responseJSON.msg) ||
+          "No se pudieron eliminar los registros."
+      );
+      $("#modalAvisoValidacion").modal("show");
+    });
 });
 
 $(document).on("click", ".btn-verRegPremiosMTM", function () {
@@ -14441,33 +14682,13 @@ $("#btn-descargarPremiosMTMExcel").on("click", function (e) {
   }
   if (!valid) return;
 
-  if (casino == 4) {
-    // XLSX for Todos (1 per document, all casinos inside)
-    let endpoints = [
-      "descargarPremiosMTMXlsxTodos",
-      "descargarPromoTicketsXlsxTodos",
-      "descargarPozosAcumuladosLinkeadosXlsxTodos",
-      "descargarJackpotsPagadosXlsxTodos",
-      "descargarPremiosPagadosXlsxTodos",
-      "descargarPagosMayoresMesasXlsxTodos",
-      "descargarRegistrosContablesXlsxTodos",
-    ];
-    endpoints.forEach((endpoint, index) => {
-      setTimeout(() => {
-        let url = `/documentosContables/${endpoint}?desde=${desde}&hasta=${hasta}`;
-        let iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = url;
-        document.body.appendChild(iframe);
-      }, index * 1000); // 1 second stagger to prevent browser blocking
-    });
-  } else {
-    // XLSX for Specific Casino (unified 7-tab file)
-    let url = `/documentosContables/descargarPremiosMTMUnificadoXlsx?casino=${casino}`;
-    if (desde) url += `&desde=${desde}`;
-    if (hasta) url += `&hasta=${hasta}`;
-    window.location.href = url;
-  }
+  // Un solo archivo, también para "Todos" (casino 4). Antes "Todos" disparaba 7 descargas sueltas
+  // con iframes y el navegador bloqueaba todas menos la primera, así que parecía que bajaba un solo
+  // documento. Ahora el backend arma un único Excel con una solapa por documento y casino.
+  let url = `/documentosContables/descargarPremiosMTMUnificadoXlsx?casino=${casino}`;
+  if (desde) url += `&desde=${desde}`;
+  if (hasta) url += `&hasta=${hasta}`;
+  window.location.href = url;
 });
 
 $("#btn-descargarPremiosMTMCsv").on("click", function () {
@@ -14500,16 +14721,9 @@ $("#btn-descargarPremiosMTMCsv").on("click", function () {
   }
   if (!valid) return;
 
-  // CSV creates 7 files regardless, filtered by casino
-  let endpoints = [
-    "descargarPremiosMTMCsv",
-    "descargarPromoTicketsCsv",
-    "descargarPozosAcumuladosLinkeadosCsv",
-    "descargarJackpotsPagadosCsv",
-    "descargarPremiosPagadosCsv",
-    "descargarPagosMayoresMesasCsv",
-    "descargarRegistrosContablesCsv",
-  ];
+  // Solo los documentos que le corresponden al casino: antes bajaba los 7 siempre, así que traía
+  // archivos vacíos de documentos que ese casino ni carga.
+  let endpoints = endpointsCsvUnificado(casino);
 
   endpoints.forEach((endpoint, index) => {
     setTimeout(() => {
@@ -14530,10 +14744,10 @@ $(document).on("click", "#AutDirectores_nuevo_director", function (e) {
   $("#modalCargarAutDirectores_director").modal("show");
 });
 
-function cargarArchivosAutDirectoresLista(id) {
+function cargarArchivosAutDirectoresLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("AutDirectoresId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("AutDirectores", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -14562,7 +14776,7 @@ function cargarArchivosAutDirectoresLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -14611,7 +14825,7 @@ function abrirModalAutDirectoresEditar(id) {
   $("#modalCargarAutDirectores_autorizacion .modal-title").text(
     "| EDITAR REGISTRO DE AUT. DIRECTORES"
   );
-  $("#guardarRegistroAutDirectores").text("ACTUALIZAR");
+  $("#guardarRegistroAutDirectores_autorizacion").text("ACTUALIZAR");
   $("#modalCargarAutDirectores_autorizacion").modal("show");
 
   $.getJSON("/documentosContables/llenarAutDirectoresEdit/" + id, function (d) {
@@ -14621,37 +14835,13 @@ function abrirModalAutDirectoresEditar(id) {
       .trigger("input");
     $("#casinoAutDirectores_autorizacion").val(d.casino);
 
-    var html = "";
-    (d.directores || []).forEach(function (x) {
-      html += '<div class="col-md-7 d-flex align-items-center mb-2">';
-      html +=
-        '  <span class="me-2" style="white-space:nowrap;">' +
-        x.nombre +
-        " C.U.I.T.: " +
-        (x.cuit || "") +
-        "</span>";
-      html +=
-        '  <input type="hidden" name="directores[' + x.id + ']" value="0">';
-      html +=
-        '  <input type="checkbox" name="directores[' +
-        x.id +
-        ']" value="1" ' +
-        (parseInt(x.autoriza) ? "checked" : "") +
-        ' style="margin-left:6px;">';
-      html += "</div>";
-      html += '<div class="col-md-5 mb-2">';
-      html +=
-        '  <textarea name="observacion[' +
-        x.id +
-        ']" class="form-control form-control-sm" rows="1" placeholder="observacion">' +
-        (x.observacion || "") +
-        "</textarea>";
-      html += "</div>";
-    });
+    var html = (d.directores || []).map(filaDirectorAutDir).join("");
     $("#zona-directores").html(
       html ||
         '<div class="col-md-12 text-muted">Sin directores asociados.</div>'
     );
+    // En edición el combo no se refresca solo (el handler del casino corta si el modo es edit).
+    refrescarComboAgregarDirector();
   }).fail(function (xhr) {
     console.error(xhr.responseText || xhr);
     alert("No se pudo cargar el autónomo.");
@@ -14660,6 +14850,9 @@ function abrirModalAutDirectoresEditar(id) {
 
 function resetFormAutDirectores_autorizacion() {
   var $f = $("#formNuevoRegistroAutDirectores_autorizacion");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -14684,7 +14877,7 @@ function abrirModalAutDirectoresCrear() {
   $("#modalCargarAutDirectores .modal-title").text(
     "| NUEVO REGISTRO DE AUT. DIRECTORES"
   );
-  $("#guardarRegistroAutDirectores").text("GENERAR");
+  $("#guardarRegistroAutDirectores_autorizacion").text("GENERAR");
   $("#modalCargarAutDirectores_autorizacion").modal("show");
 }
 
@@ -14744,7 +14937,7 @@ function renderFilaDirector(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editAutDirectores_director" title="MODIFICAR DIRECTOR">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimAutDirectores_director" title="ELIMINAR DIRECTOR">' +
     '<i class="fa fa-trash"></i>' +
@@ -15142,7 +15335,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER AUTÓNOMOS DE DIRECTORES")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (AutDirectores.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -15153,7 +15346,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-AutDirectores")
@@ -15162,7 +15355,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", AutDirectores.id_registroAutDirectores)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -15357,10 +15550,10 @@ $(document).on("click", "#Seguros_nuevo_tipo", function (e) {
   $("#modalCargarSeguros_tipo").modal("show");
 });
 
-function cargarArchivosSegurosLista(id) {
+function cargarArchivosSegurosLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("SegurosId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("Seguros", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -15389,7 +15582,7 @@ function cargarArchivosSegurosLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -15466,6 +15659,9 @@ function abrirModalSegurosEditar(id) {
 
 function resetFormSeguros() {
   var $f = $("#formNuevoRegistroSeguros");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -15479,6 +15675,9 @@ function resetFormSeguros() {
 }
 
 function abrirModalSegurosCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormSeguros();
   $("#Seguros_modo").val("create");
   $("#id_registroSeguros").val("");
   $("#modalCargarSeguros .modal-title").text("| NUEVO REGISTRO DE SEGUROS");
@@ -15546,7 +15745,7 @@ function renderFilaSeguros_tipo(d) {
     "</td>" +
     '<td class="text-left col-md-3">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editSeguros_tipo" title="MODIFICAR TIPO DE SEGURO">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimSeguros_tipo" title="ELIMINAR TIPO DE SEGURO">' +
     '<i class="fa fa-trash"></i>' +
@@ -15914,7 +16113,7 @@ function generarFilaSeguros(Seguros, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO DE SEGURO")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (Seguros.estado == 1) {
     var btnCheck = $("<a>")
@@ -15936,7 +16135,7 @@ function generarFilaSeguros(Seguros, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-Seguros")
@@ -15945,7 +16144,7 @@ function generarFilaSeguros(Seguros, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", Seguros.id_registroSeguros)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -16132,10 +16331,10 @@ instalarNumeroFlexibleAR("#monto_DerechoAcceso", {
   permitirNegativos: true,
 });
 
-function cargarArchivosDerechoAccesoLista(id) {
+function cargarArchivosDerechoAccesoLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("DerechoAccesoId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("DerechoAcceso", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -16164,7 +16363,7 @@ function cargarArchivosDerechoAccesoLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -16244,6 +16443,9 @@ function abrirModalDerechoAccesoEditar(id) {
 
 function resetFormDerechoAcceso() {
   var $f = $("#formNuevoRegistroDerechoAcceso");
+  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
+  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
+  if (!$f.length) return;
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
@@ -16257,6 +16459,9 @@ function resetFormDerechoAcceso() {
 }
 
 function abrirModalDerechoAccesoCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormDerechoAcceso();
   $("#DerechoAcceso_modo").val("create");
   $("#id_registroDerechoAcceso").val("");
   $("#modalCargarDerechoAcceso .modal-title").text(
@@ -16467,7 +16672,7 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
     .attr("data-toggle", "tooltip")
     .attr("title", "VER REGISTRO DERECHO DE ACCESO")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
   if (DerechoAcceso.tiene_archivos) {
     const btnFiles = $("<button>")
       .addClass("btn btn-info btn-sm mr-1 btn-archivos-DerechoAcceso")
@@ -16477,7 +16682,7 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DerechoAcceso")
@@ -16486,7 +16691,7 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", DerechoAcceso.id_registroDerechoAcceso)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -16902,10 +17107,10 @@ $(document).on("click", "#Patentes_nuevo_patenteDe", function (e) {
   $("#modalCargarPatentes_patenteDe").modal("show");
 });
 
-function cargarArchivosPatentesLista(id) {
+function cargarArchivosPatentesLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("PatentesId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("Patentes", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -16934,7 +17139,7 @@ function cargarArchivosPatentesLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -16993,6 +17198,9 @@ function resetFormPatentes() {
 }
 
 function abrirModalPatentesCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormPatentes();
   $("#Patentes_modo").val("create");
   $("#id_registroPatentes").val("");
   $("#modalCargarPatentes .modal-title").text("| NUEVO REGISTRO DE PATENTES");
@@ -17133,7 +17341,7 @@ function renderFilaPatentes_patenteDe(d) {
     "</td>" +
     '<td class="text-left col-md-3">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editPatentes_patenteDe" title="MODIFICAR PATENTE">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimPatentes_patenteDe" title="ELIMINAR PATENTE">' +
     '<i class="fa fa-trash"></i>' +
@@ -17493,7 +17701,7 @@ function generarFilaPatentes(Patentes) {
     .attr("data-toggle", "tooltip")
     .attr("title", "VER REGISTRO PATENTES")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (Patentes.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -17504,7 +17712,7 @@ function generarFilaPatentes(Patentes) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
 
   const btnEdit = $("<button>")
@@ -17514,7 +17722,7 @@ function generarFilaPatentes(Patentes) {
     .attr("data-placement", "bottom")
     .attr("data-id", Patentes.id_registroPatentes)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -18108,7 +18316,7 @@ function renderFilaImpInmobiliario_partida(d) {
     "</td>" +
     '<td class="col-md-1">' +
     '<button type="button" class="btn btn-sm btn-primary btn-editImpInmobiliario_partida" title="MODIFICAR PARTIDA">' +
-    '<i class="fa fa-edit"></i>' +
+    '<i class="fa fa-pencil-alt"></i>' +
     "</button> " +
     '<button type="button" class="btn btn-sm btn-danger btn-elimImpInmobiliario_partida" title="ELIMINAR PARTIDA">' +
     '<i class="fa fa-trash"></i>' +
@@ -18265,10 +18473,10 @@ $(document).on(
   }
 );
 
-function cargarArchivosImpInmobiliarioLista(id) {
+function cargarArchivosImpInmobiliarioLista(id, target) {
   var $m = $("#modalArchivosAsociados");
   $m.data("ImpInmobiliarioId", id);
-  var $list = $("#listaArchivos")
+  var $list = $(targetArchivosDoc("ImpInmobiliario", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
 
@@ -18297,7 +18505,7 @@ function cargarArchivosImpInmobiliarioLista(id) {
         var $row = $('<div class="list-group-item clearfix">');
         var $a = $('<a target="_blank">')
           .attr("href", href)
-          .text(iconoExt(nombre) + " " + nombre);
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
         var $del = $(
           '<button type="button" data-id="' +
             fid +
@@ -18358,6 +18566,9 @@ function resetFormImpInmobiliario() {
 }
 
 function abrirModalImpInmobiliarioCrear() {
+  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
+  // precargados sus datos y sus archivos.
+  resetFormImpInmobiliario();
   $("#ImpInmobiliario_modo").val("create");
   $("#id_registroImpInmobiliario").val("");
   $("#modalCargarImpInmobiliario .modal-title").text(
@@ -18586,7 +18797,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
     .attr("data-placement", "bottom")
     .attr("title", "VER REGISTRO DE IMPUESTO INMOBILIARIO")
     .append($("<i>").addClass("fa fa-fw fa-eye"));
-  tdAcc.append(btnView);
+  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (ImpInmobiliario.tiene_archivos) {
     const btnFiles = $("<button>")
@@ -18597,7 +18808,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
       .attr("data-placement", "bottom")
       .attr("title", "VER ARCHIVOS ASOCIADOS")
       .append($("<i>").addClass("fa fa-file"));
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ImpInmobiliario")
@@ -18606,7 +18817,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
     .attr("data-placement", "bottom")
     .attr("data-id", ImpInmobiliario.id_registroImpInmobiliario)
     .attr("title", "EDITAR")
-    .append($("<i>").addClass("fa fa-edit"));
+    .append($("<i>").addClass("fa fa-pencil-alt"));
   tdAcc.append(btnEdit);
 
   const btnDelete = $("<button>")
@@ -21646,24 +21857,37 @@ $(function () {
       $(document).ready(function () {
         function setOfertadoPorCasino(tipo) {
           if (tipo == "1") {
-            $("#ofertado_adjudicado_RRHH").val(194);
+            $("#ofertado_adjudicado_RRHH").val(194); // Melincué
           } else if (tipo == "2") {
-            $("#ofertado_adjudicado_RRHH").val(495);
+            $("#ofertado_adjudicado_RRHH").val(585); // Santa Fe
           } else if (tipo == "3") {
-            $("#ofertado_adjudicado_RRHH").val(1389);
+            $("#ofertado_adjudicado_RRHH").val(1398); // Rosario
           } else {
             $("#ofertado_adjudicado_RRHH").val("");
           }
         }
 
-        function cargarPersonalInicio(casinoId) {
-          if (!casinoId) {
-            $("#personal_inicio_RRHH").val("");
-            return;
-          }
+        function mesRRHHSeleccionado() {
+          return String($("#fecha_RRHH").val() || "")
+            .trim()
+            .slice(0, 7);
+        }
+
+        function cargarPersonalInicio(casinoId, mes) {
+          // Autocompleta con el personal al final del mes anterior, pero SOLO si el campo está
+          // vacío: si ya tiene un valor (lo escribió el usuario, o es el que trae el registro que
+          // se está editando) no se toca. Aplica igual en crear y en editar.
+          if ($.trim($("#personal_inicio_RRHH").val())) return;
+          if (!casinoId || !mes) return;
           $.get(
             "/documentosContables/ultimosPersonalRRHH/" + casinoId,
+            { mes: mes },
             function (data) {
+              // Se vuelve a chequear al llegar la respuesta: puede haberse llenado mientras
+              // esperábamos (p.ej. al editar, el propio registro asigna su personal_inicio justo
+              // después de disparar este trigger). Así no se pisa el valor real del registro.
+              if ($.trim($("#personal_inicio_RRHH").val())) return;
+
               var val = null;
 
               if (data == null) {
@@ -21680,9 +21904,7 @@ $(function () {
 
               $("#personal_inicio_RRHH").trigger("input");
             }
-          ).fail(function () {
-            $("#personal_inicio_RRHH").val("");
-          });
+          );
         }
 
         $("#casinoRRHH").on("change", function () {
@@ -21693,7 +21915,23 @@ $(function () {
 
           setOfertadoPorCasino(tipo);
 
-          cargarPersonalInicio(tipo);
+          cargarPersonalInicio(tipo, mesRRHHSeleccionado());
+        });
+
+        // El mes también decide de qué registro se toma el valor (el del mes anterior), así que
+        // hay que recalcular cuando cambia, no solo cuando cambia el casino.
+        $(document).on("change", "#fecha_RRHH", function () {
+          cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
+        });
+        $("#fechaRRHH").on("changeDate", function () {
+          cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
+        });
+
+        // Si el usuario deja el campo vacío (lo borró, o está editando un registro viejo sin
+        // este dato), al salir del campo se autocompleta. Si tiene algo puesto, cargarPersonalInicio
+        // no lo toca (ver el guard adentro).
+        $(document).on("blur", "#personal_inicio_RRHH", function () {
+          cargarPersonalInicio($("#casinoRRHH").val(), mesRRHHSeleccionado());
         });
 
         $(document).on("shown.bs.modal", "#modalCargarRRHH", function () {
@@ -22799,39 +23037,14 @@ $(function () {
           $.getJSON(
             "/documentosContables/AutDirectoresHabilitadosPorCasino/" + id,
             function (data) {
-              if (!data || !data.length) {
-                $("#zona-directores").html(
-                  '<div class="col-md-12 text-muted">Sin directores habilitados para este casino.</div>'
-                );
-                return;
-              }
-              var html = "";
-              for (var i = 0; i < data.length; i++) {
-                var d = data[i];
-                html += '<div class="col-md-7 d-flex align-items-center mb-2">';
-                html +=
-                  '  <span class="me-2" style="white-space:nowrap;">' +
-                  d.nombre +
-                  " C.U.I.T.: " +
-                  (d.cuit || "") +
-                  "</span>";
-                html +=
-                  '  <input type="hidden" name="directores[' +
-                  d.id_registroAutDirectores_director +
-                  ']" value="0">';
-                html +=
-                  '  <input type="checkbox" name="directores[' +
-                  d.id_registroAutDirectores_director +
-                  ']" value="1" style="margin-left:6px;">';
-                html += "</div>";
-                html += '<div class="col-md-5 mb-2">';
-                html +=
-                  '  <textarea name="observacion[' +
-                  d.id_registroAutDirectores_director +
-                  ']" class="form-control form-control-sm" rows="1" placeholder="observacion"></textarea>';
-                html += "</div>";
-              }
-              $("#zona-directores").html(html);
+              // Precarga: los habilitados del casino, sin tildar. Los demás (incluidos los
+              // inhabilitados) se suman a mano desde el combo de "AGREGAR AL REGISTRO".
+              $("#zona-directores").html(
+                (data && data.length)
+                  ? data.map(filaDirectorAutDir).join("")
+                  : '<div class="col-md-12 text-muted">Sin directores habilitados para este casino. Podés agregarlos con el botón de abajo.</div>'
+              );
+              refrescarComboAgregarDirector();
             }
           );
         });
@@ -23742,13 +23955,88 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
       if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
       buscarPestana(activeTab, true);
     },
-    error: function (data) {
-      console.log(data);
+    error: function (xhr) {
+      var msg = (xhr.responseJSON && xhr.responseJSON.msg)
+        ? xhr.responseJSON.msg
+        : "Ocurrió un error al validar el documento.";
+      // Cerramos el modal de confirmación y, una vez oculto, mostramos el aviso
+      // (evita el solapamiento de backdrops de Bootstrap al encadenar dos modales).
+      $("#modalValidarDocumento")
+        .one("hidden.bs.modal", function () {
+          $("#texto-aviso-validacion").text(msg);
+          $("#modalAvisoValidacion").modal("show");
+        })
+        .modal("hide");
     },
   });
 });
 
 // --- ESTADO CONTABLE ---
+
+// Estaba definida DENTRO del $(document).ready() de abajo, así que era una función local y no
+// global: prepararModalDocContable la busca con window["cargarArchivos"+tipo+"Lista"], y como no
+// existía en window, al editar un Estado Contable la sección de "archivos cargados" quedaba
+// siempre vacía/oculta (aunque el registro sí tuviera archivos) — no había forma de llegar al
+// botón de borrar. Se saca afuera para que sea global, igual que las otras 26 funciones
+// cargarArchivos*Lista del módulo.
+function cargarArchivosEstadoContableLista(id, target) {
+  var $m = $("#modalArchivosAsociados");
+  $m.data("EstadoContableId", id);
+  var $list = $(targetArchivosDoc("EstadoContable", target))
+    .empty()
+    .append('<div class="list-group-item">Cargando...</div>');
+
+  $.getJSON("/documentosContables/archivosEstadoContable/" + id)
+    .done(function (res) {
+      var files = Array.isArray(res)
+        ? res
+        : res.data || res.archivos || res.items || [];
+      $list.empty();
+      if (!files.length) {
+        $list.append(
+          '<div class="list-group-item">Sin archivos asociados.</div>'
+        );
+        return;
+      }
+      files.forEach(function (f) {
+        var fid = f.id || f.id_registro_archivo || f.id_archivo;
+        var nombre =
+          f.nombre ||
+          f.archivo ||
+          (f.path ? String(f.path).split("/").pop() : "archivo");
+        var href =
+          "/documentosContables/visualizarArchivo/EstadoContable/" +
+          encodeURIComponent(nombre);
+
+        var $row = $('<div class="list-group-item clearfix">');
+        var $a = $('<a target="_blank">')
+          .attr("href", href)
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
+        var $del = $(
+          '<button type="button" data-id="' +
+            fid +
+            '" data-reg-id="' +
+            id +
+            '" data-scope="EstadoContable"  class="btn btn-sm btn-danger btn-del-archivo-EstadoContable" title="Quitar">'
+        )
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "ELIMINAR ARCHIVO")
+          .css("float", "right")
+          .append($("<i>").addClass("fa fa-trash"));
+
+        $row.append($a).append($del);
+        $list.append($row);
+      });
+    })
+    .fail(function () {
+      $list
+        .empty()
+        .append(
+          '<div class="list-group-item text-danger">Error al cargar archivos.</div>'
+        );
+    });
+}
 
 $(document).ready(function() {
   $('#dtpFechaEstadoContable').datetimepicker({
@@ -23837,7 +24125,8 @@ $(document).ready(function() {
   $("#estado_contable_nuevo").click(function(e) {
     e.preventDefault();
     $("#modalCargarEstadoContable .modal-title").text("| NUEVO ESTADO CONTABLE");
-    $("#modalCargarEstadoContable .modal-header").attr('style','background-color: #6dc7be;');
+    // Encabezado unificado con el resto de los modales de documentos contables.
+    $("#modalCargarEstadoContable .modal-header").attr('style','background-color: #00695c;');
     $("#btn-guardarEstadoContable").removeClass("btn-warning").addClass("btn-success").val("nuevo");
     
     // Limpiar formulario manual
@@ -23946,7 +24235,8 @@ $(document).ready(function() {
     e.preventDefault();
     var id = $(this).val();
     $("#modalCargarEstadoContable .modal-title").text("| EDITAR ESTADO CONTABLE");
-    $("#modalCargarEstadoContable .modal-header").attr('style','background-color: #ff9d2d;');
+    // Encabezado unificado con el resto de los modales de documentos contables.
+    $("#modalCargarEstadoContable .modal-header").attr('style','background-color: #00695c;');
     $("#btn-guardarEstadoContable").removeClass("btn-success").addClass("btn-warning").val("editar");
     
     var frm = $("#frmEstadoContable");
@@ -24059,65 +24349,6 @@ $(document).ready(function() {
       }
     });
   });
-  
-  function cargarArchivosEstadoContableLista(id) {
-    var $m = $("#modalArchivosAsociados");
-    $m.data("EstadoContableId", id);
-    var $list = $("#listaArchivos")
-      .empty()
-      .append('<div class="list-group-item">Cargando...</div>');
-  
-    $.getJSON("/documentosContables/archivosEstadoContable/" + id)
-      .done(function (res) {
-        var files = Array.isArray(res)
-          ? res
-          : res.data || res.archivos || res.items || [];
-        $list.empty();
-        if (!files.length) {
-          $list.append(
-            '<div class="list-group-item">Sin archivos asociados.</div>'
-          );
-          return;
-        }
-        files.forEach(function (f) {
-          var fid = f.id || f.id_registro_archivo || f.id_archivo;
-          var nombre =
-            f.nombre ||
-            f.archivo ||
-            (f.path ? String(f.path).split("/").pop() : "archivo");
-          var href =
-            "/documentosContables/visualizarArchivo/EstadoContable/" +
-            encodeURIComponent(nombre);
-  
-          var $row = $('<div class="list-group-item clearfix">');
-          var $a = $('<a target="_blank">')
-            .attr("href", href)
-            .text(iconoExt(nombre) + " " + nombre);
-          var $del = $(
-            '<button type="button" data-id="' +
-              fid +
-              '" data-reg-id="' +
-              id +
-              '" data-scope="EstadoContable"  class="btn btn-sm btn-danger btn-del-archivo-EstadoContable" title="Quitar">'
-          )
-            .attr("data-toggle", "tooltip")
-            .attr("data-placement", "bottom")
-            .attr("title", "ELIMINAR ARCHIVO")
-            .css("float", "right")
-            .append($("<i>").addClass("fa fa-trash"));
-  
-          $row.append($a).append($del);
-          $list.append($row);
-        });
-      })
-      .fail(function () {
-        $list
-          .empty()
-          .append(
-            '<div class="list-group-item text-danger">Error al cargar archivos.</div>'
-          );
-      });
-  }
 
   $(document).on("click", ".btn-archivos-EstadoContable", function(e) {
     e.preventDefault();
@@ -24187,7 +24418,7 @@ function generarFilaEstadoContable(est) {
   .attr("data-toggle", "tooltip")
   .attr("data-placement", "bottom")
   .attr("title", "VER ESTADO CONTABLE");
-  const btnEdit = $("<button>").addClass("btn btn-warning btn-edit-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-edit"))
+  const btnEdit = $("<button>").addClass("btn btn-warning btn-edit-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
   .attr("data-toggle", "tooltip")
   .attr("data-placement", "bottom")
   .attr("title", "MODIFICAR ESTADO CONTABLE");
@@ -24205,11 +24436,11 @@ function generarFilaEstadoContable(est) {
       );
   }
 
-  tdAcc.append(btnView).append(btnEdit).append(btnDel).append(btnValidar);
+  tdAcc.append(btnEdit).append(btnDel).append(btnValidar);
 
   if (est.tiene_archivos) {
     const btnFiles = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-EstadoContable").attr("data-id", est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-file")).attr("data-toggle", "tooltip").attr("title", "VER ARCHIVOS ASOCIADOS");
-    tdAcc.append(btnFiles);
+    // [ver/archivos removidos] tdAcc.append(btnFiles);
   }
 
   fila.append(tdAcc);
@@ -24306,4 +24537,743 @@ $('#dtpFechaEstadoContable').on('changeDate', function(e) {
     $('#modalCargarEstadoContable .ec-anio-actual').text(year);
     $('#modalCargarEstadoContable .ec-anio-anterior').text((year - 1) + ' Reexpresado');
   }
+});
+
+
+// ----------------- PÚBLICO CASINO -----------------
+
+$(document).on("click", ".btn-editar-publico-casino, .btn-ver-publico-casino", function () {
+  const id = $(this).val();
+  // El botón "ver" se quitó de la tabla: ahora se entra siempre por el de editar, y el modal queda
+  // en solo lectura únicamente si el documento ya está validado.
+  const readonly =
+    $(this).hasClass("btn-ver-publico-casino") || docContableValidado($(this));
+  
+  $.get("/documentosContables/llenarPublicoCasino/" + id, function (data) {
+    $("#id_registroPublicoCasino").val(id);
+    $(".input-publico-dia").val("");
+    
+    $("#uploadsPublicoCasinoContainer").empty();
+    $("#uploadsPublicoCasinoWrap").hide();
+    $("#fileNamePublicoCasino").val("No se ha seleccionado ningún archivo");
+    var $new = $('<input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">');
+    $("#uploadPublicoCasino").remove();
+    $("#btnPickPublicoCasino").closest(".input-group").append($new);
+    
+    // Parse fecha_mes accurately avoiding timezone offsets changing the month
+    const parts = data.fecha_mes.split("-");
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    for(let i = 1; i <= 31; i++) {
+        let val = data["dia_"+i];
+        if (val !== null) $("#pc_dia_"+i).val(formatoAR(val, 0));
+        if (i > daysInMonth) {
+            $("#pc_dia_"+i).prop("disabled", true).val("");
+        } else {
+            $("#pc_dia_"+i).prop("disabled", readonly);
+        }
+    }
+    
+    if (readonly) {
+        $("#btn-guardarPublicoCasino").hide();
+    } else {
+        $("#btn-guardarPublicoCasino").show();
+    }
+    
+    $(".input-publico-dia").first().trigger("change");
+    $("#modalPublicoCasino").modal("show");
+  });
+});
+
+$(document).on("input blur change", ".input-publico-dia", function(e) {
+  if (e.type === "input") {
+    let clean = $(this).val().replace(/[^0-9.]/g, "");
+    if (clean !== $(this).val()) {
+      $(this).val(clean);
+    }
+  }
+
+  let total = 0;
+  $(".input-publico-dia").each(function() {
+    let raw = $(this).val();
+    let num = parseInt(raw.replace(/\./g, ""), 10);
+    if (!isNaN(num)) {
+      total += num;
+      if (e.type === "blur" && raw !== "") {
+        $(this).val(formatoAR(num, 0));
+      }
+    } else if (e.type === "blur") {
+      $(this).val("");
+    }
+  });
+  $("#pc_total_mensual_input").val(formatoAR(total, 0));
+});
+
+$(document).on("click", "#btn-guardarPublicoCasino", function (e) {
+  e.preventDefault();
+  const id = $("#id_registroPublicoCasino").val();
+  const formData = new FormData($("#frmPublicoCasino")[0]);
+  
+  // Añadir archivos que están en el input clonado (el real).
+  // Si hubiera múltiples selecciones acumuladas, se manejan enviándolos aquí.
+  // Pero ya usamos FormData con el input del form, así que los envía.
+
+  $.ajax({
+    type: "POST",
+    url: "/documentosContables/actualizarPublicoCasino/" + id,
+    data: formData,
+    dataType: "json",
+    processData: false,
+    contentType: false,
+    success: function (data) {
+      $("#modalPublicoCasino").modal("hide");
+      var activeTab = $("[data-js-tabs] a.active").attr("data-js-tab");
+      if (!activeTab) activeTab = $("[data-js-tabs] a").first().attr("data-js-tab");
+      buscarPestana(activeTab, true);
+    },
+    error: function (data) {
+      console.error(data);
+    }
+  });
+});
+
+function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
+  $.ajax({
+    type: "GET",
+    url: "/documentosContables/ultimasPublicoCasino",
+    data: { page: page, page_size: perPage, id_casino: casino, desde: desde, hasta: hasta },
+    success: function (data) {
+      $("#herramientasPaginacionPublicoCasino").generarTitulo(data.pagination.current_page, data.pagination.per_page, data.pagination.total, clickIndicePublicoCasino);
+      $("#herramientasPaginacionPublicoCasino").generarIndices(data.pagination.current_page, data.pagination.per_page, data.pagination.total, clickIndicePublicoCasino);
+      $("#cuerpoTablaPublicoCasino").empty();
+      data.registros.forEach(function (r) {
+        let fila = $("<tr>");
+        let btnEditar = $("<button>").addClass("btn btn-warning btn-sm btn-editar-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "MODIFICAR PÚBLICO CASINO");
+          
+        let btnVer = $("<button>").addClass("btn btn-info btn-sm btn-ver-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-search-plus"))
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "VER PÚBLICO CASINO");
+          
+        let btnValidar = obtenerIconoValidacion(r.valido, 'publico_casino', r.id_registroPublicoCasino);
+        
+        let btnArchivos = $();
+        if (r.tiene_archivos) {
+            btnArchivos = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-file"))
+              .attr("data-toggle", "tooltip")
+              .attr("data-placement", "bottom")
+              .attr("title", "VER ARCHIVOS ASOCIADOS");
+        }
+
+        let parts = r.fecha_mes.split("-");
+        let year = parts[0];
+        let month = parts[1];
+        let daysInMonth = new Date(year, month, 0).getDate();
+        let mesFormatText = convertirMesAno(r.fecha_mes);
+
+        fila.append($("<td>").addClass("col-xs-3").text(mesFormatText));
+        fila.append($("<td>").addClass("col-xs-3").text(r.casino));
+        
+        fila.append($("<td>").addClass("col-xs-3").text(r.dias_completados + " / " + daysInMonth));
+        let tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
+        if (r.tiene_archivos) tdAcc;
+        tdAcc.append(btnEditar).append(btnValidar);
+        fila.append(tdAcc);
+        $("#cuerpoTablaPublicoCasino").append(fila);
+      });
+    },
+    error: function (xhr, status, error) {
+      console.error("Error en ultimasPublicoCasino: ", error, xhr.responseText);
+      // alert("Ocurrió un error al cargar la tabla de Público Casino.");
+    }
+  });
+}
+
+function clickIndicePublicoCasino(e, pageNumber, tam) {
+  if (e != null) e.preventDefault();
+  var tam = tam != null ? tam : $("#herramientasPaginacionPublicoCasino").getPageSize();
+  cargarPublicoCasino({
+      page: pageNumber, 
+      perPage: tam, 
+      casino: $("#filtro_global_casino").val(), 
+      desde: $("#filtro_global_desde_input").val(), 
+      hasta: $("#filtro_global_hasta_input").val()
+  });
+}
+
+$(document).on("click", "#btnPickPublicoCasino", function () {
+  $("#uploadPublicoCasino").click();
+});
+
+$(document).on("change", "#uploadPublicoCasino", function () {
+  if (!this.files || !this.files.length) return;
+  var gid = "lote_" + (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+  $(this).attr("data-group", gid).removeAttr("id").addClass("archived").appendTo("#uploadsPublicoCasinoContainer");
+  renderUploadsPublicoCasino();
+  var $new = $('<input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">');
+  $("#btnPickPublicoCasino").closest(".input-group").append($new);
+});
+
+function humanSize(n) {
+  if (n >= 1024 * 1024) return (n / 1048576).toFixed(1) + " MB";
+  if (n >= 1024) return (n / 1024).toFixed(0) + " KB";
+  return n + " B";
+}
+
+function renderUploadsPublicoCasino() {
+  var $tbody = $("#uploadsPublicoCasinoTable tbody").empty();
+  var total = 0, row = 1;
+  $('#uploadsPublicoCasinoContainer input[type=file][name="uploadPublicoCasino[]"]').each(function () {
+    var gid = $(this).attr("data-group");
+    var files = this.files || [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      total++;
+      var $tr = $("<tr></tr>");
+      $tr.append("<td>" + row++ + "</td>");
+      $tr.append("<td>" + f.name + "</td>");
+      $tr.append("<td>" + humanSize(f.size) + "</td>");
+      var $btn = $('<button type="button" class="btn btn-xs btn-danger btn-remove-file" title="Quitar"><i class="fa fa-trash"></i></button>')
+        .attr("data-group", gid).attr("data-idx", i);
+      $tr.append($("<td></td>").append($btn));
+      $tbody.append($tr);
+    }
+  });
+  $("#uploadsPublicoCasinoWrap").css("display", total ? "" : "none");
+  $("#fileNamePublicoCasino").val(total ? total + " archivo(s) seleccionado(s)" : "No se ha seleccionado ningún archivo");
+}
+
+$(document).on("click", "#uploadsPublicoCasinoTable .btn-danger", function () {
+  var gid = $(this).attr("data-group");
+  var idx = parseInt($(this).attr("data-idx"));
+  var $inp = $('#uploadsPublicoCasinoContainer input[data-group="' + gid + '"]');
+  if (!$inp.length) return;
+  const filedt = new DataTransfer();
+  const files = $inp[0].files;
+  for (let i = 0; i < files.length; i++) {
+    if (i !== idx) filedt.items.add(files[i]);
+  }
+  $inp[0].files = filedt.files;
+  if ($inp[0].files.length === 0) $inp.remove();
+  renderUploadsPublicoCasino();
+});
+
+function cargarArchivosPublicoCasinoLista(id, target) {
+  var $m = $("#modalArchivosAsociados");
+  $m.data("PublicoCasinoId", id);
+  var $list = $(targetArchivosDoc("PublicoCasino", target)).empty().append('<div class="list-group-item">Cargando...</div>');
+  $.getJSON("/documentosContables/archivosPublicoCasino/" + id).done(function (res) {
+    var files = Array.isArray(res) ? res : res.data || res.archivos || res.items || [];
+    $list.empty();
+    if (!files.length) {
+      $list.append('<div class="list-group-item">Sin archivos asociados.</div>');
+      return;
+    }
+    files.forEach(function (f) {
+      var fid = f.id || f.id_registro_archivo || f.id_archivo;
+      var nombre = f.nombre || f.archivo || (f.path ? String(f.path).split("/").pop() : "archivo");
+      var href = "/documentosContables/visualizarArchivo/PublicoCasino/" + encodeURIComponent(nombre);
+      var html = '<div class="list-group-item d-flex justify-content-between align-items-center" style="display:flex;">' +
+        '<a href="' + href + '" target="_blank" style="flex:1;">' + nombre + '</a>' +
+        '<button class="btn btn-danger btn-xs btn-del-archivo-publico-casino" data-id="' + fid + '" data-reg-id="' + id + '" data-scope="publicoCasino" title="Eliminar"><i class="fa fa-trash"></i></button>' +
+        '</div>';
+      $list.append(html);
+    });
+  }).fail(function () {
+    $list.empty().append('<div class="list-group-item text-danger">Error al cargar archivos.</div>');
+  });
+}
+
+$(document).on("click", ".btn-archivos-publico-casino", function(e) {
+  e.preventDefault();
+  const id = $(this).data("id") || $(this).val();
+  $("#tituloArchivos").text("Archivos de Público Casino");
+  cargarArchivosPublicoCasinoLista(id);
+  $("#modalArchivosAsociados").modal("show");
+});
+
+$(document).on("click", ".btn-del-archivo-publico-casino", function () {
+  const id = $(this).data("id");
+  const regId = $(this).data("regId");
+  const scope = $(this).data("scope");
+  $("#btn-eliminarArchivo").attr("data-id", id);
+  $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
+});
+
+$(document).on("click", "#btn-totalesAnualesPublicoCasino", function() {
+    let currentYear = new Date().getFullYear();
+    let selAnio = $("#ta_anio");
+    selAnio.empty();
+    for (let y = currentYear; y >= 2020; y--) {
+        selAnio.append($("<option>").val(y).text(y));
+    }
+    
+    $("#ta_tbody").empty();
+    $("#ta_tfoot_row").empty();
+    $("#modalTotalesAnualesPublicoCasino").modal("show");
+    
+    setTimeout(function() {
+        $("#btn-buscarTotalesAnuales").click();
+    }, 500);
+});
+
+$(document).on("click", "#btn-buscarTotalesAnuales", function() {
+    let casino = $("#ta_casino").val();
+    let anio = $("#ta_anio").val();
+    
+    if(!casino || !anio) return;
+    
+    $.get("/documentosContables/totalesAnualesPublicoCasino", { id_casino: casino, anio: anio }, function(data) {
+        let matrix = data.datos;
+        
+        let tbody = $("#ta_tbody");
+        let tfoot = $("#ta_tfoot_row");
+        tbody.empty();
+        tfoot.empty();
+        
+        let colTotals = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 'anual':0};
+        
+        for (let d = 1; d <= 31; d++) {
+            let tr = $("<tr>");
+            tr.append($("<td>").text(d).css("font-weight", "bold").css("background-color", "#f5f5f5"));
+            
+            let rowTotal = 0;
+            for (let m = 1; m <= 12; m++) {
+                let yearInt = parseInt(anio, 10);
+                let daysInMonth = new Date(yearInt, m, 0).getDate();
+                let td = $("<td>");
+                
+                if (d > daysInMonth) {
+                    td.css("background-color", "#ddd");
+                } else {
+                    let val = matrix[m] ? matrix[m][d] : null;
+                    if (val !== null) {
+                        td.text(formatoAR(val, 0));
+                        rowTotal += val;
+                        colTotals[m] += val;
+                    } else {
+                        td.text("");
+                    }
+                }
+                tr.append(td);
+            }
+            
+            colTotals['anual'] += rowTotal;
+            tr.append($("<td>").text(rowTotal > 0 ? formatoAR(rowTotal, 0) : "").css("font-weight", "bold").css("background-color", "#fffde7"));
+            
+            tbody.append(tr);
+        }
+        
+        tfoot.append($("<td>").text("TOTAL").css("text-align", "center"));
+        for (let m = 1; m <= 12; m++) {
+            tfoot.append($("<td>").text(colTotals[m] > 0 ? formatoAR(colTotals[m], 0) : "").css("text-align", "center").css("color", "red"));
+        }
+        tfoot.append($("<td>").text(colTotals['anual'] > 0 ? formatoAR(colTotals['anual'], 0) : "").css("text-align", "center").css("color", "red").css("background-color", "#fffde7"));
+    });
+});
+
+$(document).on("change", "#ta_casino, #ta_anio", function() {
+    $("#btn-buscarTotalesAnuales").click();
+});
+
+$("#btn-descargarPublicoCasinoExcel").on("click", function (e) {
+  e.preventDefault();
+  var _fg = filtrosGlobalDescarga();
+  const casino = _fg.casino;
+  const desde = _fg.desde;
+  const hasta = _fg.hasta;
+
+  if (casino != 4 && casino != 0) {
+    window.location.href = `/documentosContables/descargarPublicoCasinoXlsx?casino=${casino}&desde=${desde}&hasta=${hasta}`;
+  } else {
+    window.location.href = `/documentosContables/descargarPublicoCasinoXlsxTodos?desde=${desde}&hasta=${hasta}`;
+  }
+});
+
+$("#btn-descargarPublicoCasinoCsv").on("click", function (e) {
+  e.preventDefault();
+  var _fg = filtrosGlobalDescarga();
+  const casino = _fg.casino;
+  const desde = _fg.desde;
+  const hasta = _fg.hasta;
+
+  window.location.href = `/documentosContables/descargarPublicoCasinoCsv?casino=${casino}&desde=${desde}&hasta=${hasta}`;
+});
+
+/* ============ DOCUMENTOS CONTABLES: ARCHIVOS INLINE + MODO SOLO LECTURA ============
+   Antes cada fila tenía un botón "ver documento" (abría un modal aparte de solo lectura) y otro
+   "ver archivos" (abría #modalArchivosAsociados). Ahora todo se hace desde el botón de editar:
+   el modal de carga muestra los datos y, debajo del botón de subir archivos, la lista de los
+   archivos ya cargados. Si el documento está validado, el modal se abre en modo solo lectura.
+   Los botones viejos quedaron comentados en los armadores de fila ("[ver/archivos removidos]") y
+   #modalArchivosAsociados / los modales modalVer* quedaron sin uso (se dejaron por si hay que volver).
+   =================================================================================== */
+
+// Contenedor donde renderizar la lista de archivos. Si viene target explícito gana (lo usa el modal
+// unificado, que tiene sus propios contenedores); si no, el contenedor inline del tipo.
+function targetArchivosDoc(tipo, target) {
+  if (target) return target;
+  var sel = "#listaArchivos_" + tipo;
+  if ($(sel).length) return sel;
+  // Algunos tipos solo viven dentro del modal unificado, que usa nombres cortos.
+  var corto =
+    {
+      PozosAcumuladosLinkeados: "Pozos",
+      JackpotsPagados: "Jackpots",
+      PagosMayoresMesas: "PagosMesas",
+    }[tipo] || tipo;
+  return "#listaArchivos_U_" + corto;
+}
+
+// Modal de carga y botón de guardar de cada tipo (se derivan del nombre, con excepciones).
+function cfgDocContable(tipo) {
+  var esp =
+    {
+      AutDirectores: {
+        modal: "#modalCargarAutDirectores_autorizacion",
+        guardar: "#guardarRegistroAutDirectores_autorizacion",
+      },
+      // PremiosMTM se carga/edita desde el modal unificado.
+      PremiosMTM: { modal: "#modalCargarPremiosMTM", guardar: "#guardarRegistroPremiosMTM_Unificado" },
+      EstadoContable: { modal: "#modalCargarEstadoContable", guardar: "#btn-guardarEstadoContable" },
+      PublicoCasino: { modal: "#modalPublicoCasino", guardar: "#btn-guardarPublicoCasino" },
+    }[tipo] || {};
+  return {
+    modal: esp.modal || "#modalCargar" + tipo,
+    guardar: esp.guardar || "#guardarRegistro" + tipo,
+  };
+}
+
+// ¿El documento de esta fila está validado? Se lee del botón de validación, que ya trae data-valido.
+function docContableValidado($btn) {
+  return String($btn.closest("tr").find(".validarDocumento").attr("data-valido")) === "1";
+}
+
+// Bloquea/desbloquea el modal. Solo revierte lo que deshabilitó esta misma función (marca data-ro-doc),
+// para no pisar campos que el flujo original deja deshabilitados o readonly a propósito.
+function aplicarSoloLecturaDoc(cfg, soloLectura) {
+  var $m = $(cfg.modal);
+  var $guardar = $(cfg.guardar);
+  // La clase marca el modal como solo lectura. Se usa además desde CSS para ocultar los botones de
+  // eliminar archivo, que se renderizan después (la lista se carga por AJAX).
+  $m.toggleClass("doc-solo-lectura", !!soloLectura);
+  if (soloLectura) {
+    $m.find("input, select, textarea")
+      .not("[type=hidden]")
+      .not(":disabled")
+      .attr("data-ro-doc", "1")
+      .prop("disabled", true);
+    $m.find("[id^=btnPick], .btnPickUnified").attr("data-ro-doc-hide", "1").hide();
+    $guardar.attr("data-ro-doc-hide", "1").hide();
+  } else {
+    $m.find("[data-ro-doc]").removeAttr("data-ro-doc").prop("disabled", false);
+    $m.find("[data-ro-doc-hide]").removeAttr("data-ro-doc-hide").show();
+    $guardar.removeAttr("data-ro-doc-hide").show();
+  }
+}
+
+// Muestra los archivos ya cargados del registro dentro del modal y aplica el modo solo lectura.
+function prepararModalDocContable(tipo, id, soloLectura, soloArchivos) {
+  var fn = window["cargarArchivos" + tipo + "Lista"];
+  var $wrap = $("#listaArchivosWrap_" + tipo);
+
+  if (id && typeof fn === "function") {
+    $wrap.show();
+    fn(id);
+  } else {
+    $("#listaArchivos_" + tipo).empty();
+    $wrap.hide();
+  }
+
+  var cfg = cfgDocContable(tipo);
+  if (soloArchivos) {
+    // El tipo ya maneja su propio bloqueo: solo se marca el modal (para el CSS de borrar archivos).
+    $(cfg.modal).toggleClass("doc-solo-lectura", !!soloLectura);
+  } else {
+    aplicarSoloLecturaDoc(cfg, soloLectura);
+  }
+  ajustarTituloModalDoc($(cfg.modal));
+}
+
+// El handler de cada tipo escribe el título como "EDITAR ...". Cuando el documento está validado el
+// modal se abre en solo lectura, así que el título tiene que decir "VER ...".
+function ajustarTituloModalDoc($m) {
+  if (!$m.hasClass("doc-solo-lectura")) return;
+  $m.find(".modal-title").each(function () {
+    var t = $(this).text();
+    if (/editar/i.test(t)) $(this).text(t.replace(/editar/gi, "VER"));
+  });
+}
+
+// Red de seguridad: algunos tipos escriben el título dentro del callback AJAX, o sea después de que
+// corre el hook. shown.bs.modal dispara más tarde, así que acá se corrige igual.
+$(document).on("shown.bs.modal", ".modal", function () {
+  ajustarTituloModalDoc($(this));
+});
+
+// Hook único para todos los botones de editar. Va al final del archivo a propósito: los handlers
+// delegados corren en orden de registro, así este se ejecuta DESPUÉS del handler propio de cada
+// tipo (que es el que abre y llena el modal).
+$(document).on("click", "[class*='btn-edit-'], .btn-editar-publico-casino", function () {
+  var $btn = $(this);
+  var clases = $btn.attr("class") || "";
+  var tipo;
+
+  if (clases.indexOf("btn-editar-publico-casino") >= 0) {
+    tipo = "PublicoCasino";
+  } else {
+    var m = clases.match(/btn-edit-([A-Za-z0-9_]+)/);
+    if (!m) return;
+    tipo = m[1];
+    if (tipo === "PremiosMTM_Unificado") return; // el unificado tiene su propio flujo
+    if (tipo === "iva") tipo = "Iva"; // la clase va en minúscula, la función no
+  }
+
+  var id = $btn.data("id") || $btn.val();
+  var validado = docContableValidado($btn);
+  // Público Casino ya tiene su propio bloqueo (deshabilita los días y esconde ACEPTAR), así que
+  // para ese tipo solo cargamos los archivos y marcamos el modal.
+  var soloArchivos = tipo === "PublicoCasino";
+
+  // En setTimeout para no depender del orden en que se registraron los handlers: así corre siempre
+  // después del handler propio del tipo, que es el que abre y llena el modal.
+  setTimeout(function () {
+    prepararModalDocContable(tipo, id, validado, soloArchivos);
+  }, 0);
+});
+
+// Vacía el "buffer" de archivos del modal: los inputs de archivos ya elegidos que quedan
+// archivados esperando el submit, la tabla de archivos a subir y el input visible. Si no se limpia,
+// al abrir un documento nuevo aparecen precargados los archivos del documento anterior.
+function limpiarBufferArchivosDoc($m) {
+  $m.find("[id^=uploads][id$=Container]").empty();
+  $m.find("[id^=uploads][id$=Table]").find("tbody").empty();
+  $m.find("[id^=uploads][id$=Wrap]").hide();
+  $m.find("input[type=file]").val("");
+  // modal unificado
+  $m.find(".wrapUnified").hide();
+  $m.find(".tableUnified").find("tbody").empty();
+  $m.find(".displayUnified").val("");
+}
+
+// Al cerrar un modal se limpia todo el estado: archivos ya cargados, buffer de subida y
+// solo-lectura. Así el próximo "nuevo registro" abre en blanco y editable, sin arrastrar nada
+// del registro anterior (ni datos ni archivos).
+$(document).on("hidden.bs.modal", ".modal", function () {
+  var $m = $(this);
+  var id = $m.attr("id") || "";
+  var esModalDeCarga = id.indexOf("modalCargar") === 0 || id === "modalPublicoCasino";
+  var esDocContable =
+    esModalDeCarga ||
+    $m.find(".lista-archivos-doc").length ||
+    $m.find("[id^=uploads][id$=Container]").length ||
+    $m.hasClass("doc-solo-lectura");
+  if (!esDocContable) return;
+
+  $m.removeClass("doc-solo-lectura");
+  $m.find(".lista-archivos-doc").hide().find(".list-group").empty();
+  $m.find("[data-ro-doc]").removeAttr("data-ro-doc").prop("disabled", false);
+  $m.find("[data-ro-doc-hide]").removeAttr("data-ro-doc-hide").show();
+  limpiarBufferArchivosDoc($m);
+
+  // Descarta el número cacheado de los campos numéricos. data("num") solo se refresca cuando el
+  // usuario tipea (al llenar el modal se usa .val()), y el guardado lo usa con prioridad sobre lo
+  // que se ve: si quedaba el del registro anterior, abrir otro y guardar sin tocar ese campo
+  // guardaba el valor viejo. También hacía que los campos calculados no se actualizaran.
+  $m.find("input").removeData("num").removeData("normalized");
+
+  // Limpieza del formulario al cerrar. Es la red de seguridad del problema "abro NUEVO y me
+  // aparecen los datos del registro que estaba viendo": varios flujos de "nuevo" abren el modal
+  // directo, sin pasar por abrirModal*Crear (Ganancias_periodo, ImpInmobiliario, las sub-pantallas
+  // de partidas/tipos/directores...), así que limpiar acá cubre todos los caminos.
+  if (esModalDeCarga) resetFormularioModalDoc($m, id);
+});
+
+// Limpia el formulario del modal usando la función propia del tipo si existe; si no, hace un reset
+// nativo de los formularios que tenga adentro.
+function resetFormularioModalDoc($m, id) {
+  var tipo = id.indexOf("modalCargar") === 0 ? id.slice("modalCargar".length) : "PublicoCasino";
+  var propia =
+    tipo === "PremiosMTM" && typeof window.clearUnifiedModalInputs === "function"
+      ? window.clearUnifiedModalInputs
+      : window["resetForm" + tipo];
+
+  try {
+    if (typeof propia === "function") {
+      propia();
+      return;
+    }
+  } catch (e) {
+    // si la función propia falla, se sigue con el reset nativo
+  }
+
+  $m.find("form").each(function () {
+    if (typeof this.reset === "function") this.reset();
+  });
+  $m.find(".has-error").removeClass("has-error");
+  $m.find(".help-block.js-error, .js-error").remove();
+}
+
+// El botón de acción de cada fila es EDITAR (lápiz) si el documento no está validado, y VER (ojo)
+// si ya lo está — en ese caso el modal se abre en solo lectura. Se resuelve en una sola pasada
+// genérica leyendo el data-valido que ya trae el botón de validación de la fila, así no hay que
+// tocar los 27 armadores de fila.
+function ajustarBotonesVerEditarDoc() {
+  $("tbody tr").each(function () {
+    var $tr = $(this);
+    var $val = $tr.find(".validarDocumento");
+    if (!$val.length) return;
+    var $btn = $tr.find("[class*='btn-edit-'], .btn-editar-publico-casino").first();
+    if (!$btn.length) return;
+
+    var validado = String($val.attr("data-valido")) === "1";
+    var $i = $btn.find("i");
+    if (validado) {
+      $i.removeClass("fa-pencil-alt fa-pencil").addClass("fa-eye");
+      $btn.removeClass("btn-info").addClass("btn-success").attr("title", "VER DOCUMENTO");
+    } else {
+      $i.removeClass("fa-eye").addClass("fa-pencil-alt");
+      $btn.removeClass("btn-success").addClass("btn-info").attr("title", "EDITAR");
+    }
+  });
+}
+
+// Las tablas se dibujan por AJAX, así que se reajusta cada vez que termina una llamada.
+var _tmrBotonesDoc = null;
+$(document).ajaxComplete(function () {
+  clearTimeout(_tmrBotonesDoc);
+  _tmrBotonesDoc = setTimeout(ajustarBotonesVerEditarDoc, 60);
+});
+
+/* ====== REGISTRO DE AUTÓNOMOS: directores del registro ======
+   El registro precarga los directores HABILITADOS del casino, pero se puede sumar cualquier otro
+   del mismo casino (incluidos los inhabilitados) y sacar los que no correspondan.
+   Los names de los inputs son los mismos de siempre (directores[id] / observacion[id]).
+   ============================================================ */
+
+function escAutDir(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// Arma la fila de un director. Acepta tanto el formato del listado por casino
+// (id_registroAutDirectores_director) como el del registro guardado (id).
+function filaDirectorAutDir(d) {
+  var id = d.id != null ? d.id : d.id_registroAutDirectores_director;
+  var nombre = escAutDir(d.nombre);
+  var cuit = escAutDir(d.cuit);
+  var obs = escAutDir(d.observacion);
+  var tildado = parseInt(d.autoriza) ? " checked" : "";
+  // habilitado solo viene en los listados por casino; si no viene, no se muestra la marca.
+  var marca =
+    d.habilitado !== undefined && !parseInt(d.habilitado)
+      ? ' <span class="label label-default" title="Este director no está habilitado">inhabilitado</span>'
+      : "";
+
+  return (
+    '<div class="col-md-7 d-flex align-items-center mb-2 fila-director" data-dir="' + id + '">' +
+    '  <span class="me-2" style="white-space:nowrap;">' + nombre + " C.U.I.T.: " + cuit + marca + "</span>" +
+    '  <input type="hidden" name="directores[' + id + ']" value="0">' +
+    '  <input type="checkbox" name="directores[' + id + ']" value="1" style="margin-left:6px;"' + tildado + ">" +
+    "</div>" +
+    '<div class="col-md-5 mb-2 fila-director" data-dir="' + id + '" style="display:flex; gap:6px; align-items:flex-start;">' +
+    '  <textarea name="observacion[' + id + ']" class="form-control form-control-sm" rows="1" placeholder="observacion" style="flex:1;">' + obs + "</textarea>" +
+    '  <button type="button" class="btn btn-danger btn-sm btn-quitar-director" data-dir="' + id + '" title="Quitar del registro"><i class="fa fa-trash"></i></button>' +
+    "</div>"
+  );
+}
+
+// Ids de los directores que ya están en el registro (cada uno aparece en 2 columnas).
+function directoresEnRegistroAutDir() {
+  var vistos = {};
+  $("#zona-directores .fila-director[data-dir]").each(function () {
+    vistos[String($(this).attr("data-dir"))] = true;
+  });
+  return vistos;
+}
+
+// Llena el combo con los directores del casino que todavía NO están en el registro.
+function refrescarComboAgregarDirector() {
+  var casino = $("#casinoAutDirectores_autorizacion").val();
+  var $zona = $("#zona-agregar-director");
+  var $sel = $("#selectAgregarDirector");
+
+  if (!casino) {
+    $zona.hide();
+    return;
+  }
+
+  $.getJSON("/documentosContables/AutDirectoresTodosPorCasino/" + casino, function (data) {
+    var yaEstan = directoresEnRegistroAutDir();
+    var opciones = '<option value="">Elegí un director para agregar…</option>';
+    var disponibles = 0;
+
+    (data || []).forEach(function (d) {
+      var id = String(d.id_registroAutDirectores_director);
+      if (yaEstan[id]) return;
+      disponibles++;
+      opciones +=
+        '<option value="' + id + '"' +
+        ' data-nombre="' + escAutDir(d.nombre) + '"' +
+        ' data-cuit="' + escAutDir(d.cuit) + '"' +
+        ' data-habilitado="' + (parseInt(d.habilitado) ? 1 : 0) + '">' +
+        escAutDir(d.nombre) + " — CUIT " + escAutDir(d.cuit) +
+        (parseInt(d.habilitado) ? "" : " (inhabilitado)") +
+        "</option>";
+    });
+
+    $sel.html(opciones);
+    $("#avisoAgregarDirector").text(
+      disponibles ? "" : "No quedan directores para agregar en este casino."
+    );
+    $zona.show();
+  }).fail(function () {
+    $("#avisoAgregarDirector").text("No se pudo cargar la lista de directores.");
+    $zona.show();
+  });
+}
+
+$(document).on("click", "#btnAgregarDirector", function () {
+  var $opt = $("#selectAgregarDirector option:selected");
+  var id = $opt.val();
+  if (!id) return;
+
+  // Si estaba el cartel de "sin directores", se limpia antes de agregar la primera fila.
+  $("#zona-directores .text-muted").closest("div.col-md-12").remove();
+
+  $("#zona-directores").append(
+    filaDirectorAutDir({
+      id: id,
+      nombre: $opt.attr("data-nombre"),
+      cuit: $opt.attr("data-cuit"),
+      habilitado: $opt.attr("data-habilitado"),
+      autoriza: 0,
+      observacion: "",
+    })
+  );
+  refrescarComboAgregarDirector();
+});
+
+$(document).on("click", ".btn-quitar-director", function () {
+  var id = $(this).attr("data-dir");
+  $('#zona-directores .fila-director[data-dir="' + id + '"]').remove();
+  refrescarComboAgregarDirector();
+});
+
+// Al abrir el modal de confirmación de borrado, se guarda EL CONTENEDOR exacto donde estaba el
+// archivo. Después de borrar hay que refrescar esa misma lista, y no se puede deducir solo del
+// tipo: en el modal unificado cada sub-documento tiene su propia lista (#listaArchivos_U_*), pero
+// varios de esos tipos TAMBIÉN tienen su modal suelto (#listaArchivos_*), así que el destino por
+// tipo terminaba refrescando la lista equivocada y la del unificado quedaba desactualizada.
+// Va al final del archivo a propósito: los handlers delegados corren en orden de registro, así que
+// este se ejecuta después del handler propio de cada tipo (el que setea id/regId/scope).
+$(document).on("click", "[class*='btn-del-archivo-']", function () {
+  var id = $(this).closest(".list-group").attr("id");
+  $("#modalEliminarArchivo").data("contenedor", id ? "#" + id : null);
 });

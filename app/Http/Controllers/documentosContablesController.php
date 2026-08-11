@@ -113,6 +113,7 @@ class documentosContablesController extends Controller
         'Patentes' => 'app/public/RegistroPatentes',
         'ImpInmobiliario' => 'app/public/RegistroImpInmobiliario',
         'EstadoContable' => 'app/public/RegistroEstadoContable',
+        'PublicoCasino' => 'app/public/RegistroPublicoCasino',
       ];
 
       if(!array_key_exists($registro,$path)){
@@ -129,13 +130,50 @@ class documentosContablesController extends Controller
     }
 
 
+    /**
+     * Carpeta de storage donde vive el archivo de un adjunto, según el documento al que pertenece.
+     *
+     * `registro_archivo.path` guarda SOLO el nombre del archivo (sin la subcarpeta), así que para
+     * ubicarlo en disco hay que reconstruir la carpeta a partir de `fileable_type`. Por defecto la
+     * carpeta es el nombre de la clase (App\RegistroTGI -> RegistroTGI); acá van solo las que no
+     * siguen esa regla.
+     */
+    private function carpetaArchivoRegistro($fileableType){
+        $excepciones = [
+            'RegistroIva'               => 'RegistroIVA',        // la carpeta va en mayúsculas
+            'RegistroGanancias_periodo' => 'RegistroGanancias',  // comparte carpeta con Ganancias
+        ];
+
+        $clase = ltrim((string)$fileableType, '\\');
+        $pos = strrpos($clase, '\\');
+        if($pos !== false) $clase = substr($clase, $pos + 1);
+
+        return isset($excepciones[$clase]) ? $excepciones[$clase] : $clase;
+    }
+
     public function eliminarArchivo(Request $request){
         $id = $request->query('id');
         if(!$id || !ctype_digit((string)$id)) return response()->json(['success'=>0],400);
 
         $ra = Registro_archivo::findOrFail($id);
-        $abs = storage_path('app/public/'.ltrim($ra->path,'/'));
-        if(file_exists($abs)) @unlink($abs);
+
+        // El archivo está en app/public/<CarpetaDelDocumento>/<nombre>. Antes se buscaba en
+        // app/public/<nombre> (sin la carpeta), así que file_exists() daba false SIEMPRE y el
+        // unlink no se ejecutaba nunca: se borraba la fila pero el archivo quedaba huérfano en
+        // disco. Se deja también el path viejo como fallback por si alguna fila lo tuviera con
+        // la carpeta incluida.
+        $nombre = ltrim($ra->path, '/');
+        $carpeta = $this->carpetaArchivoRegistro($ra->fileable_type);
+
+        $candidatos = [
+            storage_path('app/public/'.$carpeta.'/'.$nombre),
+            storage_path('app/public/'.$nombre),
+        ];
+
+        foreach($candidatos as $abs){
+            if(is_file($abs)){ @unlink($abs); break; }
+        }
+
         $ra->delete();
 
         return response()->json(['success'=>1]);
@@ -3262,7 +3300,21 @@ public function getTGI_partidaPorCasino(Request $request){
 
 
 public function EliminarTGI_partida($id){
-    RegistroTGI_partida::findOrFail($id)->delete();
+    $partida = RegistroTGI_partida::findOrFail($id);
+
+    // No se puede borrar una partida que ya está usada en registros de TGI: los pagos quedarían
+    // apuntando a una partida inexistente y esos registros no se podrían ni abrir (500 al editar).
+    // Para dejar de usarla está el estado (deshabilitar), que es lo que corresponde.
+    $enUso = RegistroTGI_partida_pago::where('partida', $id)->count();
+    if($enUso > 0){
+        return response()->json([
+            'ok'  => false,
+            'msg' => 'No se puede eliminar: la partida está usada en '.$enUso.' pago(s) de registros de TGI. '
+                   . 'Si no querés que se siga usando, deshabilitala en vez de borrarla.'
+        ], 409);
+    }
+
+    $partida->delete();
     return response()->json(array('ok'=>true));
 }
 
@@ -3513,7 +3565,9 @@ public function llenarTGIEdit($id)
                 'id'                 => $p->id_registroTGI_partida_pago,
                 'partida_id'         => $p->partida,
                 'cuota'              => $p->cuota,
-                'partida'            => $p->partidaTGI->partida,
+                // Si la partida fue eliminada, el pago queda apuntando a nada: sin este
+                // chequeo el registro entero no se puede ni abrir (500 al editar).
+                'partida'            => $p->partidaTGI ? $p->partidaTGI->partida : '(partida eliminada)',
                 'importe'            => $p->importe,
                 'fecha_vencimiento'  => $p->fecha_vencimiento,
                 'observacion'       => $p->observacion,
@@ -3525,7 +3579,7 @@ public function llenarTGIEdit($id)
         'id'            => $t->id_registrotgi,
         'fecha'         => $t->fecha_tgi,
         'casino'        => $t->casino,
-        'casino_nombre' => $t->casinoTGI->nombre,
+        'casino_nombre' => $t->casinoTGI ? $t->casinoTGI->nombre : '-',
         'pagos'         => $pagos,
     ]);
 }
@@ -3540,7 +3594,9 @@ public function llenarTGI($id)
         ->get()
         ->map(function($p){
             return [
-                'partida'            => $p->partidaTGI->partida,
+                // Si la partida fue eliminada, el pago queda apuntando a nada: sin este
+                // chequeo el registro entero no se puede ni abrir (500 al editar).
+                'partida'            => $p->partidaTGI ? $p->partidaTGI->partida : '(partida eliminada)',
                 'importe'            => $p->importe,
                 'cuota'              => $p->cuota,
                 'observacion'       =>$p->observacion,
@@ -3551,7 +3607,7 @@ public function llenarTGI($id)
 
     return response()->json([
         'fecha'          => $t->fecha_tgi,
-        'casino'         => $t->casinoTGI->nombre,
+        'casino'         => $t->casinoTGI ? $t->casinoTGI->nombre : '-',
         'pagos'          => $pagos,
     ]);
 }
@@ -9989,6 +10045,7 @@ public function guardarRRHH(Request $request){
           $RRHH->ludico_viviendo = $request->ludicos_vivivendo_RRHH;
           $RRHH->no_ludico_viviendo = $request->no_ludicos_viviendo_RRHH;
           $RRHH->total_viviendo = $request->total_ludicos_viviendo_RRHH;
+          $RRHH->observaciones = $request->obs_RRHH;
 
           $RRHH->casino = $request->casinoRRHH;
           $RRHH->fecha_toma = date('Y-m-d h:i:s', time());
@@ -10085,9 +10142,26 @@ public function ultimasRRHH(Request $request)
     ]);
 }
 
-public function ultimosPersonalInicioRRHH($casino)
+public function ultimosPersonalInicioRRHH(Request $request, $casino)
 {
+    // El "personal al inicio" de un mes es el "personal al final" del MES INMEDIATAMENTE ANTERIOR
+    // de ese casino. Si ese mes no está cargado se devuelve vacío: NO se toma cualquier otro
+    // registro. Antes se ordenaba por id (último subido), así que al cargar meses fuera de orden
+    // cronológico traía el registro equivocado.
+    $mes = $request->query('mes'); // 'YYYY-MM' del período que se está cargando
+    if(!$mes) return response()->json(['personal_inicio' => null]);
+
+    try{
+        // OJO: createFromFormat('Y-m', ...) completa con el DÍA DE HOY, así que un 31 desborda los
+        // meses cortos (cargando febrero buscaba febrero). Por eso se arma con el día 01 explícito.
+        $mesAnterior = \Carbon\Carbon::createFromFormat('Y-m-d', substr($mes, 0, 7).'-01')
+            ->startOfMonth()->subMonth()->format('Y-m-d');
+    }catch(\Exception $e){
+        return response()->json(['personal_inicio' => null]);
+    }
+
     $valor = RegistroRRHH::where('casino', $casino)
+        ->where('fecha_RRHH', $mesAnterior)
         ->orderBy('id_registroRRHH', 'desc')
         ->value('personal_final');
 
@@ -10149,6 +10223,7 @@ public function llenarRRHHEdit($id)
         'ludico_viviendo'                => $r->ludico_viviendo,
         'no_ludico_viviendo'             => $r->no_ludico_viviendo,
         'total_ludico_viviendo'          => $r->total_viviendo,
+        'observaciones'                  => $r->observaciones,
     ]);
 }
 public function actualizarRRHH(Request $request, $id)
@@ -10179,6 +10254,7 @@ public function actualizarRRHH(Request $request, $id)
     $r->ludico_viviendo = $request->ludicos_vivivendo_RRHH;
     $r->no_ludico_viviendo = $request->no_ludicos_viviendo_RRHH;
     $r->total_viviendo = $request->total_ludicos_viviendo_RRHH;
+    $r->observaciones = $request->obs_RRHH;
     $r->save();
 
     $saved = 0;
@@ -10236,6 +10312,7 @@ public function llenarRRHH($id){
     'no_ludico_viviendo' => $RRHH->no_ludico_viviendo,
     'total_viviendo' => $RRHH->total_viviendo,
     'diferencia_nomina' => $RRHH->diferencia_nomina_ddjj,
+    'observaciones' => $RRHH->observaciones,
 
   ]);
 
@@ -12525,6 +12602,14 @@ public function descargarJackpotsPagadosXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'Jackpots');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_JackpotsPagados_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -13104,6 +13189,14 @@ public function descargarPremiosPagadosXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'PremiosPagados');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_PremiosPagados_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -13444,6 +13537,69 @@ public function ultimasPremiosMTM_Unificado(Request $request) {
             'last_page' => $paginados->lastPage(),
         ]
     ]);
+}
+
+/**
+ * Borra TODO el grupo de "registros contables y premios" de un mes+casino: los 7 pseudo-documentos
+ * con sus archivos adjuntos.
+ * La tabla de esa pantalla muestra una fila por mes+casino agrupando esos 7 documentos, pero el
+ * borrado viejo (eliminarPremiosMTM/{id}) borraba solo el registro de Premios MTM: si ese mes no
+ * tenía Premios MTM el id llegaba vacío ("borrar undefined") y, si lo tenía, igual quedaban los
+ * otros 6 documentos y la fila seguía apareciendo.
+ */
+public function eliminarPremiosMTM_Unificado(Request $request) {
+    $fecha  = $request->query('fecha');   // 'YYYY-MM' o 'YYYY-MM-DD'
+    $casino = $request->query('casino');
+
+    if (!$fecha || !$casino) {
+        return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
+    }
+    $mes = substr($fecha, 0, 7).'-01';
+
+    $user = Usuario::find(session('id_usuario'));
+    $allowedCasinoIds = array_map('intval', $user->casinos->pluck('id_casino')->toArray());
+    if (!in_array((int)$casino, $allowedCasinoIds)) {
+        return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+    }
+
+    // modelo => [columna de fecha, carpeta de storage]
+    $tipos = [
+        RegistroPremiosMTM::class               => ['fecha_PremiosMTM', 'RegistroPremiosMTM'],
+        RegistroPromoTickets::class             => ['fecha_PromoTickets', 'RegistroPromoTickets'],
+        RegistroPozosAcumuladosLinkeados::class => ['fecha_PozosAcumuladosLinkeados', 'RegistroPozosAcumuladosLinkeados'],
+        RegistroJackpotsPagados::class          => ['fecha_JackpotsPagados', 'RegistroJackpotsPagados'],
+        RegistroPremiosPagados::class           => ['fecha_PremiosPagados', 'RegistroPremiosPagados'],
+        RegistroPagosMayoresMesas::class        => ['fecha_PagosMayoresMesas', 'RegistroPagosMayoresMesas'],
+        RegistroRegistrosContables::class       => ['fecha_RegistrosContables', 'RegistroRegistrosContables'],
+    ];
+
+    $borrados = [];
+    try {
+        DB::beginTransaction();
+        foreach ($tipos as $clase => $cfg) {
+            list($colFecha, $carpeta) = $cfg;
+            $registros = $clase::with('archivos')
+                ->where('casino', $casino)
+                ->whereRaw("DATE_FORMAT($colFecha, '%Y-%m-01') = ?", [$mes])
+                ->get();
+
+            foreach ($registros as $reg) {
+                foreach ($reg->archivos as $archivo) {
+                    $ruta = storage_path('app/public/'.$carpeta.'/'.$archivo->path);
+                    if (is_file($ruta)) @unlink($ruta);
+                    $archivo->delete();
+                }
+                $reg->delete();
+                $borrados[$carpeta] = (isset($borrados[$carpeta]) ? $borrados[$carpeta] : 0) + 1;
+            }
+        }
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['success' => false, 'msg' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['success' => true, 'borrados' => $borrados]);
 }
 
     public function guardarPremiosMTM_Unificado(Request $request) {
@@ -13994,6 +14150,14 @@ public function descargarPremiosMTMXlsxTodos(Request $request)
 
     $user = Usuario::find(session('id_usuario'));
     $casinos = $user->casinos->pluck('nombre', 'id_casino');
+    // Solo los casinos que cargan este documento: si no, el archivo traía hojas vacías de
+    // casinos a los que no les corresponde.
+    $casinosDelDoc = $casinos->filter(function($nombre, $id){
+        return $this->casinoLlevaUnificado($id, 'PremiosMTM');
+    });
+    // Si el usuario no tiene NINGÚN casino que cargue este documento, se deja la lista original:
+    // un Excel sin ninguna hoja rompe al generarse.
+    if ($casinosDelDoc->isNotEmpty()) $casinos = $casinosDelDoc;
 
     return Excel::create('registro_PremiosMTM_todos', function($excel) use ($casinos, $desde, $hasta) {
         foreach ($casinos as $casinoId => $casinoNombre) {
@@ -14182,16 +14346,74 @@ public function descargarPremiosMTMXlsxTodos(Request $request)
     })->export('xlsx');
 }
 
+/**
+ * Pseudo-documentos que carga cada casino en "Registros contables y premios".
+ * Es el espejo de `prizeSectionsByCasino` (public/js/documentosContables.js), que es lo que el
+ * modal muestra/oculta al elegir el casino: Jackpots es solo de Melincué (1), Premios MTM solo de
+ * Rosario (3) y Premios Pagados no va en Rosario. Si ambos se desincronizan, el Excel vuelve a
+ * traer documentos que el casino no carga.
+ * Con un casino no mapeado devuelve todas, para no romper (mismo criterio que antes).
+ */
+private function seccionesUnificadoPorCasino($casinoId)
+{
+    $mapa = [
+        1 => ['PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'],
+        2 => ['PromoTickets', 'Pozos', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'],
+        3 => ['PromoTickets', 'Pozos', 'PremiosMTM', 'PagosMesas', 'RegistrosContables'],
+    ];
+
+    return isset($mapa[(int)$casinoId])
+        ? $mapa[(int)$casinoId]
+        : ['PremiosMTM', 'PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'];
+}
+
+/** ¿Este casino carga ese pseudo-documento del unificado? */
+private function casinoLlevaUnificado($casinoId, $seccion)
+{
+    return in_array($seccion, $this->seccionesUnificadoPorCasino($casinoId), true);
+}
+
 public function descargarPremiosMTMUnificadoXlsx(Request $request)
 {
     $casinoId = $request->query('casino');
     $desde = $request->query('desde');
     $hasta = $request->query('hasta');
 
-    $casino = Casino::findOrFail($casinoId);
-    $filename = "PremiosMTM_Unificado_" . str_replace(' ', '_', strtolower($casino->nombre)) . "_" . date('Ymd_His');
+    $user = Usuario::find(session('id_usuario'));
+    $permitidos = $user->casinos->pluck('nombre', 'id_casino');
 
-    return Excel::create($filename, function($excel) use ($casino, $casinoId, $desde, $hasta) {
+    // casino = 4 es el "Todos" de la pantalla (no es un casino real). En ese caso va UN solo archivo
+    // con todos los casinos adentro: antes se disparaban 7 descargas sueltas y el navegador bloqueaba
+    // todas menos la primera, así que parecía que solo bajaba un documento.
+    $multiCasino = ((int)$casinoId === 4);
+
+    if ($multiCasino) {
+        $casinosArchivo = $permitidos;
+        $filename = "PremiosMTM_Unificado_todos_" . date('Ymd_His');
+    } else {
+        $casino = Casino::findOrFail($casinoId);
+        $casinosArchivo = collect([(int)$casinoId => $casino->nombre]);
+        $filename = "PremiosMTM_Unificado_" . str_replace(' ', '_', strtolower($casino->nombre)) . "_" . date('Ymd_His');
+    }
+
+    // Qué casinos van en cada documento: antes el Excel armaba las 7 hojas siempre, así que traía
+    // hojas de documentos que ese casino ni carga.
+    $todasLasSecciones = ['PremiosMTM', 'PromoTickets', 'Pozos', 'Jackpots', 'PremiosPagados', 'PagosMesas', 'RegistrosContables'];
+    $casinosPorSeccion = [];
+    foreach ($todasLasSecciones as $sec) {
+        $lista = [];
+        foreach ($casinosArchivo as $cid => $cnombre) {
+            if ($this->casinoLlevaUnificado($cid, $sec)) $lista[$cid] = $cnombre;
+        }
+        $casinosPorSeccion[$sec] = $lista;
+    }
+
+    // Si no quedó ninguna hoja (usuario sin casinos, o casino sin documentos), no se puede generar
+    // un Excel vacío: rompe. Se avisa en vez de bajar un archivo corrupto.
+    $totalHojas = array_sum(array_map('count', $casinosPorSeccion));
+    if ($totalHojas === 0) abort(404, 'No hay documentos para descargar con los casinos de este usuario.');
+
+    return Excel::create($filename, function($excel) use ($desde, $hasta, $casinosPorSeccion, $multiCasino) {
         
         $getColor = function($cId) {
             return $cId == 1 ? '#339966' : ($cId == 2 ? '#ff0000' : '#ffcc00');
@@ -14222,8 +14444,22 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
             ]);
         };
 
+        // Arma una hoja por cada casino que carga ese documento. Con un casino puntual queda una
+        // sola hoja con el nombre del documento; con "Todos", una por casino ("Documento - Casino",
+        // recortado a 31 caracteres, que es el máximo que admite Excel para el nombre de la solapa).
+        $hoja = function($nombre, $callback) use ($excel, $casinosPorSeccion, $multiCasino) {
+            $lista = isset($casinosPorSeccion[$nombre]) ? $casinosPorSeccion[$nombre] : [];
+            foreach ($lista as $cid => $cnombre) {
+                // mb_substr para no partir un acento al recortar (ej. "Melincué").
+                $titulo = $multiCasino ? mb_substr($nombre . ' - ' . $cnombre, 0, 31, 'UTF-8') : $nombre;
+                $excel->sheet($titulo, function($sheet) use ($callback, $cid) {
+                    $callback($sheet, $cid);
+                });
+            }
+        };
+
         // 1. Premios MTM
-        $excel->sheet('PremiosMTM', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PremiosMTM', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPremiosMTM::select([
                 DB::raw("YEAR(fecha_PremiosMTM) AS anio"), DB::raw("MONTHNAME(fecha_PremiosMTM) AS Mes"),
                 'cancel', 'cancel_usd', 'progresivos', 'progresivos_usd', 'jackpots', 'jackpots_usd', 'total', 'total_usd'
@@ -14284,7 +14520,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 2. Promo Tickets
-        $excel->sheet('PromoTickets', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PromoTickets', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPromoTickets::select([
                 DB::raw("YEAR(fecha_PromoTickets) AS anio"), DB::raw("MONTHNAME(fecha_PromoTickets) AS Mes"),
                 'cantidad', 'importe'
@@ -14326,7 +14562,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 3. Pozos Acumulados
-        $excel->sheet('Pozos', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('Pozos', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPozosAcumuladosLinkeados::select([
                 DB::raw("YEAR(fecha_PozosAcumuladosLinkeados) AS anio"), DB::raw("MONTHNAME(fecha_PozosAcumuladosLinkeados) AS Mes"),
                 'importe'
@@ -14368,7 +14604,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 4. Jackpots
-        $excel->sheet('Jackpots', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('Jackpots', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroJackpotsPagados::select([
                 DB::raw("YEAR(fecha_JackpotsPagados) AS anio"), DB::raw("MONTHNAME(fecha_JackpotsPagados) AS Mes"),
                 'importe', 'importe_usd'
@@ -14410,7 +14646,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 5. Premios Pagados
-        $excel->sheet('PremiosPagados', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PremiosPagados', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroPremiosPagados::select([
                 DB::raw("YEAR(fecha_PremiosPagados) AS anio"), DB::raw("MONTHNAME(fecha_PremiosPagados) AS Mes"),
                 'cantidad', 'importe'
@@ -14452,7 +14688,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 6. Pagos Mesas
-        $excel->sheet('PagosMesas', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('PagosMesas', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             
             $applyHeaderStylePagosMesas = function($sheet, $colRange, $color) {
                 $sheet->cells($colRange, function($cells) use ($color) {
@@ -14514,7 +14750,7 @@ public function descargarPremiosMTMUnificadoXlsx(Request $request)
         });
 
         // 7. Registros Contables
-        $excel->sheet('RegistrosContables', function($sheet) use ($casinoId, $desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
+        $hoja('RegistrosContables', function($sheet, $casinoId) use ($desde, $hasta, $getColor, $applyHeaderStyle, $applyMonthFormat, $applyBodyBorders) {
             $query = RegistroRegistrosContables::select([
                 DB::raw("YEAR(fecha_RegistrosContables) AS anio"), DB::raw("MONTHNAME(fecha_RegistrosContables) AS Mes"),
                 'mtm', 'mtm_usd', 'mp', 'mp_usd', 'bingo', 'jol', 'total', 'total_usd'
@@ -14668,6 +14904,19 @@ public function AutDirectoresHabilitadosPorCasino($casinoId){
   return response()->json($directores);
 }
 
+/**
+ * Todos los directores del casino (habilitados e inhabilitados), para poder sumar al registro
+ * directores que no están habilitados. La precarga del registro sigue usando
+ * AutDirectoresHabilitadosPorCasino (solo los habilitados).
+ */
+public function AutDirectoresTodosPorCasino($casinoId){
+  $directores = RegistroAutDirectores_director::where('casino',$casinoId)
+                                              ->orderBy('habilitado','desc')
+                                              ->orderBy('nombre')
+                                              ->get(['id_registroAutDirectores_director','nombre','cuit','habilitado']);
+  return response()->json($directores);
+}
+
 public function getAutDirectores(){
   $directores = RegistroAutDirectores_director::with('casinoAutDirectores_director')
                                               ->get();
@@ -14725,7 +14974,9 @@ public function guardarAutDirectores_autorizacion(Request $request){
               $autorizacion->autoriza = (int)$autoriza;
               $autorizacion->registro = $AutDirectores->id_registroAutDirectores;
               $autorizacion->director = $dirId;
-              $autorizacion->observaciones= $obsMap[$dirId];
+              // array_key_exists y no $obsMap[$dirId] a secas: si un director no trae observación
+              // (p.ej. uno agregado a mano) tiraba "Undefined index" y fallaba todo el guardado.
+              $autorizacion->observaciones = array_key_exists($dirId, $obsMap) ? $obsMap[$dirId] : null;
               $autorizacion->save();
           }
           $files = Arr::wrap($request->file('uploadAutDirectores'));
@@ -14828,13 +15079,31 @@ public function actualizarAutDirectores(Request $request, $id)
         ->where('registro', $id)
         ->pluck('id_registroAutDirectores_autorizacion', 'director');
 
+    // Se SINCRONIZA contra lo que llegó del form: se actualizan los que siguen, se dan de alta los
+    // que se agregaron y se borran los que se sacaron. Antes solo se recorrían las filas ya
+    // guardadas, así que agregar o quitar un director en edición no tenía ningún efecto.
     foreach ($detalles as $dirId => $rowPk) {
+        if (!array_key_exists($dirId, $postAut)) {
+            \DB::table('registroAutDirectores_autorizacion')
+                ->where('id_registroAutDirectores_autorizacion', $rowPk)->delete();
+            continue;
+        }
         \DB::table('registroAutDirectores_autorizacion')
             ->where('id_registroAutDirectores_autorizacion', $rowPk)
             ->update([
-                'autoriza'      => isset($postAut[$dirId]) ? (int)$postAut[$dirId] : 0,
+                'autoriza'      => (int)$postAut[$dirId],
                 'observaciones' => array_key_exists($dirId, $postObs) ? $postObs[$dirId] : null,
             ]);
+    }
+
+    foreach ($postAut as $dirId => $autoriza) {
+        if (isset($detalles[$dirId])) continue; // ya existía: se actualizó arriba
+        \DB::table('registroAutDirectores_autorizacion')->insert([
+            'registro'      => $id,
+            'director'      => $dirId,
+            'autoriza'      => (int)$autoriza,
+            'observaciones' => array_key_exists($dirId, $postObs) ? $postObs[$dirId] : null,
+        ]);
     }
 
     $saved = 0;
@@ -16919,6 +17188,8 @@ public function descargarPatentesXlsx(Request $request)
                 $items[] = [
                     'anio'   => $anio,
                     'mes'    => $mesEsp,
+                    // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                    'mes_num'=> (int)date('n', strtotime($r->fecha_Patentes)),
                     'elem'   => ($p->PatenteDe)->nombre ?? '-',
                     'cuota'  => isset($p->cuota) ? $p->cuota : '',
                     'fpres'  => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -16932,7 +17203,7 @@ public function descargarPatentesXlsx(Request $request)
     usort($items, function($a,$b){
         if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
         if ($a['elem'] != $b['elem']) return strcasecmp($a['elem'],$b['elem']);
-        if ($a['mes']  != $b['mes'])  return strcasecmp($a['mes'],$b['mes']);
+        if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
         return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
     });
 
@@ -17141,6 +17412,8 @@ public function descargarPatentesXlsxTodos(Request $request)
                     $items[] = [
                         'anio'     => $anio,
                         'mes'      => $mesEsp,
+                        // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                        'mes_num'  => (int)date('n', strtotime($r->fecha_Patentes)),
                         'patente'  => $p->PatenteDe ? $p->PatenteDe->nombre : '-',
                         'cuota'    => isset($p->cuota) ? $p->cuota : '',
                         'fpres'    => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17154,7 +17427,7 @@ public function descargarPatentesXlsxTodos(Request $request)
             usort($items, function($a,$b){
                 if ($a['anio']    != $b['anio'])    return $a['anio'] < $b['anio'] ? -1 : 1;
                 if ($a['patente'] != $b['patente']) return strcasecmp($a['patente'],$b['patente']);
-                if ($a['mes']     != $b['mes'])     return strcasecmp($a['mes'],$b['mes']);
+                if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
                 return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
             });
 
@@ -17706,6 +17979,9 @@ public function descargarImpInmobiliarioXlsx(Request $request)
                 $items[] = [
                     'anio'     => $anio,
                     'mes'      => $mesEsp,
+                    // Número de mes para poder ordenar cronológicamente: el nombre en texto
+                    // ordenaba alfabético (Abril, Agosto, Diciembre, Enero...).
+                    'mes_num'  => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
                     'partida'  => ($p->partidaImpInmobiliario)->partida ?? '-',
                     'cuota'    => isset($p->cuota) ? $p->cuota : '',
                     'fpres'    => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17719,7 +17995,7 @@ public function descargarImpInmobiliarioXlsx(Request $request)
     usort($items, function($a,$b){
         if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
         if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-        if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+        if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
         return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
     });
 
@@ -17829,6 +18105,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
                         $items[] = [
                             'anio'    => $anio,
                             'mes'     => $mesEsp,
+                            // Número de mes para ordenar cronológicamente (el nombre ordenaba alfabético).
+                            'mes_num' => (int)date('n', strtotime($r->fecha_ImpInmobiliario)),
                             'partida' => ($p->partidaImpInmobiliario)->partida ?? '-',
                             'cuota'   => isset($p->cuota) ? $p->cuota : '',
                             'fpres'   => $p->fecha_pres ? date('d/m/Y', strtotime($p->fecha_pres)) : '',
@@ -17842,7 +18120,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             usort($items, function($a,$b){
                 if ($a['anio'] != $b['anio']) return $a['anio'] < $b['anio'] ? -1 : 1;
                 if ($a['partida'] != $b['partida']) return strcasecmp($a['partida'],$b['partida']);
-                if ($a['mes'] != $b['mes']) return strcasecmp($a['mes'],$b['mes']);
+                if ($a['mes_num'] != $b['mes_num']) return $a['mes_num'] - $b['mes_num'];
                 return strnatcasecmp((string)$a['cuota'], (string)$b['cuota']);
             });
 
@@ -17950,16 +18228,65 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           case 'derecho_acceso':      $clase = RegistroDerechoAcceso::class; break;
           case 'patentes':            $clase = RegistroPatentes::class; break;
           case 'imp_inmobiliario':    $clase = RegistroImpInmobiliario::class; break;
+          case 'publico_casino':      $clase = \App\RegistroPublicoCasino::class; break;
           default: return response()->json(['success' => false, 'msg' => 'Tipo inválido'], 400);
       }
 
       $doc = $clase::find($id);
       if(!$doc) return response()->json(['success' => false, 'msg' => 'Documento no encontrado'], 404);
 
+      // No se permite validar un documento sin datos cargados. No influye el archivo adjunto.
+      if((int)$validar === 1 && $this->documentoTieneCamposIncompletos($tipo, $doc)){
+          $msg = $tipo === 'publico_casino'
+              ? 'No se puede validar: faltan días por cargar en el mes.'
+              : 'No se puede validar el documento porque no tiene datos cargados.';
+          return response()->json(['success' => false, 'msg' => $msg], 422);
+      }
+
       $doc->valido = $validar;
       $doc->save();
 
       return response()->json(['success' => true]);
+  }
+
+  // Devuelve true si el documento no tiene NINGÚN dato cargado (documento vacío).
+  //
+  // Antes se exigía que TODA columna de datos estuviera cargada (cualquier NULL => incompleto), pero
+  // en este módulo la mayoría de los campos son legítimamente opcionales: varían según el casino/variante
+  // (p.ej. DREI carga distintas columnas para Santa Fe, Melincué o Rosario, dejando el resto en NULL) y
+  // muchos se dejan en blanco incluso en documentos que un usuario ya validó (valido=1). Aquella regla
+  // marcaba "campos incompletos" sobre documentos que en realidad estaban completos. A eso se suman
+  // columnas muertas siempre en NULL (p.ej. importe_usd en Jackpots/Premios/PromoTickets).
+  //
+  // Por eso ahora solo se bloquea la validación de un documento SIN datos: alcanza con que exista al
+  // menos un campo de datos cargado. Un 0 cuenta como cargado; NULL o cadena vacía no.
+  private function documentoTieneCamposIncompletos($tipo, $doc){
+      // Público Casino: los datos se cargan por día; deben estar todos los días reales del mes.
+      if($tipo === 'publico_casino'){
+          $diasDelMes = (int)date('t', strtotime($doc->fecha_mes));
+          for($i = 1; $i <= $diasDelMes; $i++){
+              if($doc->{'dia_'.$i} === null) return true;
+          }
+          return false;
+      }
+
+      // Se excluyen columnas "meta" que no son datos que carga el usuario.
+      $meta = [$doc->getKeyName(), 'casino', 'usuario', 'valido', 'archivo', 'path',
+               'observacion', 'observaciones', 'obs', 'created_at', 'updated_at'];
+      $tieneColumnasDeDatos = false;
+      foreach($doc->getAttributes() as $col => $val){
+          if(in_array($col, $meta, true)) continue;
+          if(strpos($col, 'fecha') === 0 || strpos($col, 'periodo') === 0) continue; // fecha_*, periodo_*
+          $tieneColumnasDeDatos = true;
+          if($val !== null && $val !== '') return false; // hay al menos un dato cargado => documento completo
+      }
+
+      // Tipos "contenedor" (TGI, Patentes, Imp. Inmobiliario, Aut. Directores): el registro padre no tiene
+      // columnas de datos propias (viven en tablas hijas), así que no se bloquean desde acá.
+      if(!$tieneColumnasDeDatos) return false;
+
+      // Hay columnas de datos pero ninguna está cargada => documento vacío.
+      return true;
   }
 
     public function obtenerDocumentosValidados(Request $request) {
@@ -17971,16 +18298,23 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
         }
 
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+        if(!in_array((int)$id_casino, array_map('intval', $allowedCasinoIds))){
+            return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+        }
+
         $desde_date = $desde . '-01';
-        $hasta_date = $hasta . '-31'; // Safe enough for <= comparison in SQL for ends of months if using just YYYY-MM-DD
+        $hasta_date = $hasta . '-31'; // <= 'YYYY-MM-31' captura todo el mes (mismo patrón que el resto del módulo)
 
         $documentos_config = [
+            'ESTADO CONTABLE' => ['model' => RegistroEstadoContable::class, 'date_col' => 'fecha_EstadoContable'],
             'IVA' => ['model' => RegistroIva::class, 'date_col' => 'fecha_iva'],
             'IIBB' => ['model' => Registroiibb::class, 'date_col' => 'fecha_iibb'],
             'DREI' => ['model' => RegistroDREI::class, 'date_col' => 'fecha_drei'],
             'TGI' => ['model' => RegistroTGI::class, 'date_col' => 'fecha_tgi'],
             'IMP. APUESTAS ONLINE' => ['model' => RegistroIMP_AP_OL::class, 'date_col' => 'fecha_imp_ap_ol'],
-            'IMP. APUESTAS MTM' => ['model' => RegistroIMP_AP_MTM::class, 'date_col' => 'fecha_IMP_AP_MTM'],
+            'IMP. APUESTAS MTM' => ['model' => RegistroIMP_AP_MTM::class, 'date_col' => 'fecha_imp_ap_mtm'],
             'DEUDA ESTADO' => ['model' => RegistroDeudaEstado::class, 'date_col' => 'fecha_DeudaEstado'],
             'PAGOS MESAS DE PAÑO' => ['model' => RegistroPagosMayoresMesas::class, 'date_col' => 'fecha_PagosMayoresMesas'],
             'REPORTE LAVADO' => ['model' => RegistroReporteYLavado::class, 'date_col' => 'fecha_ReporteYLavado'],
@@ -17990,7 +18324,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             'POZOS ACUMULADOS' => ['model' => RegistroPozosAcumuladosLinkeados::class, 'date_col' => 'fecha_PozosAcumuladosLinkeados'],
             'CONTRIB. ENTE (ROS)' => ['model' => RegistroContribEnteTuristico::class, 'date_col' => 'fecha_ContribEnteTuristico'],
             'RRHH' => ['model' => RegistroRRHH::class, 'date_col' => 'fecha_RRHH'],
-            'GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'periodo_fiscal'],
+            'ANTICIPOS GANANCIAS' => ['model' => RegistroGanancias::class, 'date_col' => 'fecha_pago'],
+            'IMP. GANANCIAS' => ['model' => RegistroGanancias_periodo::class, 'date_col' => 'fecha_presentacion'],
             'JACKPOTS PAGADOS' => ['model' => RegistroJackpotsPagados::class, 'date_col' => 'fecha_JackpotsPagados'],
             'PREMIOS PAGADOS' => ['model' => RegistroPremiosPagados::class, 'date_col' => 'fecha_PremiosPagados'],
             'PREMIOS MTM' => ['model' => RegistroPremiosMTM::class, 'date_col' => 'fecha_PremiosMTM'],
@@ -17999,39 +18334,60 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             'DER. ACCESO (ROS)' => ['model' => RegistroDerechoAcceso::class, 'date_col' => 'fecha_DerechoAcceso'],
             'PATENTES' => ['model' => RegistroPatentes::class, 'date_col' => 'fecha_Patentes'],
             'IMP. INMOBILIARIO' => ['model' => RegistroImpInmobiliario::class, 'date_col' => 'fecha_ImpInmobiliario'],
+            'PUBLICO CASINO' => ['model' => \App\RegistroPublicoCasino::class, 'date_col' => 'fecha_mes'],
         ];
 
         $resultados = [];
 
         setlocale(LC_TIME, 'es_ES.UTF-8','es_AR.UTF-8','es_ES','es_AR');
 
+        $meses_nombres = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
         foreach ($documentos_config as $doc_name => $config) {
             $clase = $config['model'];
             $col_fecha = $config['date_col'];
+            $anual = !empty($config['anual']);
 
-            $registros = $clase::where('casino', $id_casino)
-                ->where($col_fecha, '>=', $desde_date)
-                ->where($col_fecha, '<=', $hasta_date)
-                ->get([$col_fecha, 'valido']);
+            if ($anual) {
+                // La columna es tipo YEAR (ej. GANANCIAS: periodo_fiscal): se filtra y agrupa por año, sin mes.
+                $registros = $clase::where('casino', $id_casino)
+                    ->whereBetween($col_fecha, [substr($desde, 0, 4), substr($hasta, 0, 4)])
+                    ->get([$col_fecha, 'valido']);
 
-            foreach ($registros as $reg) {
-                // Determine format
-                $date_val = $reg->$col_fecha;
-                if (!$date_val) continue;
+                foreach ($registros as $reg) {
+                    $anio = (string)$reg->$col_fecha;
+                    if (!$anio) continue;
 
-                $mes = date('n', strtotime($date_val));
-                $anio = date('Y', strtotime($date_val));
-                
-                $meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-                $mes_nombre = $meses[$mes - 1];
+                    $resultados[] = [
+                        'documento' => $doc_name,
+                        'mes' => 'ANUAL',
+                        'anio' => $anio,
+                        'fecha_real' => $anio.'-01-01', // For internal sorting
+                        'valido' => $reg->valido ? 1 : 0
+                    ];
+                }
+            } else {
+                $registros = $clase::where('casino', $id_casino)
+                    ->where($col_fecha, '>=', $desde_date)
+                    ->where($col_fecha, '<=', $hasta_date)
+                    ->get([$col_fecha, 'valido']);
 
-                $resultados[] = [
-                    'documento' => $doc_name,
-                    'mes' => $mes_nombre,
-                    'anio' => $anio,
-                    'fecha_real' => is_object($date_val) ? clone($date_val) : $date_val, // For internal sorting
-                    'valido' => $reg->valido ? 1 : 0
-                ];
+                foreach ($registros as $reg) {
+                    $date_val = $reg->$col_fecha;
+                    if (!$date_val) continue;
+
+                    $mes = date('n', strtotime($date_val));
+                    $anio = date('Y', strtotime($date_val));
+                    $mes_nombre = $meses_nombres[$mes - 1];
+
+                    $resultados[] = [
+                        'documento' => $doc_name,
+                        'mes' => $mes_nombre,
+                        'anio' => $anio,
+                        'fecha_real' => is_object($date_val) ? $date_val->format('Y-m-d') : $date_val, // For internal sorting
+                        'valido' => $reg->valido ? 1 : 0
+                    ];
+                }
             }
         }
 
@@ -18065,7 +18421,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             ['nombre' => 'TGI',                         'model' => RegistroTGI::class,                  'col' => 'fecha_tgi'],
             ['nombre' => 'IMP. APUESTAS MTM',           'model' => RegistroIMP_AP_MTM::class,           'col' => 'fecha_imp_ap_mtm'],
             ['nombre' => 'IMP. APUESTAS ONLINE',        'model' => RegistroIMP_AP_OL::class,            'col' => 'fecha_imp_ap_ol'],
-            ['nombre' => 'GANANCIAS',                   'model' => RegistroGanancias::class,            'col' => 'periodo_fiscal', 'anual' => true],
+            ['nombre' => 'ANTICIPOS GANANCIAS',         'model' => RegistroGanancias::class,            'col' => 'fecha_pago',         'detalle' => true],
+            ['nombre' => 'IMP. GANANCIAS',              'model' => RegistroGanancias_periodo::class,    'col' => 'fecha_presentacion'],
             ['nombre' => 'PATENTES',                    'model' => RegistroPatentes::class,             'col' => 'fecha_Patentes'],
             ['nombre' => 'CONTRIB. ENTE (ROS)',         'model' => RegistroContribEnteTuristico::class, 'col' => 'fecha_ContribEnteTuristico', 'solo_casino' => 3],
             ['nombre' => 'DER. ACCESO (ROS)',           'model' => RegistroDerechoAcceso::class,        'col' => 'fecha_DerechoAcceso',        'solo_casino' => 3],
@@ -18076,6 +18433,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             ['nombre' => 'RRHH',                        'model' => RegistroRRHH::class,                 'col' => 'fecha_RRHH'],
             ['nombre' => 'REPORTE LAVADO',              'model' => RegistroReporteYLavado::class,       'col' => 'fecha_ReporteYLavado'],
             ['nombre' => 'SEGUROS',                     'model' => RegistroSeguros::class,              'col' => 'periodo_inicio'],
+            ['nombre' => 'PUBLICO CASINO',              'model' => \App\RegistroPublicoCasino::class,        'col' => 'fecha_mes'],
         ];
 
         return array_values(array_filter($config, function($c) use ($id_casino){
@@ -18085,7 +18443,10 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     private function armarControlDocumentos($id_casino, $desde, $hasta){
         $desde_date = $desde.'-01';
-        $hasta_date = \Carbon\Carbon::createFromFormat('Y-m', $hasta)->endOfMonth()->format('Y-m-d');
+        // OJO: createFromFormat('Y-m', ...) completa con el DÍA DE HOY, así que un 31 desborda los
+        // meses cortos (ej. "hasta=2026-02" un día 31 calculaba fin de MARZO). Se arma con día 01
+        // explícito antes de pedir el fin de mes.
+        $hasta_date = \Carbon\Carbon::createFromFormat('Y-m-d', $hasta.'-01')->endOfMonth()->format('Y-m-d');
 
         $meses_nombres = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
@@ -18106,43 +18467,57 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
             $clase = $doc['model'];
             $col = $doc['col'];
             $anual = !empty($doc['anual']);
+            $detalle = !empty($doc['detalle']); // filas con un ícono por registro (ej. anticipos)
 
-            // buckets: clave = 'YYYY-MM' (o 'YYYY' para documentos anuales) => [total, validos]
+            // buckets: clave = 'YYYY-MM' (o 'YYYY' para documentos anuales) => [total, validos, items]
             $buckets = [];
             if($anual){
+                $cols = [$col, 'valido'];
+                if($detalle) $cols[] = 'nro_anticipo';
                 $registros = $clase::where('casino', $id_casino)
                     ->whereBetween($col, [substr($desde,0,4), substr($hasta,0,4)])
-                    ->get([$col, 'valido']);
+                    ->get($cols);
                 foreach($registros as $reg){
                     $clave = (string)$reg->$col;
-                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0];
+                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0, 'items' => []];
                     $buckets[$clave]['total']++;
                     if($reg->valido) $buckets[$clave]['validos']++;
+                    if($detalle) $buckets[$clave]['items'][] = ['valido' => $reg->valido ? 1 : 0, 'nro' => $reg->nro_anticipo];
                 }
             }else{
+                $cols = [$col, 'valido'];
+                if($detalle) $cols[] = 'nro_anticipo';
                 $registros = $clase::where('casino', $id_casino)
                     ->whereBetween($col, [$desde_date, $hasta_date])
-                    ->get([$col, 'valido']);
+                    ->get($cols);
                 foreach($registros as $reg){
                     if(!$reg->$col) continue;
                     $clave = date('Y-m', strtotime($reg->$col));
-                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0];
+                    if(!isset($buckets[$clave])) $buckets[$clave] = ['total' => 0, 'validos' => 0, 'items' => []];
                     $buckets[$clave]['total']++;
                     if($reg->valido) $buckets[$clave]['validos']++;
+                    if($detalle) $buckets[$clave]['items'][] = ['valido' => $reg->valido ? 1 : 0, 'nro' => $reg->nro_anticipo];
                 }
             }
 
             $celdas = [];
             foreach($meses as $mes){
                 $clave = $anual ? substr($mes['key'],0,4) : $mes['key'];
-                $b = isset($buckets[$clave]) ? $buckets[$clave] : ['total' => 0, 'validos' => 0];
+                $b = isset($buckets[$clave]) ? $buckets[$clave] : ['total' => 0, 'validos' => 0, 'items' => []];
                 if($b['total'] == 0) $estado = 'no_subido';
                 else if($b['validos'] == $b['total']) $estado = 'valido';
                 else $estado = 'no_valido';
-                $celdas[$mes['key']] = ['estado' => $estado, 'total' => $b['total'], 'validos' => $b['validos']];
+                $celda = ['estado' => $estado, 'total' => $b['total'], 'validos' => $b['validos']];
+                if($detalle){
+                    // un ítem por registro (ej. cada anticipo con su estado en ese mes), ordenados por nro
+                    $items = isset($b['items']) ? $b['items'] : [];
+                    usort($items, function($a, $c){ return ((int)$a['nro']) - ((int)$c['nro']); });
+                    $celda['items'] = $items;
+                }
+                $celdas[$mes['key']] = $celda;
             }
 
-            $filas[] = ['documento' => $doc['nombre'], 'anual' => $anual, 'celdas' => $celdas];
+            $filas[] = ['documento' => $doc['nombre'], 'anual' => $anual, 'detalle' => $detalle, 'celdas' => $celdas];
         }
 
         return ['meses' => $meses, 'filas' => $filas];
@@ -18218,15 +18593,23 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
                 $fila = 3;
                 foreach($filas as $f){
-                    $sheet->setCellValue("A{$fila}", $f['documento'].($f['anual'] ? ' (ANUAL)' : ''));
+                    $sheet->setCellValue("A{$fila}", $f['documento']);
                     $sheet->cells("A{$fila}", function($c){ $c->setFontWeight('bold'); $c->setAlignment('left'); });
+
                     foreach($meses as $i => $mes){
                         $celda = $f['celdas'][$mes['key']];
                         $est = $estilos[$celda['estado']];
                         $colLetra = \PHPExcel_Cell::stringFromColumnIndex($i + 1);
-                        $texto = $est['texto'];
-                        if($celda['estado'] == 'no_valido' && $celda['total'] > 1){
-                            $texto .= ' ('.$celda['validos'].'/'.$celda['total'].')';
+                        if(!empty($f['detalle']) && !empty($celda['items'])){
+                            // un símbolo por registro en el mes (ej. anticipos): ✓ validado, ✗ no validado
+                            $marks = [];
+                            foreach($celda['items'] as $it){ $marks[] = $it['valido'] ? '✓' : '✗'; }
+                            $texto = implode(' ', $marks);
+                        } else {
+                            $texto = $est['texto'];
+                            if($celda['estado'] == 'no_valido' && $celda['total'] > 1){
+                                $texto .= ' ('.$celda['validos'].'/'.$celda['total'].')';
+                            }
                         }
                         $sheet->setCellValue("{$colLetra}{$fila}", $texto);
                         $sheet->cells("{$colLetra}{$fila}", function($c) use ($est){
@@ -18348,7 +18731,7 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
           $r->imp_ganancias = $request->imp_ganancias ?? 0;
           $r->imp_ganancias_reexpresado = $request->imp_ganancias_reexpresado ?? 0;
 
-          $r->fecha_toma = date('Y-m-d h:i:s');
+          $r->fecha_toma = date('Y-m-d H:i:s');
           $r->usuario = UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'];
           $r->save();
 
@@ -18379,7 +18762,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     public function eliminarEstadoContable($id) {
         $r = RegistroEstadoContable::findOrFail($id);
-        if (!$r) return 0;
+        // findOrFail ya lanza 404 si no existe; el chequeo siguiente era inalcanzable
+        // if (!$r) return 0;
         
         DB::beginTransaction();
         try {
@@ -18398,7 +18782,8 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     public function llenarEstadoContableEdit($id) {
         $r = RegistroEstadoContable::with('casinoEstadoContable')->findOrFail($id);
-        if (!$r) return 0;
+        // findOrFail ya lanza 404 si no existe; el chequeo siguiente era inalcanzable
+        // if (!$r) return 0;
         
         return [
             'id_registroEstadoContable' => $r->id_registroEstadoContable,
@@ -18506,6 +18891,543 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
 
     public function archivosEstadoContable($id) {
         $r = RegistroEstadoContable::with('archivos')->findOrFail($id);
+        $files = $r->archivos->map(function($a) {
+            return [
+                'id'         => $a->id_registro_archivo,
+                'id_archivo' => $a->id_registro_archivo,
+                'nombre'     => basename($a->path),
+                'url'        => \Illuminate\Support\Facades\Storage::url($a->path),
+                'fecha'      => $a->fecha_toma,
+            ];
+        });
+        return response()->json($files);
+    }
+
+    public function ultimasPublicoCasino(Request $request) {
+        $page    = max(1, (int)$request->query("page", 1));
+        $perPage = max(1, (int)$request->query("page_size", 20));
+
+        $user = Usuario::find(session("id_usuario"));
+        $allowedCasinoIds = $user->casinos->pluck("id_casino")->toArray();
+
+        
+
+
+        $query = \App\RegistroPublicoCasino::with("casinoPublicoCasino")
+                  ->withCount("archivos")
+                  ->whereIn("casino", $allowedCasinoIds)
+                  ->orderBy("fecha_mes", "desc");
+
+        if ($c = $request->query("id_casino")) {
+            $query->where("casino", $c);
+        }
+        if ($desde = $request->query("desde")) {
+            $query->where("fecha_mes", ">=", $desde."-01");
+        }
+        if ($hasta = $request->query("hasta")) {
+            $query->where("fecha_mes", "<=", $hasta."-01");
+        }
+
+        $total = $query->count();
+        $registros = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        $datos = $registros->map(function($r) {
+            $completados = 0;
+            $total_mensual = 0;
+            for ($i = 1; $i <= 31; $i++) {
+                $campo = "dia_".$i;
+                if ($r->$campo !== null) {
+                    $completados++;
+                    $total_mensual += $r->$campo;
+                }
+            }
+            return [
+                "id_registroPublicoCasino" => $r->id_registroPublicoCasino,
+                "fecha_mes" => $r->fecha_mes,
+                "casino"               => $r->casinoPublicoCasino ? $r->casinoPublicoCasino->nombre : "-",
+                "dias_completados"     => $completados,
+                "total_mensual"        => $total_mensual,
+                "valido"               => $r->valido,
+                "tiene_archivos"       => $r->archivos_count > 0,
+            ];
+        });
+
+        return response()->json([
+            "registros"  => $datos,
+            "pagination" => [
+                "current_page" => $page,
+                "per_page"     => $perPage,
+                "total"        => $total,
+            ],
+        ]);
+    }
+
+    public function totalesAnualesPublicoCasino(Request $request) {
+        $casino = $request->query("id_casino");
+        $anio = $request->query("anio");
+
+        if (!$casino || !$anio) return response()->json(["datos" => []]);
+
+        $registros = \App\RegistroPublicoCasino::where("casino", $casino)
+            ->whereYear("fecha_mes", $anio)
+            ->get();
+
+        $datosMeses = [];
+        for ($i=1; $i<=12; $i++) {
+            $datosMeses[$i] = array_fill(1, 31, null);
+        }
+
+        foreach ($registros as $reg) {
+            $mes = (int) date("n", strtotime($reg->fecha_mes));
+            for ($d=1; $d<=31; $d++) {
+                $campo = "dia_$d";
+                if ($reg->$campo !== null) {
+                    $datosMeses[$mes][$d] = $reg->$campo;
+                }
+            }
+        }
+
+        return response()->json(["datos" => $datosMeses]);
+    }
+
+    public function descargarPublicoCasinoXlsx(Request $request)
+    {
+        $casinoId = $request->query('casino');
+        $desde    = $request->query('desde');
+        $hasta    = $request->query('hasta');
+
+        $casino = Casino::findOrFail($casinoId);
+
+        $registros = \App\RegistroPublicoCasino::where('casino', $casinoId)
+            ->when($desde, function($q) use ($desde){
+                $q->where('fecha_mes','>=', $desde.'-01');
+            })
+            ->when($hasta, function($q) use ($hasta){
+                $q->where('fecha_mes','<=', $hasta.'-31');
+            })
+            ->orderBy('fecha_mes')
+            ->get()
+            ->groupBy(function($r){
+                return date('Y', strtotime($r->fecha_mes));
+            });
+
+        $filename = 'publico_casino_'.str_replace(' ','_', strtolower($casino->nombre)).'_'.date('Ymd_His');
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+
+        return \Excel::create($filename, function($excel) use ($registros, $casino) {
+            foreach ($registros as $anio => $rows) {
+                $excel->sheet("{$anio}", function($sheet) use ($rows, $anio, $casino) {
+                    
+                    $fila = 1;
+                    $sheet->setCellValue("A{$fila}", 'Día');
+                    for ($m=1; $m<=12; $m++) {
+                        $mesNombre = ucfirst(strftime('%B', mktime(0, 0, 0, $m, 10)));
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                        $sheet->setCellValue("{$col}{$fila}", $mesNombre);
+                    }
+                    $colAnual = \PHPExcel_Cell::stringFromColumnIndex(13);
+                    $sheet->setCellValue("{$colAnual}{$fila}", 'Total ANUAL');
+
+                    $color = '#222222';
+                    if ($casino->id_casino == 1) $color = '#339966';
+                    if ($casino->id_casino == 2) $color = '#ff0000';
+                    if ($casino->id_casino == 3) $color = '#ffcc00';
+
+                    $sheet->cells("A1:{$colAnual}1", function($c) use ($color){
+                        $c->setBackground($color);
+                        if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                        $c->setFontWeight('bold');
+                        $c->setAlignment('center');
+                    });
+
+                    $matrix = [];
+                    for($m=1; $m<=12; $m++) $matrix[$m] = array_fill(1, 31, null);
+                    foreach($rows as $r) {
+                        $m = (int)date('n', strtotime($r->fecha_mes));
+                        for($d=1; $d<=31; $d++) {
+                            $campo = "dia_$d";
+                            if ($r->$campo !== null) $matrix[$m][$d] = $r->$campo;
+                        }
+                    }
+
+                    $colTotals = array_fill(1, 12, 0);
+                    $colTotals['anual'] = 0;
+
+                    for ($d = 1; $d <= 31; $d++) {
+                        $fila++;
+                        $sheet->setCellValue("A{$fila}", $d);
+                        $sheet->cells("A{$fila}", function($c){ $c->setBackground('#f5f5f5'); $c->setFontWeight('bold'); });
+                        
+                        $rowTotal = 0;
+                        for ($m = 1; $m <= 12; $m++) {
+                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $m, 1, $anio));
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                            
+                            if ($d > $daysInMonth) {
+                                $sheet->cells("{$col}{$fila}", function($c) {
+                                    $c->setBackground('#dddddd');
+                                });
+                            } else {
+                                $val = $matrix[$m][$d];
+                                if ($val !== null) {
+                                    $sheet->setCellValue("{$col}{$fila}", $val);
+                                    $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                                    $rowTotal += $val;
+                                    $colTotals[$m] += $val;
+                                }
+                            }
+                        }
+                        
+                        $colTotals['anual'] += $rowTotal;
+                        $sheet->setCellValue("{$colAnual}{$fila}", $rowTotal);
+                        $sheet->getStyle("{$colAnual}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$colAnual}{$fila}", function($c){
+                            $c->setBackground('#fffde7');
+                            $c->setFontWeight('bold');
+                        });
+                    }
+
+                    $fila++;
+                    $sheet->setCellValue("A{$fila}", "TOTAL");
+                    $sheet->cells("A{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                    
+                    for ($m = 1; $m <= 12; $m++) {
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($m);
+                        $sheet->setCellValue("{$col}{$fila}", $colTotals[$m]);
+                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$col}{$fila}", function($c){
+                            $c->setFontColor('#ff0000');
+                            $c->setFontWeight('bold');
+                        });
+                    }
+                    $sheet->setCellValue("{$colAnual}{$fila}", $colTotals['anual']);
+                    $sheet->getStyle("{$colAnual}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                    $sheet->cells("{$colAnual}{$fila}", function($c){
+                        $c->setBackground('#fffde7');
+                        $c->setFontColor('#ff0000');
+                        $c->setFontWeight('bold');
+                    });
+
+                    $sheet->setWidth('A', 8);
+                    for ($m=1; $m<=13; $m++) {
+                        $sheet->setWidth(\PHPExcel_Cell::stringFromColumnIndex($m), 18);
+                    }
+                });
+            }
+        })->download('xlsx');
+    }
+
+    public function descargarPublicoCasinoXlsxTodos(Request $request)
+    {
+        $desde = $request->query('desde');
+        $hasta = $request->query('hasta');
+        $user = Usuario::find(session('id_usuario'));
+        $casinos = $user->casinos->sortBy('id_casino');
+        $allowedCasinoIds = $casinos->pluck('id_casino')->toArray();
+
+        $registros = \App\RegistroPublicoCasino::with('casinoPublicoCasino')
+            ->whereIn('casino', $allowedCasinoIds)
+            ->when($desde, function($q) use ($desde){
+                $q->where('fecha_mes','>=', $desde.'-01');
+            })
+            ->when($hasta, function($q) use ($hasta){
+                $q->where('fecha_mes','<=', $hasta.'-31');
+            })
+            ->orderBy('fecha_mes')
+            ->get()
+            ->groupBy(function($r){
+                return date('Y', strtotime($r->fecha_mes));
+            });
+
+        $filename = 'publico_casino_todos_'.date('Ymd_His');
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+
+        return \Excel::create($filename, function($excel) use ($registros, $casinos) {
+            foreach ($registros as $anio => $rows) {
+                $excel->sheet("{$anio}", function($sheet) use ($rows, $anio, $casinos) {
+                    
+                    $matrix = [];
+                    for($m=1; $m<=12; $m++) {
+                        $matrix[$m] = [];
+                        for($d=1; $d<=31; $d++) {
+                            $matrix[$m][$d] = [];
+                        }
+                    }
+                    foreach($rows as $r) {
+                        $m = (int)date('n', strtotime($r->fecha_mes));
+                        $c = $r->casino;
+                        for($d=1; $d<=31; $d++) {
+                            $campo = "dia_$d";
+                            if ($r->$campo !== null) $matrix[$m][$d][$c] = $r->$campo;
+                        }
+                    }
+
+                    $sheet->setCellValue("A1", 'Día');
+                    $sheet->mergeCells("A1:A2");
+                    $sheet->cells("A1:A2", function($c){
+                        $c->setAlignment('center');
+                        $c->setValignment('center');
+                        $c->setFontWeight('bold');
+                    });
+
+                    $colIndex = 1;
+                    for ($m=1; $m<=12; $m++) {
+                        $mesNombre = ucfirst(strftime('%B', mktime(0, 0, 0, $m, 10)));
+                        $startCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                        $endCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex + count($casinos) - 1);
+                        
+                        $sheet->setCellValue("{$startCol}1", $mesNombre);
+                        $sheet->mergeCells("{$startCol}1:{$endCol}1");
+                        
+                        foreach($casinos as $cas) {
+                            $colStr = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                            $shortName = strtoupper(substr($cas->nombre, 0, 3)); 
+                            if ($cas->id_casino == 1) $shortName = 'CME';
+                            if ($cas->id_casino == 2) $shortName = 'CSF';
+                            if ($cas->id_casino == 3) $shortName = 'CRO';
+
+                            $sheet->setCellValue("{$colStr}2", $shortName);
+                            $color = '#222222';
+                            if ($cas->id_casino == 1) $color = '#339966';
+                            if ($cas->id_casino == 2) $color = '#ff0000';
+                            if ($cas->id_casino == 3) $color = '#ffcc00';
+                            $sheet->cells("{$colStr}2", function($c) use ($color){
+                                $c->setBackground($color);
+                                if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                                $c->setFontWeight('bold');
+                                $c->setAlignment('center');
+                            });
+                            $sheet->setWidth($colStr, 18);
+                            $colIndex++;
+                        }
+                    }
+                    
+                    $startCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                    $endCol = \PHPExcel_Cell::stringFromColumnIndex($colIndex + count($casinos) - 1);
+                    $sheet->setCellValue("{$startCol}1", 'Total ANUAL');
+                    $sheet->mergeCells("{$startCol}1:{$endCol}1");
+                    
+                    foreach($casinos as $cas) {
+                        $colStr = \PHPExcel_Cell::stringFromColumnIndex($colIndex);
+                        $shortName = 'CME';
+                        if ($cas->id_casino == 1) $shortName = 'CME';
+                        if ($cas->id_casino == 2) $shortName = 'CSF';
+                        if ($cas->id_casino == 3) $shortName = 'CRO';
+                        
+                        $sheet->setCellValue("{$colStr}2", $shortName);
+                        $color = '#222222';
+                        if ($cas->id_casino == 1) $color = '#339966';
+                        if ($cas->id_casino == 2) $color = '#ff0000';
+                        if ($cas->id_casino == 3) $color = '#ffcc00';
+                        $sheet->cells("{$colStr}2", function($c) use ($color){
+                            $c->setBackground($color);
+                            if ($color != '#ffcc00') $c->setFontColor('#ffffff');
+                            $c->setFontWeight('bold');
+                            $c->setAlignment('center');
+                        });
+                        $sheet->setWidth($colStr, 18);
+                        $colIndex++;
+                    }
+
+                    $sheet->cells("A1:{$endCol}1", function($c){
+                        $c->setAlignment('center');
+                        $c->setFontWeight('bold');
+                        $c->setBackground('#ffffff');
+                    });
+
+                    $colTotals = [];
+                    foreach($casinos as $cas) {
+                        for($m=1; $m<=12; $m++) $colTotals[$m][$cas->id_casino] = 0;
+                        $colTotals['anual'][$cas->id_casino] = 0;
+                    }
+
+                    $fila = 2;
+                    for ($d = 1; $d <= 31; $d++) {
+                        $fila++;
+                        $sheet->setCellValue("A{$fila}", $d);
+                        
+                        $rowTotals = []; 
+                        foreach($casinos as $cas) $rowTotals[$cas->id_casino] = 0;
+
+                        $cIdx = 1;
+                        for ($m = 1; $m <= 12; $m++) {
+                            $daysInMonth = (int)date('t', mktime(0, 0, 0, $m, 1, $anio));
+                            foreach($casinos as $cas) {
+                                $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                                
+                                if ($d > $daysInMonth) {
+                                    $sheet->cells("{$col}{$fila}", function($c) { $c->setBackground('#dddddd'); });
+                                } else {
+                                    $val = $matrix[$m][$d][$cas->id_casino] ?? null;
+                                    if ($val !== null) {
+                                        $sheet->setCellValue("{$col}{$fila}", $val);
+                                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                                        $rowTotals[$cas->id_casino] += $val;
+                                        $colTotals[$m][$cas->id_casino] += $val;
+                                    }
+                                }
+                                $cIdx++;
+                            }
+                        }
+                        
+                        foreach($casinos as $cas) {
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                            $val = $rowTotals[$cas->id_casino];
+                            $colTotals['anual'][$cas->id_casino] += $val;
+                            $sheet->setCellValue("{$col}{$fila}", $val);
+                            $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                            $sheet->cells("{$col}{$fila}", function($c){
+                                $c->setBackground('#fffde7');
+                                $c->setFontWeight('bold');
+                            });
+                            $cIdx++;
+                        }
+                    }
+
+                    $fila++;
+                    $sheet->setCellValue("A{$fila}", "TOTAL");
+                    $sheet->cells("A{$fila}", function($c){ $c->setAlignment('center'); $c->setFontWeight('bold'); });
+                    
+                    $cIdx = 1;
+                    for ($m = 1; $m <= 12; $m++) {
+                        foreach($casinos as $cas) {
+                            $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                            $sheet->setCellValue("{$col}{$fila}", $colTotals[$m][$cas->id_casino]);
+                            $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                            $sheet->cells("{$col}{$fila}", function($c){
+                                $c->setFontWeight('bold');
+                            });
+                            $cIdx++;
+                        }
+                    }
+                    foreach($casinos as $cas) {
+                        $col = \PHPExcel_Cell::stringFromColumnIndex($cIdx);
+                        $sheet->setCellValue("{$col}{$fila}", $colTotals['anual'][$cas->id_casino]);
+                        $sheet->getStyle("{$col}{$fila}")->getNumberFormat()->setFormatCode('#,##0');
+                        $sheet->cells("{$col}{$fila}", function($c){
+                            $c->setBackground('#fffde7');
+                            $c->setFontWeight('bold');
+                        });
+                        $cIdx++;
+                    }
+
+                    $sheet->setWidth('A', 8);
+                });
+            }
+        })->download('xlsx');
+    }
+
+    public function descargarPublicoCasinoCsv(Request $request)
+    {
+        $casinoId = $request->query('casino');
+        $desde    = $request->query('desde');
+        $hasta    = $request->query('hasta');
+
+        $user = Usuario::find(session('id_usuario'));
+        $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
+
+        $registros = \App\RegistroPublicoCasino::with('casinoPublicoCasino:id_casino,nombre')
+            ->whereIn('casino', $allowedCasinoIds)
+            ->when($casinoId && (int)$casinoId !== 4, function ($q) use ($casinoId) {
+                $q->where('casino', $casinoId);
+            })
+            ->when($desde, function ($q) use ($desde) {
+                $q->where('fecha_mes', '>=', $desde . '-01');
+            })
+            ->when($hasta, function ($q) use ($hasta) {
+                $q->where('fecha_mes', '<=', $hasta . '-31');
+            })
+            ->orderBy('casino')
+            ->orderBy('fecha_mes')
+            ->get();
+
+        $csv = [];
+        $csv[] = ['Casino','Año','Mes','Día','Cantidad'];
+
+        setlocale(LC_TIME, 'es_ES.UTF-8', 'es_AR.UTF-8', 'es_ES', 'es_AR');
+        foreach ($registros as $r) {
+            $anio   = date('Y', strtotime($r->fecha_mes));
+            $mes    = ucfirst(strftime('%B', strtotime($r->fecha_mes)));
+            $casino = $r->casinoPublicoCasino ? $r->casinoPublicoCasino->nombre : '-';
+            
+            $daysInMonth = (int)date('t', strtotime($r->fecha_mes));
+            
+            for ($d=1; $d<=$daysInMonth; $d++) {
+                $campo = "dia_$d";
+                if ($r->$campo !== null) {
+                    $csv[] = [
+                        $casino,
+                        $anio,
+                        $mes,
+                        $d,
+                        $r->$campo
+                    ];
+                }
+            }
+        }
+
+        $nombreCasino = ((int)$casinoId === 4 || !$casinoId)
+            ? 'todos'
+            : (Casino::find($casinoId)->nombre ?? 'desconocido');
+
+        $filename = "PublicoCasino_{$nombreCasino}_" . date('Ymd_His') . ".csv";
+
+        $handle = fopen('php://temp', 'r+');
+        foreach ($csv as $linea) {
+            fputcsv($handle, $linea, ',');
+        }
+        rewind($handle);
+
+        return \Response::make(stream_get_contents($handle), 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function llenarPublicoCasino($id) {
+        $r = \App\RegistroPublicoCasino::findOrFail($id);
+        return response()->json($r);
+    }
+
+    public function actualizarPublicoCasino(Request $request, $id) {
+        $r = \App\RegistroPublicoCasino::findOrFail($id);
+        for ($i = 1; $i <= 31; $i++) {
+            $campo = "dia_".$i;
+            if ($request->has($campo)) {
+                $val = $request->input($campo);
+                if ($val !== "" && $val !== null) {
+                    $valSinPuntos = str_replace('.', '', $val);
+                    $r->$campo = intval($valSinPuntos);
+                } else {
+                    $r->$campo = null;
+                }
+            }
+        }
+        $r->save();
+
+        $files = \Illuminate\Support\Arr::wrap($request->file('uploadPublicoCasino'));
+        foreach ($files as $file) {
+            if (!($file instanceof \Illuminate\Http\UploadedFile) || !$file->isValid()) continue;
+
+            $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $ext  = $file->getClientOriginalExtension();
+            $safe = preg_replace('/\s+/', '_', $base);
+            $filename = time().'_'.\Illuminate\Support\Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+
+            $file->storeAs('public/RegistroPublicoCasino', $filename);
+
+            $r->archivos()->create([
+                'path'       => $filename,
+                'usuario'    => \App\Http\Controllers\UsuarioController::getInstancia()->quienSoy()['usuario']['id_usuario'],
+                'fecha_toma' => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        return response()->json(["success" => true]);
+    }
+
+    public function archivosPublicoCasino($id) {
+        $r = \App\RegistroPublicoCasino::with('archivos')->findOrFail($id);
         $files = $r->archivos->map(function($a) {
             return [
                 'id'         => $a->id_registro_archivo,

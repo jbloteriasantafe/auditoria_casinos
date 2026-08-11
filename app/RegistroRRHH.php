@@ -38,6 +38,7 @@ class RegistroRRHH extends Model
         'porcentaje_no_ludico_viviendo',
         'porcentaje_total_viviendo',
         'diferencia_nomina_ddjj',
+        'observaciones',
     ];
 
 

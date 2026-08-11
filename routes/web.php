@@ -1118,7 +1118,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('/', 'documentosContablesController@index');
   Route::get('visualizarArchivo/{registro}/{id_archivo}', 'documentosContablesController@visualizarArchivo');
   Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
-  Route::get('eliminarArchivo', 'documentosContablesController@eliminarArchivo');
+  // Route::get('eliminarArchivo', ...); // duplicado removido
   Route::post('validarDocumento', 'documentosContablesController@validarDocumento');
   Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
   Route::get('obtenerControlDocumentos', 'documentosContablesController@obtenerControlDocumentos');
@@ -1131,6 +1131,16 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('llenarEstadoContableEdit/{id}', 'documentosContablesController@llenarEstadoContableEdit');
   Route::post('actualizarEstadoContable/{id}', 'documentosContablesController@actualizarEstadoContable');
   Route::get('archivosEstadoContable/{id}', 'documentosContablesController@archivosEstadoContable');
+  
+  // PUBLICO CASINO
+  Route::get('ultimasPublicoCasino', 'documentosContablesController@ultimasPublicoCasino');
+  Route::get('totalesAnualesPublicoCasino', 'documentosContablesController@totalesAnualesPublicoCasino');
+  Route::get('descargarPublicoCasinoXlsx', 'documentosContablesController@descargarPublicoCasinoXlsx');
+  Route::get('descargarPublicoCasinoXlsxTodos', 'documentosContablesController@descargarPublicoCasinoXlsxTodos');
+  Route::get('descargarPublicoCasinoCsv', 'documentosContablesController@descargarPublicoCasinoCsv');
+  Route::get('llenarPublicoCasino/{id}', 'documentosContablesController@llenarPublicoCasino');
+  Route::post('actualizarPublicoCasino/{id}', 'documentosContablesController@actualizarPublicoCasino');
+  Route::get('archivosPublicoCasino/{id}', 'documentosContablesController@archivosPublicoCasino');
   //IVA
   Route::post('guardarIva', 'documentosContablesController@guardarIva');
   Route::post('actualizarIva/{id}', 'documentosContablesController@actualizarIva');
@@ -1177,7 +1187,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::post('actualizarTGI/{id}', 'documentosContablesController@actualizarTGI');
   Route::get('archivosTGI/{id}', 'documentosContablesController@archivosTGI');
   Route::get('llenarTGIEdit/{id}', 'documentosContablesController@llenarTGIEdit');
-  Route::get('archivosTGI/{id}', 'documentosContablesController@archivosTGI');
+  // Route::get('archivosTGI/{id}', ...); // duplicado removido
   Route::get('ultimasTGI', 'documentosContablesController@ultimasTGI');
   Route::get('eliminarTGI/{id}', 'documentosContablesController@eliminarTGI');
   Route::get('llenarTGI/{id}', 'documentosContablesController@llenarTGI');
@@ -1359,6 +1369,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('ultimasPremiosMTM_Unificado', 'documentosContablesController@ultimasPremiosMTM_Unificado');
   Route::get('llenarPremiosMTM_Unificado', 'documentosContablesController@llenarPremiosMTM_Unificado');
   Route::get('eliminarPremiosMTM/{id}', 'documentosContablesController@eliminarPremiosMTM');
+  Route::get('eliminarPremiosMTM_Unificado', 'documentosContablesController@eliminarPremiosMTM_Unificado');
   Route::get('llenarPremiosMTM/{id}', 'documentosContablesController@llenarPremiosMTM');
   Route::post('actualizarPremiosMTM/{id}', 'documentosContablesController@actualizarPremiosMTM');
   Route::get('archivosPremiosMTM/{id}', 'documentosContablesController@archivosPremiosMTM');
@@ -1373,6 +1384,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('AutDirectoresHabilitarDirector/{id}', 'documentosContablesController@AutDirectoresHabilitarDirector');
   Route::get('AutDirectoresEliminarDirector/{id}', 'documentosContablesController@AutDirectoresEliminarDirector');
   Route::get('AutDirectoresHabilitadosPorCasino/{casinoId}', 'documentosContablesController@AutDirectoresHabilitadosPorCasino');
+  Route::get('AutDirectoresTodosPorCasino/{casinoId}', 'documentosContablesController@AutDirectoresTodosPorCasino');
   Route::get('getAutDirectores', 'documentosContablesController@getAutDirectores');
   Route::get('ultimasAutDirectores', 'documentosContablesController@ultimasAutDirectores');
   Route::post('actualizarAutDirectores/{id}', 'documentosContablesController@actualizarAutDirectores');

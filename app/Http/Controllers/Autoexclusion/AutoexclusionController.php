@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\NotasUnificadasController;
 use Dompdf\Dompdf;
 use View;
 use Validator;
@@ -62,6 +63,9 @@ class AutoexclusionController extends Controller
                                           'casinos' => Casino::all(),
                                           'casinos_usuario' => $casinos_usuario,
                                           'plataformas' => Plataforma::all(),
+                                          //Plataformas de apuestas deportivas (ids >= 1001, tabla propia).
+                                          //Sólo se usan para la carga masiva y para poder buscar/mostrar lo importado.
+                                          'plataformas_deportivas' => NotasUnificadasController::obtenerPlataformasDeportivas(),
                                           'plataformas_usuario' => $plataformas_usuario,
                                           'usuario' => $usuario,
                                           'frecuencias' => AE\FrecuenciaAsistenciaAE::all(),
@@ -85,6 +89,13 @@ class AutoexclusionController extends Controller
                                           'dni' => $dni
                                         ]);
     }
+
+  //ae_estado.id_plataforma ya no tiene FK contra `plataforma`: las de apuestas deportivas
+  //viven en su propia tabla con ids >= 1001 (rangos disjuntos). La lista blanca se valida acá.
+  private function existePlataforma($id_plataforma){
+    return !is_null(Plataforma::find($id_plataforma))
+        || NotasUnificadasController::esPlataformaDeportiva($id_plataforma);
+  }
 
   //Función para buscar los autoexcluidos existentes en el sistema
   public function buscarAutoexcluidos(Request $request){
@@ -164,7 +175,7 @@ class AutoexclusionController extends Controller
                    ae_estado.papel_destruido_datetime,
                    
                    ae_nombre_estado.descripcion as desc_estado,
-                   IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma,
+                   IFNULL(IFNULL(casino.nombre,plataforma.nombre),plat_deportiva.nombre) as casino_plataforma,
                    ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
                    ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
       ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
@@ -172,6 +183,8 @@ class AutoexclusionController extends Controller
       ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
       ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
       ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
+      //Las plataformas de apuestas deportivas comparten la columna id_plataforma pero viven en otra tabla
+      ->leftjoin('plataformas_apuestas_deportivas as plat_deportiva','ae_estado.id_plataforma','=','plat_deportiva.id_plataforma')
       ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
       ->when($sort_by,function($query) use ($sort_by){
         return $query->orderBy($sort_by['columna'],$sort_by['orden']);
@@ -222,7 +235,9 @@ class AutoexclusionController extends Controller
       'ae_datos_contacto.vinculo'          => 'nullable|string|max:200',
       'ae_estado.id_nombre_estado'  => 'required|integer|exists:ae_nombre_estado,id_nombre_estado',
       'ae_estado.id_casino'         => 'nullable|integer|exists:casino,id_casino',
-      'ae_estado.id_plataforma'     => 'nullable|integer|exists:plataforma,id_plataforma',
+      //Sin `exists:plataforma`: puede ser una de apuestas deportivas, que está en otra tabla.
+      //La existencia se chequea abajo con existePlataforma().
+      'ae_estado.id_plataforma'     => 'nullable|integer',
       'ae_estado.fecha_ae'          => 'required|date',
       'hace_encuesta'                         => 'required|boolean',
       'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
@@ -272,6 +287,9 @@ class AutoexclusionController extends Controller
         return $validator->errors()->add('permisos','No puede realizar esta acción');
       }
       
+      if(!is_null($id_plataforma) && !$this->existePlataforma($id_plataforma)){
+        $validator->errors()->add('ae_estado.id_plataforma','La plataforma seleccionada no existe');
+      }
       if(!$user->es_superusuario){
         if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
           $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
@@ -905,6 +923,15 @@ class AutoexclusionController extends Controller
              return response()->json(['id_casino' => 'Solo implementado para Plataforma 1 y 2 por el momento.'], 422);
         }
         */
+
+        if(!is_null($id_plataforma)){
+            if(!$this->existePlataforma($id_plataforma)){
+                return response()->json(['id_casino' => 'La plataforma seleccionada no existe'], 422);
+            }
+        }
+        else if(is_null(Casino::find($id_casino))){
+            return response()->json(['id_casino' => 'El casino seleccionado no existe'], 422);
+        }
 
         $archivo = $request->file('archivo');
         $cant_procesados = 0;

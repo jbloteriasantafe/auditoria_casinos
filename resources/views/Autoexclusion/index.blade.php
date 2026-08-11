@@ -12,6 +12,9 @@ $puede_descargar = $usuario->es_superusuario || $usuario->tienePermiso('descarga
 $puede_borrar    = $usuario->es_superusuario || $usuario->tienePermiso('borrar_ae');
 $puede_ver_logs_descargas = $usuario->es_superusuario || $usuario->tienePermiso('logs_descargar_aes');
 $puede_subir_archivos = true;//Cualquiera con acceso a la sección puede subir/reemplazar las imágenes
+//Las plataformas de apuestas deportivas no cuelgan de ningún casino, así que no se pueden filtrar
+//por plataforma_tiene_casino como las online: se muestran todas o ninguna según el permiso.
+$plats_deportivas_alta = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas_deportivas : [];
 ?>
 
 @section('estilos')
@@ -211,10 +214,16 @@ input[required], select[required]{
         @foreach ($plataformas as $p)
         <option value="" data-id_plataforma="{{$p->id_plataforma}}">{{$p->nombre}}</option>
         @endforeach
+        @foreach ($plataformas_deportivas as $p)
+        <option value="" data-id_plataforma="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+        @endforeach
       </select>
       <select name="plataforma" id="selectEscondidoPlataforma" class="form-control" style="display: none;">
         <option value=""></option>
         @foreach ($plataformas as $p)
+        <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+        @endforeach
+        @foreach ($plataformas_deportivas as $p)
         <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
         @endforeach
       </select>
@@ -542,6 +551,9 @@ input[required], select[required]{
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                           @endforeach
                           @foreach ($plataformas_usuario as $p)
+                          <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                          @endforeach
+                          @foreach ($plats_deportivas_alta as $p)
                           <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                         </select>
@@ -920,6 +932,9 @@ input[required], select[required]{
                     @foreach ($plataformas as $p)
                     <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                     @endforeach
+                    @foreach ($plataformas_deportivas as $p)
+                    <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="col-lg-6">
@@ -1187,7 +1202,7 @@ input[required], select[required]{
                     <h5>CASINO / PLATAFORMA</h5>
                     <select id="selectCasinoImportacion" class="form-control">
                         <option value="">- Seleccione -</option>
-                           <?php 
+                           <?php
                             $cas_creacion = $usuario->es_superusuario? $casinos : $usuario->casinos;
                             $plats_creacion = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas : [];
                           ?>
@@ -1195,6 +1210,9 @@ input[required], select[required]{
                           <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                           @endforeach
                           @foreach ($plats_creacion as $p)
+                          <option value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                          @endforeach
+                          @foreach ($plats_deportivas_alta as $p)
                           <option value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                     </select>

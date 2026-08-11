@@ -407,7 +407,12 @@ aside div[aria-expanded="true"] > .flechita {
 
 .contenedorVistaPrincipal {
   position: relative;
-  height: calc(100% - 80px);
+  /* --alto-header lo setea el layout con la altura REAL del header (ver dashboard.blade.php).
+     Antes esto restaba 80px fijos, pero el header no siempre mide 80: la barra superior crece o
+     envuelve según el ancho (con zoom del navegador llegaba a 90px). Cuando el header medía más,
+     header + panel superaba el alto de la ventana y la página quedaba con su propio scrollbar
+     además del del panel: el "doble scroll". El 80px queda de fallback si no corre el JS. */
+  height: calc(100% - var(--alto-header, 80px));
   overflow-y: auto;
 }
 

@@ -617,8 +617,8 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
 
      <!-- Estilos de imagenes en SVG -->
      <link rel="stylesheet" href="/css/estilosSVG.css">
-     <link rel="stylesheet" href="/css/estiloDashboard.css?2">
-     <link rel="stylesheet" href="/css/estiloDashboard_xs.css?2">
+     <link rel="stylesheet" href="/css/estiloDashboard.css?3">
+     <link rel="stylesheet" href="/css/estiloDashboard_xs.css?3">
 
      <!-- Custom Fonts -->
      <link rel="stylesheet" href="/web-fonts-with-css/css/fontawesome-all.css">
@@ -815,6 +815,30 @@ $tarjeta_css = $tarjeta? "background-image: url($tarjeta);height: 13vh;backgroun
      @endif
      @section('scripts')
      @show
+
+     <script>
+         // Publica la altura REAL del header en --alto-header, que es lo que usa
+         // .contenedorVistaPrincipal para calcular su alto (ver estiloDashboard.css).
+         // Antes el CSS restaba 80px (60 en pantallas chicas) fijos, pero la barra superior cambia
+         // de alto según el ancho disponible: al hacer zoom llegaba a 90px y entonces
+         // header + panel > ventana, con lo que aparecía el scrollbar de la página ADEMÁS del
+         // scrollbar del panel (el "doble scroll").
+         (function () {
+             var header = document.querySelector('header');
+             if (!header) return;
+
+             function ajustarAltoPanel() {
+                 var alto = Math.ceil(header.getBoundingClientRect().height);
+                 document.documentElement.style.setProperty('--alto-header', alto + 'px');
+             }
+
+             ajustarAltoPanel();
+             window.addEventListener('resize', ajustarAltoPanel);
+             // El zoom del navegador y la carga de fuentes/imágenes cambian el alto del header.
+             if (window.ResizeObserver) new ResizeObserver(ajustarAltoPanel).observe(header);
+             window.addEventListener('load', ajustarAltoPanel);
+         })();
+     </script>
  </body>
 
  <!-- NOTIFICACIÓN DE ÉXITO -->

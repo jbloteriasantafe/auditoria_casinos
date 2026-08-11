@@ -2129,7 +2129,7 @@
                     <div style="margin-bottom:15px;">
                         <h5 style="margin:0 0 15px; font-weight:700; color:#2c3e50;"><i class="fa fa-users"></i> Seleccione
                             a quién notificar</h5>
-                        <div class="row" style="display:flex; justify-content:center; gap:10px;">
+                        <div class="row" style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
                             @if(!empty($esAdminMails))
                                 <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('auditoria')">
                                     <div class="panel panel-default card-cat-mail" data-cat="auditoria"
@@ -2152,6 +2152,16 @@
                                     </div>
                                     <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Casino /
                                         Plataforma</h5>
+                                </div>
+                            </div>
+                            <div class="col-xs-3" style="cursor:pointer;" onclick="seleccionarCatMail('aviso_aprobaciones')">
+                                <div class="panel panel-default card-cat-mail" data-cat="aviso_aprobaciones"
+                                    style="border-radius:12px; border:2px solid transparent; text-align:center; padding:15px 10px; transition:all 0.3s; margin:0;">
+                                    <div
+                                        style="background:#e0e7ff; width:50px; height:50px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fa fa-check-circle fa-2x" style="color:#4f46e5;"></i>
+                                    </div>
+                                    <h5 style="font-weight:700; color:#1e293b; margin:0; font-size:13px;">Aviso de Aprobaciones</h5>
                                 </div>
                             </div>
                             @if(!empty($esAdminMails))
@@ -2187,7 +2197,7 @@
                         <div style="margin-bottom:20px;">
                             <div
                                 style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                                <span style="font-weight:600; font-size:13px; color:#475569;"><i class="fa fa-exchange"></i>
+                                <span style="font-weight:600; font-size:13px; color:#475569;" id="tituloTransiciones"><i class="fa fa-exchange"></i>
                                     Transiciones que envían mail</span>
                                 @if(!empty($esAdminMails))
                                     <button class="btn btn-xs btn-primary" id="btnNuevaTransicion"
@@ -2199,7 +2209,7 @@
                             <div id="panelNuevaTransicion"
                                 style="display:none; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:8px;">
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-4 trans-field-origen">
                                         <label style="font-size:11px;">Estado Origen</label>
                                         <select class="form-control" id="selTransOrigen">
                                             <option value="0">AL CREAR</option>
@@ -2209,14 +2219,14 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label style="font-size:11px;">Estado Destino</label>
+                                        <label style="font-size:11px;" id="lblTransDestino">Estado Destino</label>
                                         <select class="form-control" id="selTransDestino">
                                             @foreach($estados as $e)
                                                 <option value="{{ $e->id }}">{{ $e->descripcion }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-2 trans-field-tipo">
                                         <label style="font-size:11px;">Tipo de</label>
                                         <select class="form-control" id="selTransTipoEvento" style="font-size:12px;">
                                             <option value="0">Todos</option>
@@ -2239,21 +2249,21 @@
                                 </div>
                             </div>
                             <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
-                                <table class="table table-hover"
+                                <table class="table table-hover" id="tablaTransiciones"
                                     style="margin:0; font-size:13px; table-layout:fixed; width:100%;">
                                     <colgroup>
-                                        <col style="width:33%;">
-                                        <col style="width:5%;">
-                                        <col style="width:33%;">
-                                        <col style="width:19%;">
-                                        <col style="width:10%;">
+                                        <col class="col-t-origen" style="width:33%;">
+                                        <col class="col-t-arrow" style="width:5%;">
+                                        <col class="col-t-destino" style="width:33%;">
+                                        <col class="col-t-tipo" style="width:19%;">
+                                        <col class="col-t-acc" style="width:10%;">
                                     </colgroup>
                                     <thead style="background:#f1f5f9;">
                                         <tr>
-                                            <th style="padding:8px 15px;">Estado Origen</th>
-                                            <th style="padding:8px 15px; text-align:center;"></th>
-                                            <th style="padding:8px 15px;">Estado Destino</th>
-                                            <th style="padding:8px 15px;">Tipo de</th>
+                                            <th style="padding:8px 15px;" class="trans-th-origen">Estado Origen</th>
+                                            <th style="padding:8px 15px; text-align:center;" class="trans-th-arrow"></th>
+                                            <th style="padding:8px 15px;" id="thTransDestino">Estado Destino</th>
+                                            <th style="padding:8px 15px;" class="trans-th-tipo">Tipo de</th>
                                             <th style="padding:8px 15px;"></th>
                                         </tr>
                                     </thead>
