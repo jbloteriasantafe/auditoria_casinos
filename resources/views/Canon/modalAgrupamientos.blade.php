@@ -44,11 +44,15 @@
       </label>
     </div>
     <div class="bloque_interno" style="width: 100%;height: 50vh;display: flex;">
-      <div data-grafo-agrupamiento style="flex: 0.65;flex-grow: 1;height: 100%;border: 2px solid darkblue;margin: 5px;">
+      <div data-contenedor-grafo-agrupamiento style="flex: 0.65;flex-grow: 1;height: 100%;border: 2px solid darkblue;margin: 5px;">
+      </div>
+      <div hidden>        
+        <div data-molde-grafo-agrupamiento data-grafo-aprupamiento style="width: 100%;height: 100%;">
+        </div>
       </div>
       <div style="flex: 0.35;height: 100%;display: flex;flex-direction: column;" data-modo-mostrar='[{"modo": "NUEVO","modo": "EDITAR"}]'>
         <h6>Controles</h6>
-        <div class="bloque_interno" style="height: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 5px;">
+        <div data-controles class="bloque_interno" style="height: 100%;display: flex;flex-direction: row;flex-wrap: wrap;justify-content: center;align-items: center;align-content: stretch;gap: 5px;">
           <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;align-content: stretch;gap: 5px;">
             <button style="flex: 1;padding: 0;" data-js-click-centrar class="btn" type="button">Centrar</button>
           </div>

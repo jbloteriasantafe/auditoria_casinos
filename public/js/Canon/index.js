@@ -1784,17 +1784,6 @@ $(function(){
       updateMatrixes(state);
     };
     
-    // Define DAG nodes
-    let state = {
-      nodes: null,
-      nextNodeId: null,
-      edges: null,
-      adjacencyMatrix: null,
-      distanceMatrix: null
-    };
-    let network = null;
-    let selectedNodes = [];
-    
     const organizar_layout_on = {
       layout: {
         hierarchical: {
@@ -1830,7 +1819,7 @@ $(function(){
       physics: false
     };
     
-    const organizarGrafo = () => {
+    const organizarGrafo = (network) => {
       return new Promise((resolve, reject) => {
         if (network === null) {
           return reject(new Error("Network is not initialized"));
@@ -1892,68 +1881,45 @@ $(function(){
       ...organizar_physics_off,
     };
     
-    let selected_radio_grupo_operador = $();
+    const getActiveGO = () => {
+      return M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]:checked');
+    };
+    
+    let prev_active = $();
     M.on('change','[data-contenedor-grupos-operadores] [data-radio-grupo-operador]',function(e){
+      if(prev_active.length){
+        prev_active.data('state').selectedNodes.length = 0;
+        prev_active.data('network').unselectAll();
+      }
+      M.find('[data-controles] input').val('');
+      
       const selected = $(e.currentTarget);
+      prev_active = selected;
       
-      //Guardo el progreso
-      selected_radio_grupo_operador.data('state',state);
-      //Seteo los que tiene la opcion
-      selected_radio_grupo_operador = selected;
-      state = selected.data('state');
-      //@HACK: useless?
-      updateMatrixes(state);
-      selectedNodes = [];
-      
-      if(network !== null){
-        network.setData({
-          nodes: state.nodes,
-          edges: state.edges
+      //Limpio los checkbox para que sean exclusivos
+      {
+        M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,o){
+          o.checked = false;
         });
-        network.storePositions();
+        selected[0].checked = true;
+      }
+      
+      const state = selected.data('state');
+      M.find('[data-contenedor-grafo-agrupamiento] [data-grafo-agrupamiento]').hide();
+      if(selected.data('container').length){
+        selected.data('container').show();  
       }
       else{
-        network = new vis.Network(container, { nodes: state.nodes, edges: state.edges }, options);
-        network.storePositions();
-        network.on("dragEnd", function (params) {//Guardar posision al mover
-          if (params.nodes.length > 0) {
-            network.storePositions();
-          }
-        });
-        network.on("selectNode", function (params) {      
-          if(selectedNodes.length == 0){
-            const desde_id = state.nodes.get(params.nodes[0]).id;
-            selectedNodes.push(desde_id);
-            M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
-          }
-          else if(selectedNodes.length == 1){
-            const hasta_id = params.nodes.filter(id => !selectedNodes.includes(id))[0];
-            selectedNodes.push(hasta_id);
-            M.find('[data-enlazar-nodo-id="hasta"]').val(hasta_id);
-          }
-          else{
-            selectedNodes.length = 0;//Limpia el array
-            M.find('[data-enlazar-nodo-id]').val('');
-          }
-        });
-        network.on("select", function (params) {
-          if(params.nodes.length == 0){//Selecciona ningun nodo o deselecciona se llama este evento
-            selectedNodes.length = 0;//Limpia el array
-            M.find('[data-enlazar-nodo-id]').val('');
-          }
-        });
+        console.log('ERROR CONTAINER NO INICIALIZADO');
       }
-      
-      //Limpio los checkbox
-      M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,o){
-        o.checked = false;
-      });
-      selected[0].checked = true;
     });
     
     const agregarGrupoOperador = (id_grupo_operador) => {
-      if(M.find(`[data-radio-grupo-operador="${id_grupo_operador}"]`).length > 0){
-        return;
+      {
+        const existente = M.find(`[data-radio-grupo-operador="${id_grupo_operador}"]`);
+        if(existente.length > 0){
+          return existente.eq(0);
+        }
       }
       
       const GOp = M.find('[data-molde-grupo-operador]').clone().removeAttr('data-molde-grupo-operador');
@@ -1961,14 +1927,55 @@ $(function(){
       GOp.find('[data-radio-grupo-operador-label]').text(id_grupo_operador);
       const GOp_obj = GOp.find('[data-radio-grupo-operador]');
       GOp_obj.attr('data-radio-grupo-operador',id_grupo_operador);
-      GOp_obj.data('state',{
+      
+      const state = {
         nodes: new vis.DataSet([]),
         edges: new vis.DataSet([]),
         adjacencyMatrix: {},
         distanceMatrix: {},
         nextNodeId: 1,
-        organizar: false
+        organizar: false,
+        selectedNodes: []
+      };
+      GOp_obj.data('state',state);
+      
+      const container = M.find('[data-molde-grafo-agrupamiento]').clone().removeAttr('data-molde-grafo-agrupamiento');
+      container.attr('data-grafo-agrupamiento',id_grupo_operador);
+      container.hide();
+      M.find('[data-contenedor-grafo-agrupamiento]').append(container);
+      GOp_obj.data('container',container);
+      
+      const network = new vis.Network(container[0], { nodes: state.nodes, edges: state.edges }, options);
+      network.storePositions();
+      network.on("dragEnd", function (params) {//Guardar posision al mover
+        if (params.nodes.length > 0) {
+          network.storePositions();
+        }
       });
+      network.on("selectNode", function (params) {      
+        if(state.selectedNodes.length == 0){
+          const desde_id = state.nodes.get(params.nodes[0]).id;
+          state.selectedNodes.push(desde_id);
+          M.find('[data-enlazar-nodo-id="desde"]').val(desde_id);
+        }
+        else if(state.selectedNodes.length == 1){
+          const hasta_id = params.nodes.filter(id => !state.selectedNodes.includes(id))[0];
+          state.selectedNodes.push(hasta_id);
+          M.find('[data-enlazar-nodo-id="hasta"]').val(hasta_id);
+        }
+        else{
+          state.selectedNodes.length = 0;//Limpia el array
+          M.find('[data-enlazar-nodo-id]').val('');
+        }
+      });
+      network.on("select", function (params) {
+        if(params.nodes.length == 0){//Selecciona ningun nodo o deselecciona se llama este evento
+          state.selectedNodes.length = 0;//Limpia el array
+          M.find('[data-enlazar-nodo-id]').val('');
+        }
+      });
+      GOp_obj.data('network',network);
+      
       return GOp_obj;
     };
     
@@ -1984,11 +1991,10 @@ $(function(){
       Mname('clave',clave);
       
       if(clave !== undefined){
-        let organizar_alguno = false;
         for(const id_grupo_operador in agg[clave]){
           const GOp_obj = agregarGrupoOperador(id_grupo_operador);
           
-          const _state = GOp_obj.data('state');
+          const state = GOp_obj.data('state');
           
           const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
           const bases = {};
@@ -1997,56 +2003,56 @@ $(function(){
           //Es decir, el de la tabla y uno superior con el nivel
           for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
             //Si en el primer punto ya no tiene coordenadas lo flageo para organizar
-            if(!_state.organizar && (n.base_coordenadas[0] === null)){
-              _state.organizar = true;
-              organizar_alguno = true;
-            }
+            state.organizar = !state.organizar && (
+                 n.coordenadas[0] === null || n.coordenadas[1] === null 
+              || n.base_coordenadas[0] === null || n.coordenadas[1] === null
+            );
             
             const tipo_base = 'base:'+n.dependencia[0];
             //en nivel = 0, dependencia es un arreglo 
             let id_base = bases[tipo_base+':'+n.dependencia[1]];
             
-
-            
             if(id_base === undefined){
-              bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(_state,tipo_base,n.dependencia[1],0);
+              bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(state,tipo_base,n.dependencia[1],0);
               id_base = bases[tipo_base+':'+n.dependencia[1]];
             }
             let id_superior = niveles[0][n.valor];
             if(id_superior === undefined){
-              niveles[0][n.valor] = agregarNodo(_state,'superior',n.valor,null);
+              niveles[0][n.valor] = agregarNodo(state,'superior',n.valor,null);
               id_superior = niveles[0][n.valor];
             }
             
-            agregarVertice(_state,id_superior,id_base);
+            agregarVertice(state,id_superior,id_base);
           }
           
           for(let nivel=1;nivel<=max_nivel;nivel++){
             niveles[nivel] = {};
             for(const n of (agg[clave][id_grupo_operador]?.[nivel] ?? [])){             
               const id_base = niveles[nivel-1][n.dependencia];
+              
+              state.organizar = !state.organizar && (
+                   n.coordenadas[0] === null || n.coordenadas[1] === null 
+              );
+              
               if(id_base === undefined){
                 continue;
               }
               let id_superior = niveles[nivel][n.valor];
               if(id_superior === undefined){
-                id_superior = agregarNodo(_state,'superior',n.valor,null);
+                id_superior = agregarNodo(state,'superior',n.valor,null);
                 niveles[nivel][n.valor] = id_superior;
               }
-              agregarVertice(_state,id_superior,id_base);
+              agregarVertice(state,id_superior,id_base);
             }
           }
         }
         
-        if(organizar_alguno){
-          M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,go){
-            const $go = $(go);
-            //Triggereo click para que se guarden las posisiones de todos (necesito tener el state en network para guardar las posisiones)
-            $go.trigger('click');
-            M.find('[data-js-click-organizar]').trigger('click');
-          });
-        }
-        M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').eq(0).trigger('click');
+        M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(async function(_,go){
+          const $go = $(go);
+          if($go.data('state').organizar){
+            organizarGrafo($go.data('network'));
+          }
+        });
       }
       
       M.trigger('regenerarInputsFormatear')
@@ -2061,15 +2067,7 @@ $(function(){
       M.trigger('setModo',[modo]);
       
       M.find('[data-contenedor-grupos-operadores]').empty();
-      state = {
-        nodes: null,
-        nextNodeId: null,
-        edges: null,
-        adjacencyMatrix: null,
-        distanceMatrix: null
-      };
-      network = null;
-      selectedNodes = [];
+      M.find('[data-contenedor-grafo-agrupamiento]').empty();
       
       AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
@@ -2081,7 +2079,8 @@ $(function(){
     
     M.find('[data-js-click-agregar-nodo]').each(function(_,b){
       $(b).click(function(e){
-        if(network === null) return;
+        const go = getActiveGO();
+        if(go.length == 0) return;
         
         const tgt = $(e.currentTarget);
         const div = tgt.closest('[data-agregar-nodo]');
@@ -2111,34 +2110,35 @@ $(function(){
         }
                 
         //No volver a agregar el mismo si ya esta
-        const found = findNode(state,valor,group,nivel);
+        const found = findNode(go.data('state'),valor,group,nivel);
         
         if(!found){
-          agregarNodo(state,group,valor,nivel);
+          agregarNodo(go.data('state'),group,valor,nivel);
         }
         else{
           AUX.mensajeError('Nodo repetido');
         }
         
-        network.fit();
+        go.data('network').fit();
         labelTarget.val('');
       });
     });
     
     M.find('[data-js-click-enlazar-nodo]').click(function(e){
-      if(network === null) return;
+      const go = getActiveGO();
+      if(go.length == 0) return;
       
       const tgt = $(e.currentTarget);
       const desde_hasta = M.find(tgt.attr('data-js-click-enlazar-nodo'));
       const desde_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="desde"]')?.val()?.trim());
       const hasta_id = parseInt(desde_hasta.filter('[data-enlazar-nodo-id="hasta"]')?.val()?.trim());
-      const desde_n = !isNaN(desde_id)? state.nodes.get(desde_id) : undefined;
-      const hasta_n = !isNaN(hasta_id)? state.nodes.get(hasta_id) : undefined;
+      const desde_n = !isNaN(desde_id)? go.data('state').nodes.get(desde_id) : undefined;
+      const hasta_n = !isNaN(hasta_id)? go.data('state').nodes.get(hasta_id) : undefined;
       
       const existen = desde_n && hasta_n;
       const distintos = (desde_id != hasta_id);
       const enlace_permitido =  !!(allowedGroupLinks?.[desde_n?.group]?.[hasta_n?.group]);
-      const no_existe_lineaje = !isFinite(state.distanceMatrix[desde_id][hasta_id]);
+      const no_existe_lineaje = !isFinite(go.data('state').distanceMatrix[desde_id][hasta_id]);
       
       const nuevo_a_nivelado = (desde_n?.nivel === null && hasta_n?.nivel !== null);
       const nivelado_a_nuevo = (desde_n?.nivel !== null && hasta_n?.nivel === null && desde_n?.nivel !== 1);
@@ -2152,17 +2152,17 @@ $(function(){
       if(valido){
         if(nuevo_a_nivelado){
           const nivel = hasta_n.nivel + 1;
-          duplica_nodo = findNode(state,desde_n.valor,desde_n.group,nivel);
+          duplica_nodo = findNode(go.data('state'),desde_n.valor,desde_n.group,nivel);
         }
         
         if(nivelado_a_nuevo){
           const nivel = desde_n.nivel - 1;
-          duplica_nodo = findNode(state,hasta_n.valor,hasta_n.group,nivel);
+          duplica_nodo = findNode(go.data('state'),hasta_n.valor,hasta_n.group,nivel);
         }
         
         if(!duplica_nodo){
-          agregarVertice(state,desde_id,hasta_id);
-          network.fit();
+          agregarVertice(go.data('state'),desde_id,hasta_id);
+          go.data('network').fit();
         }
       }
       
@@ -2193,51 +2193,57 @@ $(function(){
     });
     
     M.find('[data-js-click-centrar]').click(function(e){
-      if(network === null) return;
-      network.fit();
+      const go = getActiveGO();
+      if(go.length == 0) return;
+      
+      go.data('network').fit();
     });
     
     M.find('[data-js-click-organizar]').click(async function(e){
+      const go = getActiveGO();
+      if(go.length == 0) return;
+      
       try {
-        await organizarGrafo();
+        await organizarGrafo(go.data('network'));
       } catch (error) {
         console.error(error);
       }
     });
     
     M.find('[data-js-click-borrar-objetos]').click(function(e){
-      if(network === null) return;
+      const go = getActiveGO();
+      if(go.length == 0) return;
       
-      const selectedNodes = network.getSelectedNodes();
-      const selectedEdges = network.getSelectedEdges();
+      const selectedNodes = go.data('network').getSelectedNodes();
+      const selectedEdges = go.data('network').getSelectedEdges();
       if (selectedNodes.length > 0) {
-        state.nodes.remove(selectedNodes);
+        go.data('state').nodes.remove(selectedNodes);
       } 
       if (selectedEdges.length > 0) {
-        state.edges.remove(selectedEdges);
+        go.data('state').edges.remove(selectedEdges);
       }
-      updateMatrixes(state);
+      updateMatrixes(go.data('state'));
       
       //Re asigno los niveles, busco el primer nodo base que este conectado
-      for(const root of state.nodes.get()){
+      for(const root of go.data('state').nodes.get()){
         if(root.group !== 'superior') continue;
         
         root.nivel = null;
-        for(const target_node_id in state.distanceMatrix[root.id]){
+        for(const target_node_id in go.data('state').distanceMatrix[root.id]){
           if(root.id === target_node_id) continue;
           
-          const distance = state.distanceMatrix[root.id][target_node_id];
-          const target_node = state.nodes.get(parseInt(target_node_id));
+          const distance = go.data('state').distanceMatrix[root.id][target_node_id];
+          const target_node = go.data('state').nodes.get(parseInt(target_node_id));
           if(target_node.nivel == 0 && distance > 0 && isFinite(distance)) {
             root.nivel = distance;
             break;
           }
         }
         root.label = getLabel(root.id,root.valor,root.group,root.nivel);
-        state.nodes.update(root);
+        go.data('state').nodes.update(root);
       }
       
-      network.fit();
+      go.data('network').fit();
     });
     
     M.find('[data-js-click-submit-form]').click(function(e){
