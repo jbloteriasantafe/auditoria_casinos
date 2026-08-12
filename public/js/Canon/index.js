@@ -1746,8 +1746,6 @@ $(function(){
           });
         });
       }
-      
-      console.log(state);
     }
     
     const agregarNodo = (state,group,valor,nivel) => {
@@ -1797,8 +1795,7 @@ $(function(){
     let network = null;
     let selectedNodes = [];
     
-    // Configure for a DAG visual layout
-    const options = {
+    const organizar_layout_on = {
       layout: {
         hierarchical: {
           enabled: true,
@@ -1808,6 +1805,57 @@ $(function(){
           levelSeparation: 120
         }
       },
+    };
+    
+    const organizar_physics_on ={
+      physics: {
+        enabled: true,
+        solver: 'hierarchicalRepulsion',
+        hierarchicalRepulsion: {
+          //nodeDistance: 150,      // Minimum separation distance enforced between nodes
+          //springConstant: 0.01,
+          //springLength: 50,
+          avoidOverlap: 1         // Scale from 0 to 1 (1 = max spacing based on node size)
+        }
+      }
+    };
+    
+    const organizar_layout_off = {
+      layout: {
+        hierarchical: false
+      },
+    };
+    
+    const organizar_physics_off = {
+      physics: false
+    };
+    
+    const organizarGrafo = () => {
+      return new Promise((resolve, reject) => {
+        if (network === null) {
+          return reject(new Error("Network is not initialized"));
+        }
+        
+        network.once("stabilized", function () {
+          // 2. Store the calculated positions right away
+          network.storePositions();
+
+          // 3. Turn organization options OFF to lock positions
+          network.setOptions(organizar_layout_off);
+          network.setOptions(organizar_physics_off);
+
+          // 4. Resolve the promise
+          resolve();
+        });
+
+        // 1. Turn organization ON
+        network.setOptions(organizar_layout_on);
+        network.setOptions(organizar_physics_on);
+      });
+    };
+      
+    // Configure for a DAG visual layout
+    const options = {
       groups: {
         "superior": {
           color: { background: '#457b9d', border: '#1d3557', highlight: { background: '#a8dadc', border: '#1d3557' } },
@@ -1840,10 +1888,9 @@ $(function(){
           roundness: 0.4
         }
       },
-      physics: false // Disabling physics keeps the DAG locked in rank order
+      ...organizar_layout_off,
+      ...organizar_physics_off,
     };
-
-    
     
     let selected_radio_grupo_operador = $();
     M.on('change','[data-contenedor-grupos-operadores] [data-radio-grupo-operador]',function(e){
@@ -1863,9 +1910,16 @@ $(function(){
           nodes: state.nodes,
           edges: state.edges
         });
+        network.storePositions();
       }
       else{
         network = new vis.Network(container, { nodes: state.nodes, edges: state.edges }, options);
+        network.storePositions();
+        network.on("dragEnd", function (params) {//Guardar posision al mover
+          if (params.nodes.length > 0) {
+            network.storePositions();
+          }
+        });
         network.on("selectNode", function (params) {      
           if(selectedNodes.length == 0){
             const desde_id = state.nodes.get(params.nodes[0]).id;
@@ -1912,7 +1966,8 @@ $(function(){
         edges: new vis.DataSet([]),
         adjacencyMatrix: {},
         distanceMatrix: {},
-        nextNodeId: 1
+        nextNodeId: 1,
+        organizar: false
       });
       return GOp_obj;
     };
@@ -1928,8 +1983,8 @@ $(function(){
       const clave = Object.keys(agg)?.[0];
       Mname('clave',clave);
       
-      
       if(clave !== undefined){
+        let organizar_alguno = false;
         for(const id_grupo_operador in agg[clave]){
           const GOp_obj = agregarGrupoOperador(id_grupo_operador);
           
@@ -1941,9 +1996,18 @@ $(function(){
           //Al tener valor y la dependencia de tabla, el nivel 0 son como "dos nodos"
           //Es decir, el de la tabla y uno superior con el nivel
           for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
+            //Si en el primer punto ya no tiene coordenadas lo flageo para organizar
+            if(!_state.organizar && (n.base_coordenadas[0] === null)){
+              _state.organizar = true;
+              organizar_alguno = true;
+            }
+            
             const tipo_base = 'base:'+n.dependencia[0];
             //en nivel = 0, dependencia es un arreglo 
             let id_base = bases[tipo_base+':'+n.dependencia[1]];
+            
+
+            
             if(id_base === undefined){
               bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(_state,tipo_base,n.dependencia[1],0);
               id_base = bases[tipo_base+':'+n.dependencia[1]];
@@ -1973,6 +2037,16 @@ $(function(){
             }
           }
         }
+        
+        if(organizar_alguno){
+          M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,go){
+            const $go = $(go);
+            //Triggereo click para que se guarden las posisiones de todos (necesito tener el state en network para guardar las posisiones)
+            $go.trigger('click');
+            M.find('[data-js-click-organizar]').trigger('click');
+          });
+        }
+        M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').eq(0).trigger('click');
       }
       
       M.trigger('regenerarInputsFormatear')
@@ -2123,26 +2197,12 @@ $(function(){
       network.fit();
     });
     
-    M.find('[data-js-click-organizar]').click(function(e){
-      if(network === null) return;
-      
-      network.setOptions({
-        physics: {
-          enabled: true,
-          solver: 'hierarchicalRepulsion',
-          hierarchicalRepulsion: {
-            //nodeDistance: 150,      // Minimum separation distance enforced between nodes
-            //springConstant: 0.01,
-            //springLength: 50,
-            avoidOverlap: 1         // Scale from 0 to 1 (1 = max spacing based on node size)
-          }
-        }
-      });
-      setTimeout(() => {
-        network.setOptions({
-          physics: { enabled: false }
-        });
-      }, 1500);
+    M.find('[data-js-click-organizar]').click(async function(e){
+      try {
+        await organizarGrafo();
+      } catch (error) {
+        console.error(error);
+      }
     });
     
     M.find('[data-js-click-borrar-objetos]').click(function(e){
@@ -2180,8 +2240,20 @@ $(function(){
       network.fit();
     });
     
-    /*M.find('[data-js-click-submit-form]').click(function(e){
-      const o = e.currentTarget;
+    M.find('[data-js-click-submit-form]').click(function(e){
+      const fd = {};
+      M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,go){
+        const $go = $(go);
+        const id_grupo_operador = $go.attr('data-radio-grupo-operador');
+        fd[id_grupo_operador] = {
+          nodes: $go.data('state').nodes.get(),
+          edges: $go.data('state').edges.get(),
+        };
+      });
+      
+      console.log(fd);
+      
+      /*const o = e.currentTarget;
       const select = $(o).attr('data-js-click-submit-form');
       const $form = $M(select);
       
@@ -2220,8 +2292,8 @@ $(function(){
           }
           console.log(data);
         }
-      });
-    });*/
+      });*/
+    });
   });
 });
 

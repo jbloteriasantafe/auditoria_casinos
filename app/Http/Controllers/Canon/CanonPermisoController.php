@@ -129,7 +129,6 @@ class CanonPermisoController extends Controller
   }
   
   public function llenado_inicial($created_at,$created_by){
-    $this->up();
     $permisos = $this->map_permisos();
     
     {

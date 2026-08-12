@@ -121,6 +121,10 @@ class CanonAgrupamientoController extends Controller
       valor    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_subcanon_o_superior_dependencia VARCHAR(64)  CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       base_tipo     VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      coordenadas_x  DOUBLE NULL,
+      coordenadas_y  DOUBLE NULL,
+      base_coordenadas_x  DOUBLE NULL,
+      base_coordenadas_y  DOUBLE NULL,
       PRIMARY KEY (id_canon_subcanon_a_grupo),
       UNIQUE KEY (nivel,id_grupo_operador,clave,valor,base_subcanon_o_superior_dependencia,base_tipo)
     )
@@ -250,8 +254,7 @@ class CanonAgrupamientoController extends Controller
         JOIN $sc as sc
           ON sc.id_canon = c.id_canon
         
-        -- @TODO cambiar id_casino a id_operador
-        JOIN canon_grupo_operador_operador as cgoo ON cgoo.id_operador = c.id_casino
+        JOIN canon_grupo_operador_operador as cgoo ON cgoo.id_operador = c.id_operador
         JOIN canon_grupo_operador as cgo ON cgo.id_grupo_operador = cgoo.id_grupo_operador AND cgo.deleted_at IS NULL
         
         JOIN canon_subcanon_a_grupo as scagg
@@ -598,7 +601,6 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function llenado_inicial($created_at,$created_by){//Sin transaccion porque se llama desde CanonOperadorController con transaccion
-    $this->up();
     return $this->recalcular_todos();
   }
   
@@ -730,14 +732,6 @@ class CanonAgrupamientoController extends Controller
   
   public function obtener_por_clave(){
     $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select(
-      'cagg_deps.clave',
-      'cagg_deps.id_grupo_operador',
-      'cagg_deps.nivel',
-      'cagg_deps.valor',
-      'cagg_deps.base_subcanon_o_superior_dependencia',
-      'cagg_deps.base_tipo'
-    )
     ->where('clave',request()->clave ?? null)
     ->orderBy('nivel','asc')
     ->orderBy('id_grupo_operador','asc')
@@ -750,8 +744,10 @@ class CanonAgrupamientoController extends Controller
           return $nivel_group->map(function($entry){
             $e = new \stdClass();
             $e->valor = $entry->valor;
+            $e->coordenadas = [$entry->coordenadas_x,$entry->coordenadas_y];
             if($entry->nivel == 0){
               $e->dependencia = [$entry->base_subcanon_o_superior_dependencia,$entry->base_tipo];
+              $e->base_coordenadas = [$entry->base_coordenadas_x,$entry->base_coordenadas_y];
             }
             else{
               $e->dependencia = $entry->base_subcanon_o_superior_dependencia;

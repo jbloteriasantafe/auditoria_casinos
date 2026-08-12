@@ -45,7 +45,7 @@ class CanonCuentaController extends Controller
   
   public function up(){
     $tiene_cuenta = DB::table('canon_pago')->first();
-    if($tiene_cuenta !== null && !isset($tiene_cuenta->cuenta)){
+    if(!Schema::hasColumn('canon_pago', 'cuenta')){
       DB::statement("ALTER TABLE canon_pago 
         ADD cuenta 
           VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin 
@@ -121,8 +121,6 @@ class CanonCuentaController extends Controller
   }
   
   public function llenado_inicial($created_at,$created_by){//argumentos no usados porque se usan los valores ya cargados
-    $this->up();
-    
     DB::unprepared("INSERT INTO canon_cuenta
     (
       id_canon,id_operador,año_mes,estado,es_antiguo,
@@ -143,7 +141,7 @@ class CanonCuentaController extends Controller
       deleted_by
     )
     SELECT
-      c.id_canon,c.id_casino as id_operador,c.año_mes,c.estado,c.es_antiguo,
+      c.id_canon,c.id_operador,c.año_mes,c.estado,c.es_antiguo,
       '' as cuenta,
       COALESCE((
         SELECT IF(
@@ -234,7 +232,7 @@ class CanonCuentaController extends Controller
       //canon
       'id_canon' => ['required','integer','exists:canon,id_canon,deleted_at,NULL'],
       'año_mes' => ['required','regex:/^\d{4}\-((0\d)|(1[0-2]))\-01$/'],
-      'id_casino' => ['required','integer','exists:casino,id_casino,deleted_at,NULL'],
+      'id_operador' => ['required','integer','exists:casino,id_operador,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'intereses_y_cargos' => ['nullable',$numeric_rule(2)],
       'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
@@ -262,10 +260,10 @@ class CanonCuentaController extends Controller
     };
     
     $año_mes = $R('año_mes');//@RETORNADO
-    $id_casino = $R('id_casino');//@RETORNADO
+    $id_operador = $R('id_operador');//@RETORNADO
     $estado = $R('estado');//@RETORNADO
     
-    $co = $this->CO->operador($id_casino);
+    $co = $this->CO->operador($id_operador);
     $cuenta = [];
     foreach($co['cuentas'] ?? [] as $c){
       $cuenta = $c;
@@ -273,7 +271,7 @@ class CanonCuentaController extends Controller
     }
     //@TODO: Obtener de agrupamientos
     $determinado = $R('determinado','0.00');//@RETORNADO
-    $c_ant = $this->CC->get_prev_by_id_casino_año_mes($id_casino,$año_mes)->first();
+    $c_ant = $this->CC->get_prev_by_id_operador_año_mes($id_operador,$año_mes)->first();
         
     $saldo_anterior = ($c_ant !== null)? $c_ant->saldo_posterior : '0';//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
@@ -403,7 +401,7 @@ class CanonCuentaController extends Controller
     
     return array_merge(
       compact(
-        'año_mes','id_casino','estado','determinado',
+        'año_mes','id_operador','estado','determinado',
         'saldo_anterior','saldo_anterior_cerrado',
         'intereses_y_cargos','motivo_intereses_y_cargos','principal',
         //Pagos
@@ -451,7 +449,7 @@ class CanonCuentaController extends Controller
       ]);
     }
     
-    $this->cambio_determinado($datos['id_casino'],$datos['año_mes']);
+    $this->cambio_determinado($datos['id_operador'],$datos['año_mes']);
     
     return 1;
   }
@@ -473,11 +471,11 @@ class CanonCuentaController extends Controller
   }
   
   //@HACK: usar CoW/SoftDelete?
-  private function recalcular_saldos($saldo_posterior_prev,$año_mes,$id_casino){
+  private function recalcular_saldos($saldo_posterior_prev,$año_mes,$id_operador){
     $canons = DB::table('canon')
     ->whereNull('deleted_at')
     ->where('año_mes','>',$año_mes)
-    ->where('id_casino','=',$id_casino)
+    ->where('id_operador','=',$id_operador)
     ->orderBy('año_mes','asc')->get();
     
     if(count($canons) <= 0) return;
@@ -563,7 +561,7 @@ class CanonCuentaController extends Controller
     DB::transaction(function(){
       define('DUMP_CANONS',1);
       foreach(Casino::all() as $c){
-        $this->recalcular_saldos('0','1970-01-01',$c->id_casino);
+        $this->recalcular_saldos('0','1970-01-01',$c->id_operador);
       }
       return 1;
     });
@@ -613,13 +611,13 @@ class CanonCuentaController extends Controller
     return $ultimo;
   }
   
-  public function cambio_determinado($id_casino,$año_mes){
-    $cprev = $this->CC->get_prev_by_id_casino_año_mes($id_casino,$año_mes)->first();
+  public function cambio_determinado($id_operador,$año_mes){
+    $cprev = $this->CC->get_prev_by_id_operador_año_mes($id_operador,$año_mes)->first();
     if($cprev){
-      $this->recalcular_saldos($cprev->saldo_posterior,$cprev->año_mes,$id_casino);
+      $this->recalcular_saldos($cprev->saldo_posterior,$cprev->año_mes,$id_operador);
     }
     else{
-      $this->recalcular_saldos('0','1970-01-01',$id_casino);
+      $this->recalcular_saldos('0','1970-01-01',$id_operador);
     }
   }
   

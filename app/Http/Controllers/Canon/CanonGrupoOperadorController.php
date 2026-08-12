@@ -75,14 +75,12 @@ class CanonGrupoOperadorController extends Controller
   }
     
   public function llenado_inicial($created_at,$created_by){//Sin transaccion porque se llama desde CanonOperadorController con transaccion
-    $this->up();
     $grupos_operadores = $this->CV->get('grupos_operadores_iniciales');
     $ret = [];
     foreach($grupos_operadores as $g){
       $ret[] = $this->_guardar($g,$created_at,$created_by);
       CANON_STREAM_STR('GRUPO OPERADOR: '.$g['id_grupo_operador']);
     }
-    $this->CAgg->llenado_inicial($created_at,$created_by);
     return $ret;
   }
   

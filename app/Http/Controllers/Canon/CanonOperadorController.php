@@ -21,6 +21,7 @@ class CanonOperadorController extends Controller
   private $CGO = null;
   private $CPe = null;
   private $CCu = null;
+  private $CAgg = null;
   private $mocking = true;
   public function __construct(){
     self::$instance = $this;
@@ -28,6 +29,8 @@ class CanonOperadorController extends Controller
     $this->CGO = CanonGrupoOperadorController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
     $this->CCu = CanonCuentaController::getInstancia();
+    $this->CAgg = CanonAgrupamientoController::getInstancia();
+    
     $this->mocking = !Schema::hasTable('canon_operador_canon_variable');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas');
     $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas_adicionales');
@@ -44,18 +47,22 @@ class CanonOperadorController extends Controller
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas_adicionales");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_cuenta");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador");
-    DB::statement("
-      ALTER TABLE `canon` CHANGE `id_operador` `id_casino` INT(11) NOT NULL
-    ");
+    if(Schema::hasColumn('canon','id_operador')){
+      DB::statement("
+        ALTER TABLE `canon` CHANGE `id_operador` `id_casino` INT(11) NOT NULL
+      ");
+    }
     CANON_STREAM_STR('CANON_OPERADOR: DOWN');
     
     $this->CPe->down();
   }
   
   private function up(){
-    DB::statement("
-      ALTER TABLE `canon` CHANGE `id_casino` `id_operador` INT(11) NOT NULL
-    ");
+    if(Schema::hasColumn('canon','id_casino')){
+      DB::statement("
+        ALTER TABLE `canon` CHANGE `id_casino` `id_operador` INT(11) NOT NULL
+      ");
+    }
     
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_operador (
@@ -167,10 +174,15 @@ class CanonOperadorController extends Controller
         $created_at = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $created_by = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
         
+        $this->CGO->up();
+        $this->CAgg->up();
+        $this->CCu->up();
+        $this->CPe->up();
+        $this->up();
+        
         $this->CCu->llenado_inicial($created_at,$created_by);
         $this->CGO->llenado_inicial($created_at,$created_by);
         
-        $this->up();
         $operadores = $this->CV->get('operadores_iniciales');
         foreach($operadores as $o){
           $ret[] = $this->_guardar($o,$created_at,$created_by);
@@ -179,7 +191,9 @@ class CanonOperadorController extends Controller
           CANON_STREAM_STR('G. OPERADOR: '.$o['id_operador']);
         }
         
+        $this->CAgg->llenado_inicial($created_at,$created_by);
         $this->CPe->llenado_inicial($created_at,$created_by);
+        
         return $ret;
       });
     });
