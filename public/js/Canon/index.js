@@ -1760,6 +1760,7 @@ $(function(){
       });
       state.nextNodeId++;
       updateMatrixes(state);
+      return state.nextNodeId-1;
     };
     
     const agregarVertice = (state,desde_id,hasta_id) => {
@@ -1842,6 +1843,7 @@ $(function(){
       physics: false // Disabling physics keeps the DAG locked in rank order
     };
 
+    
     
     let selected_radio_grupo_operador = $();
     M.on('change','[data-contenedor-grupos-operadores] [data-radio-grupo-operador]',function(e){
@@ -1934,26 +1936,40 @@ $(function(){
           const _state = GOp_obj.data('state');
           
           const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
-          let aux = {0: {}};
+          const bases = {};
+          const niveles = {0: {}};
+          //Al tener valor y la dependencia de tabla, el nivel 0 son como "dos nodos"
+          //Es decir, el de la tabla y uno superior con el nivel
           for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
-            aux[0][n.valor] = _state.nextNodeId;
-            agregarNodo(_state,'base:'+n.base_subcanon_o_superior_dependencia,n.base_tipo,0);
+            const tipo_base = 'base:'+n.dependencia[0];
+            //en nivel = 0, dependencia es un arreglo 
+            let id_base = bases[tipo_base+':'+n.dependencia[1]];
+            if(id_base === undefined){
+              bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(_state,tipo_base,n.dependencia[1],0);
+              id_base = bases[tipo_base+':'+n.dependencia[1]];
+            }
+            let id_superior = niveles[0][n.valor];
+            if(id_superior === undefined){
+              niveles[0][n.valor] = agregarNodo(_state,'superior',n.valor,null);
+              id_superior = niveles[0][n.valor];
+            }
+            
+            agregarVertice(_state,id_superior,id_base);
           }
           
           for(let nivel=1;nivel<=max_nivel;nivel++){
-            aux[nivel] = {};
+            niveles[nivel] = {};
             for(const n of (agg[clave][id_grupo_operador]?.[nivel] ?? [])){             
-              const dependencia_id = aux?.[nivel-1]?.[n.dependencia] ?? null;
-              if(dependencia_id !== null){
-                aux[nivel][n.valor] = _state.nextNodeId;
-                agregarNodo(_state,'superior',n.valor,null);
-                agregarVertice(_state,aux[nivel][n.valor],dependencia_id);
+              const id_base = niveles[nivel-1][n.dependencia];
+              if(id_base === undefined){
+                continue;
               }
-              /*else{
-                AUX.mensajeError('ERROR AGRUPAMIENTO MAL FORMADO');
-                console.log(agg[clave][id_grupo_operador],nivel);
-                throw 'ERROR AGRUPAMIENTO MAL FORMADO';
-              }*/
+              let id_superior = niveles[nivel][n.valor];
+              if(id_superior === undefined){
+                id_superior = agregarNodo(_state,'superior',n.valor,null);
+                niveles[nivel][n.valor] = id_superior;
+              }
+              agregarVertice(_state,id_superior,id_base);
             }
           }
         }
@@ -2105,6 +2121,28 @@ $(function(){
     M.find('[data-js-click-centrar]').click(function(e){
       if(network === null) return;
       network.fit();
+    });
+    
+    M.find('[data-js-click-organizar]').click(function(e){
+      if(network === null) return;
+      
+      network.setOptions({
+        physics: {
+          enabled: true,
+          solver: 'hierarchicalRepulsion',
+          hierarchicalRepulsion: {
+            //nodeDistance: 150,      // Minimum separation distance enforced between nodes
+            //springConstant: 0.01,
+            //springLength: 50,
+            avoidOverlap: 1         // Scale from 0 to 1 (1 = max spacing based on node size)
+          }
+        }
+      });
+      setTimeout(() => {
+        network.setOptions({
+          physics: { enabled: false }
+        });
+      }, 1500);
     });
     
     M.find('[data-js-click-borrar-objetos]').click(function(e){

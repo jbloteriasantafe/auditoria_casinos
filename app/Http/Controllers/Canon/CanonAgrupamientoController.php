@@ -731,10 +731,9 @@ class CanonAgrupamientoController extends Controller
   public function obtener_por_clave(){
     $ret = DB::table('canon_subcanon_a_grupo as cagg_deps')
     ->select(
-      'cagg_deps.id_canon_subcanon_a_grupo',
-      'cagg_deps.nivel',
       'cagg_deps.clave',
       'cagg_deps.id_grupo_operador',
+      'cagg_deps.nivel',
       'cagg_deps.valor',
       'cagg_deps.base_subcanon_o_superior_dependencia',
       'cagg_deps.base_tipo'
@@ -742,8 +741,8 @@ class CanonAgrupamientoController extends Controller
     ->where('clave',request()->clave ?? null)
     ->orderBy('nivel','asc')
     ->orderBy('id_grupo_operador','asc')
-    ->orderBy(DB::raw($valor),'asc')
-    ->orderBy(DB::raw($dependencia),'asc')
+    ->orderBy('valor','asc')
+    ->orderBy('base_tipo','asc')
     ->get()
     ->groupBy('clave')->map(function($clave_group){
       return $clave_group->groupBy('id_grupo_operador')->map(function($igo_group){
@@ -751,7 +750,12 @@ class CanonAgrupamientoController extends Controller
           return $nivel_group->map(function($entry){
             $e = new \stdClass();
             $e->valor = $entry->valor;
-            $e->dependencia = $entry->dependencia;
+            if($entry->nivel == 0){
+              $e->dependencia = [$entry->base_subcanon_o_superior_dependencia,$entry->base_tipo];
+            }
+            else{
+              $e->dependencia = $entry->base_subcanon_o_superior_dependencia;
+            }
             return $e;
           });
         });

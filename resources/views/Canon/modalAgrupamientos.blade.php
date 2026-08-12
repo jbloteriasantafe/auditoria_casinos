@@ -52,6 +52,10 @@
           <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;align-content: stretch;gap: 5px;">
             <button style="flex: 1;padding: 0;" data-js-click-centrar class="btn" type="button">Centrar</button>
           </div>
+          <div style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;align-content: stretch;gap: 5px;">
+            <button style="flex: 1;padding: 0;" data-js-click-organizar class="btn" type="button">Organizar</button>
+          </div>
+          
           <div data-agregar-nodo style="width: 100%;display: flex;flex-direction: row;flex-wrap: wrap;align-items: center;align-content: stretch;gap: 5px;">
             <button style="flex: 0.25;padding: 0;" data-js-click-agregar-grupo-operador class="btn" type="button">Agregar</button>
             <input  style="flex: 0.75;padding: 0;" data-nuevo-grupo-operador class="form-control" data-js-texto-no-formatear-numero data-js-keypress-solo-numeros placeholder="Grupo Operador">
