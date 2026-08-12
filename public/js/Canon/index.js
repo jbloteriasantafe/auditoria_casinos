@@ -1885,13 +1885,19 @@ $(function(){
       return M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]:checked');
     };
     
+    const clearControles = () => {
+      M.find('[data-controles] [data-nuevo-nodo="label"]').val('');
+      M.find('[data-controles] [data-enlazar-nodo-id]').val('');
+    };
+    
     let prev_active = $();
     M.on('change','[data-contenedor-grupos-operadores] [data-radio-grupo-operador]',function(e){
       if(prev_active.length){
         prev_active.data('state').selectedNodes.length = 0;
         prev_active.data('network').unselectAll();
       }
-      M.find('[data-controles] input').val('');
+      
+      clearControles();
       
       const selected = $(e.currentTarget);
       prev_active = selected;
@@ -2068,6 +2074,7 @@ $(function(){
       
       M.find('[data-contenedor-grupos-operadores]').empty();
       M.find('[data-contenedor-grafo-agrupamiento]').empty();
+      clearControles();
       
       AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
@@ -2120,6 +2127,7 @@ $(function(){
         }
         
         go.data('network').fit();
+        updateMatrixes(go.data('state'));
         labelTarget.val('');
       });
     });
@@ -2136,14 +2144,34 @@ $(function(){
       const hasta_n = !isNaN(hasta_id)? go.data('state').nodes.get(hasta_id) : undefined;
       
       const existen = desde_n && hasta_n;
+      if(!existen){
+        AUX.mensajeError('No existe uno de los nodos');
+        return;
+      }
       const distintos = (desde_id != hasta_id);
+      if(!distintos){
+        AUX.mensajeError('Tienen que ser distintos');
+        return;
+      }
       const enlace_permitido =  !!(allowedGroupLinks?.[desde_n?.group]?.[hasta_n?.group]);
-      const no_existe_lineaje = !isFinite(go.data('state').distanceMatrix[desde_id][hasta_id]);
+      if(!enlace_permitido){
+        AUX.mensajeError('Enlace no permitido');
+        return;
+      }
+      const no_existe_lineaje = !isFinite(go.data('state').distanceMatrix?.[desde_id]?.[hasta_id]);
+      if(!no_existe_lineaje){
+        AUX.mensajeError('Ya se encuentra el enlace o es padre');
+        return;
+      }
       
       const nuevo_a_nivelado = (desde_n?.nivel === null && hasta_n?.nivel !== null);
       const nivelado_a_nuevo = (desde_n?.nivel !== null && hasta_n?.nivel === null && desde_n?.nivel !== 1);
       const nodos_existentes_pero_validos = (desde_n?.nivel === (hasta_n?.nivel+1) && hasta_n?.nivel !== null);
       const enlace_valido_nivel = nuevo_a_nivelado || nivelado_a_nuevo || nodos_existentes_pero_validos;
+      if(!enlace_valido_nivel){
+        AUX.mensajeError('Enlace invalido porque mezcla niveles');
+        return;
+      }
       
       const valido = existen && distintos && enlace_permitido && no_existe_lineaje && enlace_valido_nivel;
       
@@ -2166,27 +2194,9 @@ $(function(){
         }
       }
       
-      if(!valido || duplica_nodo){
-        const errores = [];
-        if(!existen){
-          errores.push('No existe uno de los nodos');
-        }
-        if(!distintos){
-          errores.push('Tienen que ser distintos');
-        }
-        if(!enlace_permitido){
-          errores.push('Enlace no permitido');
-        }
-        if(!no_existe_lineaje){
-          errores.push('Ya se encuentra el enlace o es padre');
-        }
-        if(!enlace_valido_nivel){
-          errores.push('Enlace invalido porque mezcla niveles');
-        }
-        if(duplica_nodo){
-          errores.push('Al agregarse el enlace duplica un nodo existente en el mismo nivel');
-        }
-        AUX.mensajeError("<p>"+errores.join("</p><p>")+"</p>");
+      if(duplica_nodo){
+        AUX.mensajeError('Al agregarse el enlace duplica un nodo existente en el mismo nivel');
+        return;
       }
       
       desde_hasta.val('');
