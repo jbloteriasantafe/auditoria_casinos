@@ -185,16 +185,7 @@ class CanonAgrupamientoController extends Controller
     
     CANON_STREAM_STR('CANON_AGRUPAMIENTO: UP');
   }
-    
-  private function inicializar_agrupamientos(string $año_mes){
-    //Inicializa todos los valores en 0
-    DB::statement("
-      INSERT INTO canon_agrupamiento (id_grupo_operador,nivel,año_mes,clave,valor,hash)	
-      SELECT DISTINCT scagg.id_grupo_operador,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_grupo_operador,scagg.nivel,?,scagg.clave,scagg.valor) as hash
-      FROM canon_subcanon_a_grupo as scagg
-    ",[$año_mes,$año_mes]);
-  }
-  
+
   private function __sumar_columnas(){
     return "
         cagg.beneficio¬exacto = IFNULL(cagg.beneficio¬exacto,0) + IFNULL(agrupado.beneficio¬exacto,0),
@@ -220,8 +211,81 @@ class CanonAgrupamientoController extends Controller
     ";
   }
   
-  private function agrupar_base(string $año_mes){
-    $q = function($beneficio,$sc) use ($año_mes){
+  private function calcular_columnas_dependientes(string $clave,string $año_mes){
+    DB::statement("
+      UPDATE canon_agrupamiento as cagg
+      SET
+        beneficio¬pos_red = canon_bankers_round_2digits(beneficio¬exacto),
+        beneficio¬err_red = beneficio¬pos_red - beneficio¬pre_red,
+        
+        devengado_bruto¬pos_red = canon_bankers_round_2digits(devengado_bruto¬exacto),
+        devengado_bruto¬err_red = devengado_bruto¬pos_red - devengado_bruto¬pre_red,
+        
+        devengado_deduccion¬pos_red = canon_bankers_round_2digits(devengado_deduccion¬exacto),
+        devengado_deduccion¬err_red = devengado_deduccion¬pos_red - devengado_deduccion¬pre_red,
+        
+        devengado¬pos_red = canon_bankers_round_2digits(devengado¬exacto),
+        devengado¬err_red = devengado¬pos_red - devengado¬pre_red,
+        
+        determinado_bruto¬pos_red = canon_bankers_round_2digits(determinado_bruto¬exacto),
+        determinado_bruto¬err_red = determinado_bruto¬pos_red - determinado_bruto¬pre_red,
+        
+        determinado_ajuste¬pos_red = canon_bankers_round_2digits(determinado_ajuste¬exacto),
+        determinado_ajuste¬err_red = determinado_ajuste¬pos_red - determinado_ajuste¬pre_red,
+        
+        determinado¬pos_red = canon_bankers_round_2digits(determinado¬exacto),
+        determinado¬err_red = determinado¬pos_red - determinado¬pre_red
+      WHERE cagg.año_mes = ? AND cagg.clave = ?
+    ",[$año_mes,$clave]);
+  }
+    
+  private function recalcular_año_mes(string $año_mes){
+    $claves = DB::table('canon_subcanon_a_grupo')
+    ->select('clave')->distinct()->get();
+    foreach($claves as $clave){
+      $this->recalcular_clave_año_mes($clave->clave,$año_mes);
+    }
+  }
+      
+  private function inicializar_agrupamientos(string $clave,string $año_mes){
+    //Inicializa todos los valores en 0
+    DB::statement("
+      INSERT INTO canon_agrupamiento (id_grupo_operador,nivel,año_mes,clave,valor,hash)	
+      SELECT DISTINCT scagg.id_grupo_operador,scagg.nivel,? as año_mes,scagg.clave,scagg.valor,canon_agrupamiento_hash(scagg.id_grupo_operador,scagg.nivel,?,scagg.clave,scagg.valor) as hash
+      FROM canon_subcanon_a_grupo as scagg
+      WHERE scagg.clave = ?
+    ",[$año_mes,$año_mes,$clave]);
+  }
+
+  private function recalcular_clave_año_mes(string $clave,string $año_mes){
+    DB::table('canon_agrupamiento')
+    ->where('año_mes',$año_mes)
+    ->where('clave',$clave)
+    ->delete();
+    
+    $niveles = DB::table('canon_subcanon_a_grupo')
+    ->select('nivel')->distinct()
+    ->where('clave',$clave)
+    ->orderBy('nivel','asc')
+    ->get()
+    ->pluck('nivel')->values();
+
+    $this->inicializar_agrupamientos($clave,$año_mes);
+    
+    foreach($niveles as $n){
+      if($n == 0){
+        $this->agrupar_base($clave,$año_mes);
+      }
+      else{
+        $this->agrupar_superior($clave,$año_mes,$n);
+      }
+    }
+    
+    $this->calcular_columnas_dependientes($clave,$año_mes);
+  }
+
+  private function agrupar_base(string $clave,string $año_mes){
+    $q = function($beneficio,$sc) use ($año_mes,$clave){
       DB::statement("
       UPDATE canon_agrupamiento as cagg
       JOIN (
@@ -262,6 +326,7 @@ class CanonAgrupamientoController extends Controller
           AND scagg.base_subcanon_o_superior_dependencia = '$sc'
           AND scagg.base_tipo = sc.tipo
           AND scagg.nivel = 0
+          AND scagg.clave = ?
         WHERE c.año_mes = ? AND c.deleted_at IS NULL
         GROUP BY scagg.id_grupo_operador, scagg.clave, scagg.valor
       ) as agrupado 
@@ -271,7 +336,7 @@ class CanonAgrupamientoController extends Controller
       SET 
         ".$this->__sumar_columnas()."
       WHERE cagg.año_mes = ? and cagg.nivel = 0
-      ", [$año_mes, $año_mes]);
+      ", [$clave, $año_mes, $año_mes]);
     };
     
     $q("
@@ -287,10 +352,10 @@ class CanonAgrupamientoController extends Controller
         0 as beneficio¬pre_red
     ","canon_fijo_mesas_adicionales");
   }
-  
-  private function agrupar_superior(string $año_mes,int $nivel){
-  DB::statement("
-  UPDATE canon_agrupamiento as cagg
+
+  private function agrupar_superior(string $clave,string $año_mes,int $nivel){
+    DB::statement("
+    UPDATE canon_agrupamiento as cagg
     JOIN (
       SELECT 
         cagg2.id_grupo_operador,
@@ -320,10 +385,11 @@ class CanonAgrupamientoController extends Controller
         ON  cagg2.id_grupo_operador = scagg.id_grupo_operador
         AND cagg2.clave = scagg.clave
         AND cagg2.valor = scagg.base_subcanon_o_superior_dependencia
-        AND cagg2.nivel = ($nivel-1)
+        AND cagg2.nivel = ?
+        AND cagg2.clave = ?
         AND cagg2.año_mes = ?
       WHERE 
-            scagg.nivel = $nivel
+            scagg.nivel = ?
         AND scagg.id_grupo_operador IS NOT NULL
       GROUP BY cagg2.id_grupo_operador,cagg2.año_mes,cagg2.clave,cagg2.nivel,scagg.valor
     ) as agrupado 
@@ -333,62 +399,10 @@ class CanonAgrupamientoController extends Controller
       AND agrupado.valor = cagg.valor
     SET
       ".$this->__sumar_columnas()."
-    WHERE cagg.año_mes = ? and cagg.nivel = $nivel and cagg.id_grupo_operador IS NOT NULL
-    ", [$año_mes, $año_mes]);
+    WHERE cagg.año_mes = ? and cagg.nivel = ? and cagg.id_grupo_operador IS NOT NULL
+    ", [$nivel-1, $clave, $año_mes, $nivel, $año_mes, $nivel]);
   }
-    
-  private function calcular_columnas_dependientes(string $año_mes){
-    DB::statement("
-      UPDATE canon_agrupamiento as cagg
-      SET
-        beneficio¬pos_red = canon_bankers_round_2digits(beneficio¬exacto),
-        beneficio¬err_red = beneficio¬pos_red - beneficio¬pre_red,
-        
-        devengado_bruto¬pos_red = canon_bankers_round_2digits(devengado_bruto¬exacto),
-        devengado_bruto¬err_red = devengado_bruto¬pos_red - devengado_bruto¬pre_red,
-        
-        devengado_deduccion¬pos_red = canon_bankers_round_2digits(devengado_deduccion¬exacto),
-        devengado_deduccion¬err_red = devengado_deduccion¬pos_red - devengado_deduccion¬pre_red,
-        
-        devengado¬pos_red = canon_bankers_round_2digits(devengado¬exacto),
-        devengado¬err_red = devengado¬pos_red - devengado¬pre_red,
-        
-        determinado_bruto¬pos_red = canon_bankers_round_2digits(determinado_bruto¬exacto),
-        determinado_bruto¬err_red = determinado_bruto¬pos_red - determinado_bruto¬pre_red,
-        
-        determinado_ajuste¬pos_red = canon_bankers_round_2digits(determinado_ajuste¬exacto),
-        determinado_ajuste¬err_red = determinado_ajuste¬pos_red - determinado_ajuste¬pre_red,
-        
-        determinado¬pos_red = canon_bankers_round_2digits(determinado¬exacto),
-        determinado¬err_red = determinado¬pos_red - determinado¬pre_red
-      WHERE cagg.año_mes = ?
-    ",[$año_mes]);
-  }
-    
-  private function recalcular(string $año_mes){
-    DB::table('canon_agrupamiento')
-    ->where('año_mes',$año_mes)
-    ->delete();
-    
-    $this->inicializar_agrupamientos($año_mes);
-    
-    $niveles = DB::table('canon_subcanon_a_grupo')
-    ->select('nivel')->distinct()
-    ->orderBy('nivel','asc')
-    ->get()
-    ->pluck('nivel')->values();
-    foreach($niveles as $n){
-      if($n == 0){
-        $this->agrupar_base($año_mes);
-      }
-      else{
-        $this->agrupar_superior($año_mes,$n);
-      }
-    }
-    
-    $this->calcular_columnas_dependientes($año_mes);
-  }
-  
+
   public function guardarAgrupamientos(array $agrupamientos){
     $to_insert = [];
     
@@ -628,7 +642,7 @@ class CanonAgrupamientoController extends Controller
   
   public function recalcular_agrupamientos(array $año_meses,bool $stream_progress){
     foreach($año_meses as $idx => $am){
-      $this->recalcular($am);
+      $this->recalcular_año_mes($am);
       CANON_STREAM_STR(($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%'));
     }
     return $año_meses;
@@ -759,20 +773,6 @@ class CanonAgrupamientoController extends Controller
     });
     return response()->json($ret);
   }
-  
-  public function buscar2(){
-    $data = DB::table('canon_subcanon_a_grupo as cagg_deps')
-    ->select('cagg_deps.*','cgo.nombre as grupo_operador')
-    ->join('canon_grupo_operador as cgo','cgo.id_grupo_operador','=','cagg_deps.id_grupo_operador')
-    ->get();
-    
-    $grouped = $this->_group_dependencias($data);
-    
-    unset($data);
-    gc_collect_cycles();
-        
-    return $this->_collect_dependencias($grouped);
-  }
     
   public function buscar_calculado(){
     $dependencias = $this->buscar();
@@ -821,5 +821,135 @@ class CanonAgrupamientoController extends Controller
       }
       return $ret;
     })->toArray();
+  }
+
+  public function guardar(){
+    /*
+      Se recibe un objeto en formato 
+      {
+        clave: {
+          id_grupo_operador: { 
+            0: [
+              {valor,dependecia<Array<2,String>>,base_coordenadas<Array<2,Double>>,coordenadas<Array<2,Double>>}
+            ],
+            1: [
+              {valor,dependencia<String>,coordenadas<Array<2,Double>>}
+            ]
+            ...
+          }
+        }
+      }
+    */
+    $agrupamientos = request()->all();
+    $clave = array_keys($agrupamientos)[0] ?? null;
+    if($clave === null) return response()->json(['clave' => ['No se recibió clave']],422);
+    $id_grupos_operadores = $agrupamientos[$clave] ?? [];
+    foreach($id_grupos_operadores as $id_grupo_operador => $niveles){
+      foreach($niveles as $nivel => $entradas){
+        
+        if($nivel == 0){
+          foreach($entradas as $e){
+            $str_err = "$id_grupo_operador:$nivel:".($e['valor'] ?? 'null').': ';
+            if(!array_key_exists('valor',$e)){
+              return response()->json(['valor' => [$str_err.'No se recibió valor']],422);
+            }
+            if(!array_key_exists('dependencia',$e) 
+              || $e['dependencia'] === null 
+              || !is_array($e['dependencia']) 
+              || count($e['dependencia']) != 2){
+              return response()->json(['dependencia' => [$str_err.'No se recibió dependencia']],422);
+            }
+            if(!array_key_exists('base_coordenadas',$e)
+              || $e['base_coordenadas'] === null 
+              || !is_array($e['base_coordenadas']) 
+              || count($e['base_coordenadas']) != 2
+              || !is_numeric($e['base_coordenadas'][0])
+              || !is_numeric($e['base_coordenadas'][1])
+            ){
+              return response()->json(['base_coordenadas' => [$str_err.'No se recibieron coordenadas base']],422);
+            }
+            if(!array_key_exists('coordenadas',$e)
+              || $e['coordenadas'] === null 
+              || !is_array($e['coordenadas']) 
+              || count($e['coordenadas']) != 2
+              || !is_numeric($e['coordenadas'][0])
+              || !is_numeric($e['coordenadas'][1])
+            ){
+              return response()->json(['coordenadas' => [$str_err.'No se recibieron coordenadas']],422);
+            }
+          }
+        }
+        else{
+          foreach($entradas as $e){
+            $str_err = "$id_grupo_operador:$nivel:".($e['valor'] ?? 'null').': ';
+            if(!array_key_exists('valor',$e)){
+              return response()->json(['valor' => [$str_err.'No se recibió valor']],422);
+            }
+            if(!array_key_exists('dependencia',$e) || !is_string($e['dependencia'])){
+              return response()->json(['dependencia' => [$str_err.'No se recibió dependencia']],422);
+            }
+            if(!array_key_exists('coordenadas',$e)
+              || $e['coordenadas'] === null 
+              || !is_array($e['coordenadas']) 
+              || count($e['coordenadas']) != 2
+              || !is_numeric($e['coordenadas'][0])
+              || !is_numeric($e['coordenadas'][1])
+            ){
+              return response()->json(['coordenadas' => [$str_err.'No se recibieron coordenadas']],422);
+            }
+          }
+        }
+      }
+    }
+
+    return DB::transaction(function() use ($clave,$id_grupos_operadores){
+      DB::table('canon_subcanon_a_grupo')
+      ->where('clave',$clave)
+      ->delete();
+
+      foreach($id_grupos_operadores as $id_grupo_operador => $niveles){
+        foreach($niveles as $nivel => $entradas){
+          foreach($entradas as $e){
+            if($nivel == 0){
+              DB::table('canon_subcanon_a_grupo')
+              ->insert([
+                'nivel' => 0,
+                'id_grupo_operador' => $id_grupo_operador,
+                'clave' => $clave,
+                'valor' => $e['valor'],
+                'base_subcanon_o_superior_dependencia' => $e['dependencia'][0],
+                'base_tipo' => $e['dependencia'][1],
+                'base_coordenadas_x' => $e['base_coordenadas'][0],
+                'base_coordenadas_y' => $e['base_coordenadas'][1],
+                'coordenadas_x' => $e['coordenadas'][0],
+                'coordenadas_y' => $e['coordenadas'][1]
+              ]);
+            }
+            else{
+              DB::table('canon_subcanon_a_grupo')
+              ->insert([
+                'nivel' => $nivel,
+                'id_grupo_operador' => $id_grupo_operador,
+                'clave' => $clave,
+                'valor' => $e['valor'],
+                'base_subcanon_o_superior_dependencia' => $e['dependencia'],
+                'base_tipo' => '',
+                'base_coordenadas_x' => null,
+                'base_coordenadas_y' => null,
+                'coordenadas_x' => $e['coordenadas'][0],
+                'coordenadas_y' => $e['coordenadas'][1]
+              ]);
+            }
+          }
+        }
+      }
+
+      DB::table('canon')->select('año_mes')
+      ->whereNull('deleted_at')->distinct()->get()->pluck('año_mes')->each(function($año_mes) use ($clave){
+        $this->recalcular_clave_año_mes($clave,$año_mes);
+      });
+
+      return ['mensaje' => 'Agrupamientos guardados correctamente'];
+    });
   }
 }

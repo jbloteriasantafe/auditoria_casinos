@@ -1748,14 +1748,19 @@ $(function(){
       }
     }
     
-    const agregarNodo = (state,group,valor,nivel) => {
-      state.nodes.add({
+    const agregarNodo = (state,group,valor,nivel,x,y) => {
+      const n = {
         id: state.nextNodeId,
         group: group,
         label: getLabel(state.nextNodeId,valor,group,nivel),
         valor: valor,
         nivel: nivel
-      });
+      };
+      if(x !== undefined && y !== undefined && x !== null && y !== null){
+        n.x = x;
+        n.y = y;
+      }
+      state.nodes.add(n);
       state.nextNodeId++;
       updateMatrixes(state);
       return state.nextNodeId-1;
@@ -2001,6 +2006,7 @@ $(function(){
           const GOp_obj = agregarGrupoOperador(id_grupo_operador);
           
           const state = GOp_obj.data('state');
+          GOp_obj.data('network').storePositions();
           
           const max_nivel = Math.max(...Object.keys(agg[clave][id_grupo_operador] ?? []));
           const bases = {};
@@ -2009,7 +2015,7 @@ $(function(){
           //Es decir, el de la tabla y uno superior con el nivel
           for(const n of (agg[clave][id_grupo_operador]?.[0] ?? [])){
             //Si en el primer punto ya no tiene coordenadas lo flageo para organizar
-            state.organizar = !state.organizar && (
+            state.organizar = !state.organizar || (
                  n.coordenadas[0] === null || n.coordenadas[1] === null 
               || n.base_coordenadas[0] === null || n.coordenadas[1] === null
             );
@@ -2019,12 +2025,12 @@ $(function(){
             let id_base = bases[tipo_base+':'+n.dependencia[1]];
             
             if(id_base === undefined){
-              bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(state,tipo_base,n.dependencia[1],0);
+              bases[tipo_base+':'+n.dependencia[1]] = agregarNodo(state,tipo_base,n.dependencia[1],0,n?.base_coordenadas?.[0],n?.base_coordenadas?.[1]);
               id_base = bases[tipo_base+':'+n.dependencia[1]];
             }
             let id_superior = niveles[0][n.valor];
             if(id_superior === undefined){
-              niveles[0][n.valor] = agregarNodo(state,'superior',n.valor,null);
+              niveles[0][n.valor] = agregarNodo(state,'superior',n.valor,null,n?.coordenadas?.[0],n?.coordenadas?.[1]);
               id_superior = niveles[0][n.valor];
             }
             
@@ -2036,8 +2042,8 @@ $(function(){
             for(const n of (agg[clave][id_grupo_operador]?.[nivel] ?? [])){             
               const id_base = niveles[nivel-1][n.dependencia];
               
-              state.organizar = !state.organizar && (
-                   n.coordenadas[0] === null || n.coordenadas[1] === null 
+              state.organizar = !state.organizar || (
+                n.coordenadas[0] === null || n.coordenadas[1] === null 
               );
               
               if(id_base === undefined){
@@ -2045,7 +2051,7 @@ $(function(){
               }
               let id_superior = niveles[nivel][n.valor];
               if(id_superior === undefined){
-                id_superior = agregarNodo(state,'superior',n.valor,null);
+                id_superior = agregarNodo(state,'superior',n.valor,null,n?.coordenadas?.[0],n?.coordenadas?.[1]);
                 niveles[nivel][n.valor] = id_superior;
               }
               agregarVertice(state,id_superior,id_base);
@@ -2055,9 +2061,11 @@ $(function(){
         
         M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(async function(_,go){
           const $go = $(go);
+          $go.data('network').storePositions();
           if($go.data('state').organizar){
             organizarGrafo($go.data('network'));
           }
+          $go.data('network').storePositions();
         });
       }
       
@@ -2075,6 +2083,7 @@ $(function(){
       M.find('[data-contenedor-grupos-operadores]').empty();
       M.find('[data-contenedor-grafo-agrupamiento]').empty();
       clearControles();
+      prev_active = $();
       
       AUX.GET(url,{clave: clave},function(agrupamiento){
         render(agrupamiento);
@@ -2257,25 +2266,98 @@ $(function(){
     });
     
     M.find('[data-js-click-submit-form]').click(function(e){
-      const fd = {};
+      const o = e.currentTarget;
+      const select = $(o).attr('data-js-click-submit-form');
+      const $form = M.find(select);
+      
+      const formData = {};
+      let clave = null;
+      {
+        const aux = {};
+        M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
+        clave = aux.response.clave;
+        formData[clave] = {};
+      }
+
+      const fd_clave = formData[clave];
       M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,go){
         const $go = $(go);
         const id_grupo_operador = $go.attr('data-radio-grupo-operador');
-        fd[id_grupo_operador] = {
-          nodes: $go.data('state').nodes.get(),
-          edges: $go.data('state').edges.get(),
-        };
+        fd_clave[id_grupo_operador] = {};
       });
-      
-      console.log(fd);
-      
-      /*const o = e.currentTarget;
-      const select = $(o).attr('data-js-click-submit-form');
-      const $form = $M(select);
-      
-      const aux = {};
-      M.trigger('deformatearFormData',[$form.length? AUX.form_entries($form[0]) : {},aux]);
-      const formData = aux.response;
+
+      M.find('[data-contenedor-grupos-operadores] [data-radio-grupo-operador]').each(function(_,go){
+        const $go = $(go);
+        const id_grupo_operador = $go.attr('data-radio-grupo-operador');
+        const state = $go.data('state');
+        state.nodes.get().forEach(function(n){
+          /*
+            Pasar al formato
+            clave -> id_grupo_operador -> nivel -> [ { valor, dependencia, coordenadas, base_coordenadas } ]
+            si nivel == 0 (o group es base:*) entonces dependencia es un arreglo [tipo_base, valor_base]
+            los nodos base estan duplicados en dos (el base:* y uno superior inmediato) por eso los niveles
+            estan desfasados
+            si nivel > 1 (o group es superior) entonces dependencia es un string con el valor del nodo base inmediato
+          */
+          if(n.group === 'superior'){ 
+            if(n.nivel == 1){
+              return;//Continue forEach loop
+            }
+            else if(n.nivel == 0){
+              throw 'NIVEL 0 NO DEBERIA EXISTIR PARA NODO SUPERIOR '+JSON.stringify(n);
+            }
+            else if(n.nivel > 1){
+              //Se agrega un nodo simple sin base_coordenadas y dependencia es un string
+              //es un nodo por cada dependencia (distanceMatrix = 1)
+              const distanceMatrix_n = state.distanceMatrix[n.id] ?? {};
+              for(const child_id in distanceMatrix_n){
+                if(distanceMatrix_n[child_id] === 1){// Hijo inmediatio
+                  const child_node = state.nodes.get(parseInt(child_id));
+                  if(child_node.group !== 'superior'){
+                    throw 'NODO SUPERIOR INMEDIATO NO TIENE GRUPO SUPERIOR '+JSON.stringify(child_node);
+                  }
+                  fd_clave[id_grupo_operador][n.nivel-1] = fd_clave[id_grupo_operador][n.nivel-1] ?? [];
+                  fd_clave[id_grupo_operador][n.nivel-1].push({
+                    valor: n.valor,
+                    dependencia: child_node.valor,
+                    coordenadas: [n.x,n.y]
+                  });
+                }
+              }
+            }
+            else if(n.nivel === null){
+              return;//No tiene nodos asignados, se ignora
+            }
+            else{
+              throw 'NIVEL INVALIDO PARA NODO SUPERIOR '+JSON.stringify(n);
+            }
+          }
+          else if(n.group.substr(0,'base:'.length) === 'base:'){
+            const distanceMatrix_n = state.distanceMatrix[n.id] ?? {};
+            if(n.nivel !== 0){
+              throw 'NIVEL INVALIDO PARA NODO BASE '+JSON.stringify(n);
+            }
+            for(const node_id in distanceMatrix_n){
+              fd_clave[id_grupo_operador][0] = fd_clave[id_grupo_operador][0] ?? [];
+              if(distanceMatrix_n[node_id] === -1){// Padre inmediatio
+                const parent_node = state.nodes.get(parseInt(node_id));
+                if(parent_node.nivel !== 1){
+                  throw 'NODO BASE INMEDIATO NO TIENE NIVEL 1 '+JSON.stringify(parent_node);
+                }
+                fd_clave[id_grupo_operador][0].push({
+                  valor: parent_node.valor,
+                  dependencia: [n.group.substr('base:'.length),n.valor],
+                  coordenadas: [parent_node.x,parent_node.y],
+                  base_coordenadas: [n.x,n.y]
+                });
+              }
+            }
+          }
+          else{
+            throw 'ERROR AL SERIALIZAR NODO '+JSON.stringify(n);
+          }
+        });
+      });
       
       const ajax_params = JSON.parse($form.attr('data-ajax-params') ?? '{}') ?? {};
       ocultarErrorValidacion(M.find('[name]'));
@@ -2285,30 +2367,26 @@ $(function(){
         data: formData,
         ...ajax_params,
         success: function (data) {
-          $('#pant_operadores [data-js-filtro-tabla]').trigger('buscar');
+          $('#pant_agrupamientos_todos [data-js-filtro-tabla]').trigger('buscar');
           AUX.mensajeExito(data?.mensaje ?? '');
           $(o).closest('.modal').modal('hide');
         },
         error: function (data) {
           const json = data.responseJSON ?? {};
-          AUX.mensajeError(json?.mensaje ?? '');
-          AUX.mostrarErroresNames($form,json);
-          
-          for(const k in json){
-            if(k.substr(0,'operadores.'.length) != 'operadores.'){
-              continue;
-            }
-            const oidx = k.match(/^operadores\.[0-9]+/gm)?.[0].substr('operadores.'.length);
-            const name = k.substr('operadores.'.length+oidx.length+1);//+1 por el punto
-            mostrarErrorValidacion(
-              $form.find(`[name="operadores[${oidx}][${name}]"]`),
-              json[k].join(', '),
-              true
-            );
+          const mensaje = [];
+          if(json.mensaje){
+            mensaje.push(json.mensaje);
           }
+          for(const k in json){
+            if(k !== 'mensaje'){
+              mensaje.push(k+': '+json[k].join(', '));
+            }
+          }
+          AUX.mensajeError('<p>'+mensaje.join('</p><p>')+'</p>');
+          AUX.mostrarErroresNames($form,json);
           console.log(data);
         }
-      });*/
+      });
     });
   });
 });

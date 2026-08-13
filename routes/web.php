@@ -1752,7 +1752,8 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
     Route::get('/buscar','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar');
     Route::post('/buscar_calculado','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar_calculado');
     Route::get('/buscar_calculado','\App\Http\Controllers\Canon\CanonAgrupamientoController@buscar_calculado');
-    Route::group(['middleware' => 'tiene_rol:superusuario'],function(){
+    Route::group(['middleware' =>  "${CPermiso}:canon_agrupamiento_cargar"],function(){
+      Route::post('/guardar','\App\Http\Controllers\Canon\CanonAgrupamientoController@guardar');
       Route::get('/recalcular_todos','\App\Http\Controllers\Canon\CanonAgrupamientoController@recalcular_agrupamientos_req');
       //Para debug
       Route::get('/por_defecto','\App\Http\Controllers\Canon\CanonAgrupamientoController@por_defecto_req');

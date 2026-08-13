@@ -1,15 +1,3 @@
-<style>
-  .EditarAgrupamiento select[name="id_grupo_operador"] {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-  }
-  
-  .EditarAgrupamiento select[name="id_grupo_operador"] option[data-css-nodos="0"]:checked {
-    color: grey !important;
-  }
-</style>
-
 @component('Components/modal',[
   'clases_modal' => 'VerCargarCanon EditarAgrupamiento',
   'attrs_modal' => 'data-js-modal-canon-comportamiento-comun data-js-modal-editar-agrupamiento data-modo=\'NUEVO\' ',
@@ -25,7 +13,7 @@
     <select class="form-control" data-js-select-historial style="width: 15rem;">
     </select>
   </div> -->
-  <form class="pestaña" style="display: flex;flex-direction: column;width: 100%;height: 70vh;overflow-y: scroll;" action="/canon/grupo_operador/guardar" method="POST">
+  <form class="pestaña" style="display: flex;flex-direction: column;width: 100%;height: 70vh;overflow-y: scroll;" action="/canon/agrupamientos/guardar" method="POST">
     <div class="bloque_interno" style="width: 100%;display: flex;flex-direction: row;">
       <div style="flex: 1;">
         <div class="bloque_interno" style="height: 100%;display: flex;flex-direction: row;justify-content: center;align-items: center;align-content: stretch;gap: 10px;">
@@ -44,10 +32,10 @@
       </label>
     </div>
     <div class="bloque_interno" style="width: 100%;height: 50vh;display: flex;">
-      <div data-contenedor-grafo-agrupamiento style="flex: 0.65;flex-grow: 1;height: 100%;border: 2px solid darkblue;margin: 5px;">
+      <div data-contenedor-grafo-agrupamiento style="flex: 0.65;flex-grow: 1;height: 100%;border: 2px solid darkblue;margin: 5px;background: darkgrey;">
       </div>
-      <div hidden>        
-        <div data-molde-grafo-agrupamiento data-grafo-aprupamiento style="width: 100%;height: 100%;">
+      <div hidden>
+        <div data-molde-grafo-agrupamiento data-grafo-aprupamiento style="width: 100%;height: 100%;background: white;">
         </div>
       </div>
       <div style="flex: 0.35;height: 100%;display: flex;flex-direction: column;" data-modo-mostrar='[{"modo": "NUEVO","modo": "EDITAR"}]'>
