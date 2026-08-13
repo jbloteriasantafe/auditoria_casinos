@@ -364,11 +364,16 @@ class CanonInformeController extends Controller
     $año_mes = explode('-',$c_año_mes->año_mes);
     $mes = $año_mes[1].'/'.substr($año_mes[0],2);
     
-    $casinos = DB::table('casino')
-    ->select('id_casino','nombre')
-    ->get()->keyBy('id_casino')
-    ->map(function($c){return $c->nombre;});
-    $casinos[''] = 'Total';
+    $grupos_operadores = DB::table('canon_grupo_operador')
+    ->select('id_grupo_operador','nombre')
+    ->where(function($q){
+      $q->where('es_individual',1)
+      ->orWhere('nombre','Total');
+    })
+    ->orderBy('id_grupo_operador','asc')
+    ->get()
+    ->keyBy('id_grupo_operador')
+    ->map(function($go){return $go->nombre;});
         
     $conceptos = [
       'Paños',
@@ -381,12 +386,12 @@ class CanonInformeController extends Controller
     ];
     
     $grupos = [];
-    foreach($casinos as $idc => $nombre){
+    foreach($grupos_operadores as $igo => $nombre){
       $grupos[$nombre] = [];
       foreach($conceptos as $v){
         $grupos[$nombre][$v] = CanonAgrupamientoController::getInstancia()->obtener(
           $c_año_mes->año_mes,
-          empty($idc)? null : $idc,
+          $igo,
           1,
           'PDFTotales',
           $v
@@ -411,13 +416,13 @@ class CanonInformeController extends Controller
     }
     
     $datos = [];
-    foreach($casinos as $cas){
-      $datos[$cas] = [];
+    foreach($grupos_operadores as $gop){
+      $datos[$gop] = [];
       foreach($conceptos as $c){
-        $datos[$cas][$c] = [];
+        $datos[$gop][$c] = [];
         foreach($tablas as $tn => $t){
-          $row = $grupos[$cas][$c] ?? (new \stdClass());
-          $datos[$cas][$c][$tn] = [
+          $row = $grupos[$gop][$c] ?? (new \stdClass());
+          $datos[$gop][$c][$tn] = [
            'pos_red' => $row->{$t.'¬pos_red'} ?? null,
            'err_red' => $row->{$t.'¬err_red'} ?? null,
           ];
@@ -425,10 +430,10 @@ class CanonInformeController extends Controller
       }
     }
     
-    $casinos = $casinos->values();
+    $grupos_operadores = $grupos_operadores->values();
     $tablas  = array_keys($tablas);
     $conceptos = array_values($conceptos);
-    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','casinos','mes','datos'));
+    $view = View::make('Canon.planillaDevengado', compact('tipo_presupuesto','tablas','conceptos','grupos_operadores','mes','datos'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());

@@ -8,6 +8,7 @@ table {
   border-collapse: collapse;
   table-layout: fixed;
   word-wrap: break-word !important;
+  font-size: 0.53em !important;
 }
 
 th {
@@ -44,7 +45,7 @@ td.bbottom , th.bbottom {
 </style>
 
 <?php 
-$columnas = count($casinos);
+$columnas = count($grupos_operadores);
 $D = function($n){
   return bc_formatear_decimal($n);
 };
@@ -72,10 +73,10 @@ $D = function($n){
       <th class="tablaInicio" style="text-align: left;" colspan="{{intval(floor(($columnas+1)/2.0))}}">{{$mes}}</th>
     </tr>
     <tr>
-      <th class="tablaInicio btop bright" style="text-align: center;">OPERARIO</th>
-      @foreach($casinos as $cas)
-      <?php $bleft = $cas == 'Total'? 'bleft' : ''; ?>
-      <th class="tablaInicio btop {{$bleft}}" style="text-align: center;">{{$cas == 'Total'? '' : 'Casino '}}{{$cas}}</th>
+      <th class="tablaInicio btop bright" style="text-align: center;">OPERADOR</th>
+      @foreach($grupos_operadores as $gop)
+      <?php $bleft = $gop == 'Total'? 'bleft' : ''; ?>
+      <th class="tablaInicio btop {{$bleft}}" style="text-align: center;">{{$gop}}</th>
       @endforeach
     </tr>
     @foreach($conceptos as $concepto)
@@ -84,21 +85,21 @@ $D = function($n){
       <?php $btop = $tot? 'btop' : ''; ?>
       <?php $bbottom = $concepto == 'Total Físico' ? 'bbottom' : ''; ?>
       <td class="tablaCampos {{$btop}} {{$bbottom}} bright" style="text-align: center;"><b>{{$concepto}}</b></td>
-      @foreach($datos as $cas => $datos_concepto)
+      @foreach($datos as $gop => $datos_concepto)
       <?php 
         $v = $datos_concepto[$concepto][$t]['pos_red'];
         $r = $datos_concepto[$concepto][$t]['err_red'];
         $sin_valor = $v === null? 'sin-valor' : '';
-        $bleft = $cas == 'Total'? 'bleft' : ''; 
+        $bleft = $gop == 'Total'? 'bleft' : ''; 
         $v = $v !== null? $D($v) : '—';
         $r = 
-          (($cas == 'Total' || $tot) && bccomp_precise($r ?? '0','0') != 0)? 
-          ('redondeo '.$D(bcmul_precise($r,100)).'¢')
+          (($gop == 'Total' || $tot) && bccomp_precise($r ?? '0','0') != 0)? 
+          ('('.$D(bcmul_precise($r,100)).'¢)')
         : '';
       ?>
       <td class="tablaCampos {{$sin_valor}} {{$bleft}} {{$btop}} {{$bbottom}}" style="text-align: right;">
         @if(empty($sin_valor))
-        <div style="float: left;width: 30%;font-size: 0.6em;text-align: left;">{{$r}}</div>
+        <div style="float: left;width: 30%;text-align: left;color: #646363;">{{$r}}</div>
         <div style="float: right;width: 80%;text-align: right;">{{$v}}</div>
         <div style="clear: both;"></div>
         @else
