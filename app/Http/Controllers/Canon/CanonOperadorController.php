@@ -17,6 +17,7 @@ class CanonOperadorController extends Controller
     return self::$instance;
   }
   
+  private $CC = null;
   private $CV = null;
   private $CGO = null;
   private $CPe = null;
@@ -25,6 +26,7 @@ class CanonOperadorController extends Controller
   private $mocking = true;
   public function __construct(){
     self::$instance = $this;
+    $this->CC  = CanonController::getInstancia();
     $this->CV  = CanonValorPorDefectoController::getInstancia();
     $this->CGO = CanonGrupoOperadorController::getInstancia();
     $this->CPe = CanonPermisoController::getInstancia();
@@ -39,6 +41,7 @@ class CanonOperadorController extends Controller
   }
   
   public function down(){
+    $this->CC->down();
     $this->CCu->down();
     $this->CGO->down();
     
@@ -47,23 +50,12 @@ class CanonOperadorController extends Controller
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_canon_fijo_mesas_adicionales");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador_cuenta");
     DB::unprepared("DROP TABLE IF EXISTS canon_operador");
-    if(Schema::hasColumn('canon','id_operador')){
-      DB::statement("
-        ALTER TABLE `canon` CHANGE `id_operador` `id_casino` INT(11) NOT NULL
-      ");
-    }
     CANON_STREAM_STR('CANON_OPERADOR: DOWN');
     
     $this->CPe->down();
   }
   
   private function up(){
-    if(Schema::hasColumn('canon','id_casino')){
-      DB::statement("
-        ALTER TABLE `canon` CHANGE `id_casino` `id_operador` INT(11) NOT NULL
-      ");
-    }
-    
     DB::statement("
     CREATE TABLE IF NOT EXISTS canon_operador (
       id_canon_operador INT NOT NULL AUTO_INCREMENT,
@@ -119,6 +111,7 @@ class CanonOperadorController extends Controller
       id_canon_operador_canon_variable INT NOT NULL AUTO_INCREMENT,
       id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      cuenta VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       apostado_porcentaje_aplicable DECIMAL(7,4) NOT NULL,
       porcentaje_impuesto_ley DECIMAL(7,4) NOT NULL,
       alicuota DECIMAL(7,4) NOT NULL,
@@ -135,6 +128,7 @@ class CanonOperadorController extends Controller
       id_canon_operador_canon_fijo_mesas INT NOT NULL AUTO_INCREMENT,
       id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      cuenta VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dias_valor SMALLINT NOT NULL,
       lunes_jueves TINYINT NOT NULL, -- bool
       viernes_sabados TINYINT NOT NULL, -- bool
@@ -154,6 +148,7 @@ class CanonOperadorController extends Controller
       id_canon_operador_canon_fijo_mesas_adicionales INT NOT NULL AUTO_INCREMENT,
       id_canon_operador INT NOT NULL,
       tipo VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+      cuenta VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dias_mes SMALLINT NOT NULL,
       horas_dia SMALLINT NOT NULL,
       porcentaje DECIMAL(7,4) NOT NULL,
@@ -178,8 +173,10 @@ class CanonOperadorController extends Controller
         $this->CAgg->up();
         $this->CCu->up();
         $this->CPe->up();
+        $this->CC->up();
         $this->up();
-        
+
+        $this->CC->llenado_inicial($created_at,$created_by);
         $this->CCu->llenado_inicial($created_at,$created_by);
         $this->CGO->llenado_inicial($created_at,$created_by);
         
@@ -194,7 +191,7 @@ class CanonOperadorController extends Controller
         $this->CAgg->llenado_inicial($created_at,$created_by);
         $this->CPe->llenado_inicial($created_at,$created_by);
         
-        return $ret;
+        return 1;
       });
     });
   }
@@ -489,6 +486,7 @@ class CanonOperadorController extends Controller
       
       'canon_variable' => ['nullable','array'],
       'canon_variable.*.tipo' => ['required','string','max:32'],
+      'canon_variable.*.cuenta' => ['required','string','max:64'],
       'canon_variable.*.devengar' => ['required','integer','in:0,1'],
       'canon_variable.*.devengado_deduccion' => ['required','string',$numeric_rule(2)],
       'canon_variable.*.apostado_porcentaje_aplicable' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
@@ -499,6 +497,7 @@ class CanonOperadorController extends Controller
       
       'canon_fijo_mesas' => ['nullable','array'],
       'canon_fijo_mesas.*.tipo' => ['required','string','max:32'],
+      'canon_fijo_mesas.*.cuenta' => ['required','string','max:64'],
       'canon_fijo_mesas.*.dias_valor' => ['required','integer','min:1','max:32767'],
       'canon_fijo_mesas.*.lunes_jueves' => ['required','integer','in:0,1'],
       'canon_fijo_mesas.*.viernes_sabados' => ['required','integer','in:0,1'],
@@ -510,6 +509,7 @@ class CanonOperadorController extends Controller
       
       'canon_fijo_mesas_adicionales' => ['nullable','array'],
       'canon_fijo_mesas_adicionales.*.tipo' => ['required','string','max:32'],
+      'canon_fijo_mesas_adicionales.*.cuenta' => ['required','string','max:64'],
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['required','integer','min:1','max:32767'],
       'canon_fijo_mesas_adicionales.*.horas_dia' => ['required','integer','min:1','max:32767'],
       'canon_fijo_mesas_adicionales.*.porcentaje' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],      

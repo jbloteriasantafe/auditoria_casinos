@@ -257,7 +257,7 @@ class CanonAgrupamientoController extends Controller
     ",[$año_mes,$año_mes,$clave]);
   }
 
-  private function recalcular_clave_año_mes(string $clave,string $año_mes){
+  public function recalcular_clave_año_mes(string $clave,string $año_mes){
     DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
     ->where('clave',$clave)
@@ -453,11 +453,15 @@ class CanonAgrupamientoController extends Controller
     
     if($max_nivel === null) return collect([]);
     
+    return $this->obtenerCalculadoNivel($año_mes,$id_grupo_operador,$clave,$max_nivel->nivel);
+  }
+
+   public function obtenerCalculadoNivel($año_mes,$id_grupo_operador,$clave,$nivel){
     return DB::table('canon_agrupamiento')
     ->where('año_mes',$año_mes)
     ->where('clave',$clave)
-    ->where('nivel',$max_nivel->nivel)
     ->where('id_grupo_operador',$id_grupo_operador)
+    ->where('nivel',$nivel)
     ->get()->keyBy('valor');
   }
   
@@ -950,6 +954,20 @@ class CanonAgrupamientoController extends Controller
       });
 
       return ['mensaje' => 'Agrupamientos guardados correctamente'];
+    });
+  }
+
+  public function borrarAgrupamiento(string $clave){
+    return DB::transaction(function() use ($clave){
+      DB::table('canon_subcanon_a_grupo')
+      ->where('clave',$clave)
+      ->delete();
+
+       DB::table('canon_agrupamiento')
+      ->where('clave',$clave)
+      ->delete();
+      
+      return ['mensaje' => 'Agrupamiento borrado correctamente'];
     });
   }
 }

@@ -666,14 +666,14 @@ $(function(){
       return div;
     }
            
-    const render = function(canon,mantener_historial = false){
+    const render = function(canon_cuenta,mantener_historial = false){
       const form = M.find('form');
       const rerender = M.attr('data-render');
       
       ocultarErrorValidacion(form.find('[name]'));
       
       if((rerender ?? 1) == 0){
-        fill(M,null,canon);
+        fill(M,null,canon_cuenta);
         M.trigger('setReadonly')
         .trigger('formatearCampos');
         return;
@@ -694,9 +694,9 @@ $(function(){
         pestaña.toggle(lleno || mostrar_de_todos_modos);
       }
       
-      llenarPestaña(form.find('[data-canon-pagos]'),canon?.canon_pago ?? [],true);
+      llenarPestaña(form.find('[data-canon-pagos]'),canon_cuenta?.canon_pago ?? [],true);
       
-      fill(M,null,canon);
+      fill(M,null,canon_cuenta);
       
       M.trigger('setReadonly')
       .trigger('setVisible')
@@ -709,9 +709,9 @@ $(function(){
          M.find('[data-js-select-historial]')
        : M.find('[data-js-select-historial]').empty())
        .append(
-        (canon?.historial ?? []).map(function(h,hidx){
+        (canon_cuenta?.historial ?? []).map(function(h,hidx){
           const o = $('<option>');
-          o.val(h.id_canon);
+          o.val(h.id_canon_cuenta);
           o.text(h.usuario + ' - '+h.created_at);
           o.data('instancia',h);
           return o;
@@ -731,13 +731,13 @@ $(function(){
       fillError($(e.currentTarget).closest('form'),data);
     });
     
-    M.on('mostrar.modal',function(e,url,id_canon,modo){
+    M.on('mostrar.modal',function(e,url,id_canon_cuenta,modo){
       M.trigger('setModo',[modo]);
       const form = M.find('form');
       form.find('[name],[data-descripcion],[data-archivo]').val('');
-      AUX.GET(url,{id_canon: id_canon},function(canon){       
+      AUX.GET(url,{id_canon_cuenta: id_canon_cuenta},function(canon_cuenta){       
         M.attr('data-render',1);
-        render(canon);
+        render(canon_cuenta);
         
         if(M.is(':hidden')){
           M.modal('show');

@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\UsuarioController;
 use App\Archivo;
 use App\Casino;
+use Illuminate\Support\Facades\Schema;
 
 require_once(app_path('BC_extendido.php'));
 
@@ -40,9 +41,45 @@ class CanonController extends Controller
       return $next($request);
     });
   }
-  
+
+    
   private function subcanons() {
     return ['canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales'];
+  }
+
+  public function up(){
+    $scs = $this->subcanons();
+    foreach($scs as $sc){
+      if(!Schema::hasColumn($sc,'cuenta')){
+        DB::statement("ALTER TABLE $sc 
+          ADD cuenta 
+            VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin 
+            NOT NULL 
+            DEFAULT '' 
+            AFTER id_canon
+        ");
+        DB::statement("ALTER TABLE `bdMTM`.`$sc` ADD INDEX idx_{$sc}_canon_cuenta (id_canon,cuenta)");
+      }
+    }
+    if(Schema::hasColumn('canon','id_casino')){
+      DB::statement("
+        ALTER TABLE `canon` CHANGE `id_casino` `id_operador` INT(11) NOT NULL
+      ");
+    }
+    CANON_STREAM_STR('CANON: UP');
+  }
+
+  public function down(){
+    if(Schema::hasColumn('canon','id_operador')){
+      DB::statement("
+        ALTER TABLE `canon` CHANGE `id_operador` `id_casino` INT(11) NOT NULL
+      ");
+    }
+    CANON_STREAM_STR('CANON: DOWN');
+  }
+
+  public function llenado_inicial($created_at,$created_by){ 
+    //NOP
   }
           
   public function index(){
@@ -845,16 +882,14 @@ class CanonController extends Controller
     }
           
     $this->CA->recalcular_agrupamiento($datos['año_mes']);
-    $cuentas_aggr = $this->CA->obtenerArregloSuperior($año_mes,$id_operador,'cuenta');
     $this->CCu->traspasar_cuentas(
       count($canon_anterior)? $canon_anterior[0]->id_canon  : null,
       $id_canon
     );
+    
     $cuentas_canon = $this->CCu->obtener_cuentas_por_id_canon($id_canon);
-    foreach($cuentas_canon as $c){
-      $det = $cuentas_aggr[$c->cuenta] ?? (new \stdClass());
-      $det = $det->{'determinado¬pos_red'} ?? '0';
-      $this->CCu->actualizar_determinados($c,$det);
+    foreach($cuentas_canon as $cc){
+      $this->CCu->actualizar_determinados($cc->id_canon_cuenta);
     }
     
     return $id_canon;
@@ -1474,5 +1509,19 @@ class CanonController extends Controller
     ->where('canon.año_mes','<',$año_mes)
     ->whereNull('canon.deleted_at')
     ->orderBy('canon.año_mes','desc');
+  }
+
+  public function obtener_subcanons_por_cuenta(int $id_canon, string $cuenta){
+    $subcanons = $this->subcanons();
+    $ret = [];
+    foreach($subcanons as $sc){
+      $ret[$sc] = DB::table($sc)
+      ->select('tipo')
+      ->where('cuenta',$cuenta)
+      ->where('id_canon',$id_canon)
+      ->get()
+      ->pluck('tipo')->toArray();
+    }
+    return $ret;
   }
 }

@@ -383,16 +383,6 @@
             @endif
           </div>
         </div>
-        <div data-content-popover data-molde-popover="acciones-cuenta" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
-          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($permisos('canon_cuenta_ver'))
-            <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
-            @endif
-            @if($permisos('canon_cuenta_cargar'))
-            <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
-            @endif
-          </div>
-        </div>
         @endif
         <div data-content-popover data-molde-popover="planillas" style="flex-direction: column;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <a href="/canon/planillaPDF" target="_blank" title="REPORTE">Valores</a>
@@ -461,9 +451,21 @@
         <div style="display: flex;width: 100%;">
           <span style="text-align: left;">Cuenta: </span>
           <span style="flex: 1;font-weight: bold;text-align: right;">
-            {{empty($c)? '𝕋𝕆𝕋𝔸𝕃' : $cuentas[$cidx-1]}}
+            {{empty($c)? '-' : $cuentas[$cidx-1]}}
           </span>
         </div>
+        @if($permisos('canon_ver') || $permisos('canon_cargar'))
+        <div data-content-popover data-molde-popover="acciones-cuenta" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
+          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
+            @if($permisos('canon_cuenta_ver'))
+            <button class="btn" type="button" data-js-ver-pagos="/canon/pagos/obtenerConHistorial" title="VER PAGO">VER PAGOS <i class="fa fa-book"></i></button>
+            @endif
+            @if($permisos('canon_cuenta_cargar'))
+            <button class="btn" type="button" data-js-editar-pagos="/canon/pagos/obtener" title="CARGAR PAGO">EDITAR PAGOS <i class="fa fas fa-hand-holding-usd"></i></button>
+            @endif
+          </div>
+        </div>
+        @endif
       </td>
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][determinado]" data-formatear-numero>-</td>
       <td class="tright" data-name="canon_cuenta[{{$cidx}}][intereses_y_cargos]" data-formatear-numero>-</td>
@@ -530,14 +532,6 @@
             @endif
             @if($permisos('canon_operador_cargar'))
             <button class="btn" type="button" data-js-editar="/canon/operador/obtener" title="EDITAR">EDITAR OPERARIO<i class="fas fa-fw fa-pencil-alt"></i></button>
-            @endif
-          </div>
-          <div style="display: flex;flex-direction: column;justify-content: center;padding-left: 1em;">
-            @if($permisos('canon_operador_ver'))
-            <button class="btn" type="button" data-js-ver-cuentas="/canon/operador/obtenerConHistorial" title="VER CUENTAS">VER CUENTAS <i class="fa fa-info"></i></button>
-            @endif
-            @if($permisos('canon_operador_cargar'))
-            <button class="btn" type="button" data-js-editar-cuentas="/canon/operador/obtener" title="CARGAR PAGO">EDITAR CUENTAS <i class="fa fa-university"></i></button>
             @endif
           </div>
         </div>
@@ -868,7 +862,7 @@
           $n = function($s) use (&$molde_str){
             return "canon_variable[$molde_str][$s]";
           };
-          //$cuenta = $n('cuenta');
+          $cuenta = $n('cuenta');
           $alicuota = $n('alicuota');
           $devengar = $n('devengar');
           $devengado = $n('devengado');
@@ -964,7 +958,7 @@
                 grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
                 grid-template-rows: 1fr 1fr 1fr; 
                 gap: 0px 0px; 
-                grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_ajuste' 'grid_determinado grid_vacio2 grid_vacio2 grid_vacio2 grid_vacio2';"
+                grid-template-areas: 'grid_vacio grid_vacio grid_vacio grid_vacio grid_vacio' 'grid_impuesto grid_bruto grid_subtotal grid_total grid_ajuste' 'grid_determinado grid_cuenta grid_vacio2 grid_vacio2 grid_vacio2';"
               >  
                 <div style="grid-area: grid_vacio">
                 </div>
@@ -992,6 +986,10 @@
                   <h5>DETERMINADO</h5>
                   <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
                 </div>
+                <div style="grid-area: grid_cuenta">
+                  <h5>A CUENTA</h5>
+                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "*"}]'>
+                </div>
                 <div style="grid-area: grid_vacio2">
                 </div>
               </div>
@@ -1007,7 +1005,7 @@
           $n = function($s) use (&$molde_str){
             return "canon_fijo_mesas[$molde_str][$s]";
           };
-          //$cuenta = $n('cuenta');
+          $cuenta = $n('cuenta');
           $dias_valor = $n('dias_valor');
           $bruto = $n('bruto');
           $factor_dias_valor = $n('factor_dias_valor');
@@ -1255,6 +1253,10 @@
                   <h5>DETERMINADO</h5>
                   <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo":"*"}]'>
                 </div>
+                <div>
+                  <h5>A CUENTA</h5>
+                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                </div>
               </div>
             </div>
           </div>
@@ -1268,7 +1270,7 @@
           $n = function($s) use (&$molde_str){
             return "canon_fijo_mesas_adicionales[$molde_str][$s]";
           };
-          //$cuenta = $n('cuenta');
+          $cuenta = $n('cuenta');
           $dias_mes = $n('dias_mes');
           $horas_dia = $n('horas_dia');
           $factor_dias_mes = $n('factor_dias_mes');
@@ -1399,6 +1401,10 @@
                   <h5>DETERMINADO</h5>
                   <input class="form-control" data-name="{{$determinado}}" data-depende="{{$determinado_total}},{{$determinado_ajuste}}" data-readonly='[{"modo": "*"}]'>
                 </div>
+                <div>
+                  <h5>A CUENTA</h5>
+                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                </div>
               </div>
             </div>
           </div>
@@ -1503,6 +1509,13 @@
       <div>
         <h5>Estado</h5>
         <input name="estado" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]'>
+      </div>
+      <div>
+        <h5>Cuenta</h5>
+        <input name="cuenta" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]'>
+      </div>
+      <div hidden>
+        <input name="id_canon_cuenta" data-js-texto-no-formatear-numero  class="form-control" data-readonly='[{"modo":"*"}]'>
       </div>
       <div hidden>
         <input name="id_canon" data-js-texto-no-formatear-numero  class="form-control" data-readonly='[{"modo":"*"}]'>
@@ -1647,7 +1660,7 @@
           $diferencia = $n('diferencia');
           ?>
           <div data-pago data-js-molde="{{$molde_str}}" class="grid_fila_pago" style="width: 100%;">
-            <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[{}]'>
+            <input data-name="{{$id_canon_pago}}" data-modo-mostrar='[{"modo": "NOMOSTRARNUNCA"}]'>
             <div class="grid_capital valor_intermedio">
               <input class="form-control" data-name="{{$capital}}" data-readonly='[{"modo":"*"}]'>
             </div>
@@ -1842,6 +1855,7 @@
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>A Cuenta</th>
                   <th>% Pje. Aplicable Apostado</th>
                   <th>% Impuesto Apostado</th>
                   <th>% Alícuota</th>
@@ -1910,6 +1924,7 @@
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>A Cuenta</th>
                   <th>Días Valor (/)</th>
                   <th>Lu.-Ju.</th>
                   <th>Vi.-Sa.</th>
@@ -1941,6 +1956,7 @@
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>A Cuenta</th>
                   <th>Días Mes</th>
                   <th>Horas Día</th>
                   <th>Porcentaje</th>
@@ -1998,6 +2014,7 @@
       $idx = '$idxcv';
       
       $tipo = $N('tipo');
+      $cuenta = $N('cuenta');
       $apostado_porcentaje_aplicable = $N('apostado_porcentaje_aplicable');
       $porcentaje_impuesto_ley = $N('porcentaje_impuesto_ley');
       $alicuota = $N('alicuota');
@@ -2006,6 +2023,7 @@
     ?>
     <tr data-molde-canon-variable="{{$idx}}">
       <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$tipo}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$cuenta}}" data-readonly='[{"modo": "VER"}]'></td>
       <td><input class="form-control" data-name="{{$apostado_porcentaje_aplicable}}" data-readonly='[{"modo": "VER"}]'></td>
       <td><input class="form-control" data-name="{{$porcentaje_impuesto_ley}}" data-readonly='[{"modo": "VER"}]'></td>
       <td><input class="form-control" data-name="{{$alicuota}}" data-readonly='[{"modo": "VER"}]'></td>
@@ -2027,6 +2045,7 @@
       $idx = '$idxcfm';
       
       $tipo = $N('tipo');
+      $cuenta = $N('cuenta');
       $dias_valor = $N('dias_valor');
       $lunes_jueves = $N('lunes_jueves');
       $viernes_sabados = $N('viernes_sabados');
@@ -2038,6 +2057,7 @@
     ?>
     <tr data-molde-canon-fijo-mesas="{{$idx}}">      
       <td><input value="Diarias" data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td><input value="" data-name="{{$cuenta}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
       <td><input value="30" data-name="{{$dias_valor}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
       <td>
         <select value="1" class="form-control" data-name="{{$lunes_jueves}}" data-readonly='[{"modo": "VER"}]'>
@@ -2083,6 +2103,7 @@
       $idx = '$idxcfma';
       
       $tipo = $N('tipo');
+      $cuenta = $N('cuenta');
       $dias_mes = $N('dias_mes');
       $horas_dia = $N('horas_dia');
       $porcentaje = $N('porcentaje');
@@ -2091,6 +2112,7 @@
     ?>
     <tr data-molde-canon-fijo-mesas-adicionales="{{$idx}}">
       <td><input data-name="{{$tipo}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
+      <td><input data-name="{{$cuenta}}" class="form-control" data-js-texto-no-formatear-numero  data-readonly='[{"modo": "VER"}]'></td>
       <td><input value="30" data-name="{{$dias_mes}}" class="form-control" data-readonly='[{"modo": "VER"}]'></td>
       <td><input data-name="{{$horas_dia}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>
       <td><input value="100" data-name="{{$porcentaje}}" class="form-control"   data-readonly='[{"modo": "VER"}]'></td>

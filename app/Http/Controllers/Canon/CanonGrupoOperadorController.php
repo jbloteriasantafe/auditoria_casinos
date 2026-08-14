@@ -384,4 +384,26 @@ class CanonGrupoOperadorController extends Controller
     }
     return $ret->get();
   }
+
+  public function obtener_igo_individual(int $id_operador){
+    $sanitized_id_operador = intval($id_operador);
+    if($sanitized_id_operador === false) return null;
+    if($sanitized_id_operador === null)  return null;
+    
+    $id_grupo_operador = DB::table('canon_grupo_operador')
+    ->select('id_grupo_operador')
+    ->where(DB::raw('(EXISTS (
+      SELECT 1 
+      FROM canon_grupo_operador_operador cgoo 
+      WHERE cgoo.id_canon_grupo_operador = canon_grupo_operador.id_canon_grupo_operador
+      AND cgoo.id_operador = '.$sanitized_id_operador.'
+      LIMIT 1
+    ))'),1)
+    ->where('es_individual',1)
+    ->whereNull('deleted_at')
+    ->first();
+
+    if($id_grupo_operador === null) return null;
+    return $id_grupo_operador->id_grupo_operador;
+  }
 }

@@ -1702,14 +1702,14 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
   });
   
   Route::group(['prefix' => 'pagos'],function() use ($CPermiso){
-    Route::get('/obtener', '\App\Http\Controllers\Canon\CanonPagoController@obtener');
-    Route::get('/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonPagoController@obtenerConHistorial');
+    Route::get('/obtener', '\App\Http\Controllers\Canon\CanonCuentaController@obtener');
+    Route::get('/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonCuentaController@obtenerConHistorial');
     Route::group(['middleware' => "${CPermiso}:canon_cargar"],function() use ($CPermiso){
-      Route::post('/recalcular', '\App\Http\Controllers\Canon\CanonPagoController@recalcular_req');
-      Route::post('/guardar', '\App\Http\Controllers\Canon\CanonPagoController@guardar');
+      Route::post('/recalcular', '\App\Http\Controllers\Canon\CanonCuentaController@recalcular_req');
+      Route::post('/guardar', '\App\Http\Controllers\Canon\CanonCuentaController@guardar');
     });
     Route::group(['middleware' => 'tiene_rol:superusuario'],function(){
-      Route::get('/recalcularSaldos', '\App\Http\Controllers\Canon\CanonPagoController@recalcular_saldos_Req');
+      Route::get('/recalcularSaldos', '\App\Http\Controllers\Canon\CanonCuentaController@recalcular_saldos_Req');
     });
   });
   
