@@ -26,7 +26,7 @@ class CanonController extends Controller
   private $u = null;
   private $CVD = null;
   private $CA = null;
-  private $CP = null;
+  private $CPe = null;
   private $CO = null;
   public function __construct(){
     self::$instance = $this;
@@ -376,7 +376,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    //$cuenta = $RD('cuenta','Físico y Online');
+    $cuenta = $R('cuenta','');
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_operador)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -420,7 +420,7 @@ class CanonController extends Controller
     $determinado = bcadd($determinado_total,$determinado_ajuste,20);
     
     return compact('tipo',
-      //'cuenta',
+      'cuenta',
       'alicuota','devengar',
       'devengado_apostado_sistema','devengado_apostado_porcentaje_aplicable','devengado_base_imponible',
       'devengado_apostado_porcentaje_impuesto_ley',
@@ -458,7 +458,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    //$cuenta = $RD('cuenta','Físico y Online');
+    $cuenta = $R('cuenta','');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -593,7 +593,7 @@ class CanonController extends Controller
     
     return compact(
       'tipo',
-      //'cuenta',
+      'cuenta',
       'dias_valor','factor_dias_valor','valor_dolar','valor_euro',
       'dias_lunes_jueves','mesas_lunes_jueves','dias_viernes_sabados','mesas_viernes_sabados',
       'dias_domingos','mesas_domingos','dias_todos','mesas_todos','dias_fijos','mesas_fijos',
@@ -657,7 +657,7 @@ class CanonController extends Controller
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    //$cuenta = $RD('cuenta','Físico y Online');
+    $cuenta = $R('cuenta','');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -724,7 +724,7 @@ class CanonController extends Controller
     
     return compact(
       'tipo',
-      //'cuenta',
+      'cuenta',
       'dias_mes','horas_dia','factor_dias_mes','factor_horas_mes',
       'valor_dolar','valor_euro',
       'horas','mesas','porcentaje',
@@ -758,11 +758,7 @@ class CanonController extends Controller
       ->orderBy('created_at','desc')
       ->get()
     : [];
-    
-    foreach($canon_anterior as $c){
-      $this->borrar_arr(['id_canon' => $c->id_canon],$created_at,$id_usuario);
-    }
-          
+
     $id_canon = DB::table('canon')
     ->insertGetId([
       'año_mes' => $datos['año_mes'],
@@ -880,17 +876,31 @@ class CanonController extends Controller
       DB::table('canon_archivo')
       ->insert($archivos_resultantes);
     }
-          
-    $this->CA->recalcular_agrupamiento($datos['año_mes']);
-    $this->CCu->traspasar_cuentas(
-      count($canon_anterior)? $canon_anterior[0]->id_canon  : null,
-      $id_canon
-    );
-    
-    $cuentas_canon = $this->CCu->obtener_cuentas_por_id_canon($id_canon);
-    foreach($cuentas_canon as $cc){
-      $this->CCu->actualizar_determinados($cc->id_canon_cuenta);
+
+    //Una vez que se genero un canon con unas cuentas asignadas, no se pueden cambiar las cuentas, solo se pueden traspasar de un canon a otro
+    if(count($canon_anterior) > 0){
+      $this->CCu->traspasar_y_borrar_cuentas(
+        $canon_anterior[0]->id_canon,
+        $id_canon,
+        $created_at,
+        $id_usuario
+      );
     }
+    else{
+      $this->CCu->generar_cuentas($id_canon,$created_at,$id_usuario);
+    }
+
+    foreach($canon_anterior as $c){
+      $this->borrar($c->id_canon,$created_at,$id_usuario);
+    }
+
+    CANON_STREAM_STR(false);
+    $this->CA->recalcular_agrupamiento($datos['año_mes']);
+    $cuentas_canon = $this->CCu->obtener_cuentas($id_canon);
+    foreach($cuentas_canon as $cc){
+      $this->CCu->actualizar_determinado($cc['id_canon_cuenta'],$created_at,$id_usuario);
+    }
+    $this->recalcular_saldos($datos['id_operador'],$datos['año_mes']);
     
     return $id_canon;
   }
@@ -968,7 +978,7 @@ class CanonController extends Controller
       return $adj;
     });
     
-    $ret['canon_cuenta'] = $this->CCu->obtener_cuentas_por_id_canon($request['id_canon']);
+    $ret['canon_cuenta'] = $this->CCu->obtener_cuentas($request['id_canon']);
     
     $ret = json_decode(json_encode($ret),true);
     
@@ -1063,7 +1073,7 @@ class CanonController extends Controller
     return $ultimo;
   }
   
-  public function borrar(Request $request){
+  public function borrar_Req(Request $request){
     $check_estado = !$this->u->es_superusuario;
     
     Validator::make($request->all(),[
@@ -1081,29 +1091,30 @@ class CanonController extends Controller
       }
     })->validate();
     
-    return $this->borrar_arr($request->all());
+    return DB::transaction(function() use ($request){
+      $deleted_at = date('Y-m-d h:i:s');
+      $deleted_id_usuario = $this->u->id_usuario;
+      return $this->borrar($request['id_canon'],$deleted_at,$deleted_id_usuario);
+    });
   }
   
-  public function borrar_arr(array $arr,$deleted_at = null,$deleted_id_usuario = null){
-    return DB::transaction(function() use ($arr,$deleted_at,$deleted_id_usuario){
-      $deleted_at = $deleted_at ?? date('Y-m-d h:i:s');
-      $deleted_id_usuario = $deleted_id_usuario ?? $this->u->id_usuario;
-      $id_canon = $arr['id_canon'];
-      
-      DB::table('canon')
-      ->whereNull('deleted_at')
-      ->where('id_canon',$id_canon)
-      ->update(compact('deleted_at','deleted_id_usuario'));
-      
-      $c = DB::table('canon')->select('id_operador','año_mes')->where('id_canon',$id_canon)
-      ->first();
-      if($c !== null){
-        $this->CA->recalcular_agrupamiento($c->año_mes);
-        $this->CPa->cambio_determinado($c->id_operador,$c->año_mes);
-      }
-      
-      return 1;
-    });
+  public function borrar($id_canon,$deleted_at,$deleted_id_usuario){    
+    DB::table('canon')
+    ->whereNull('deleted_at')
+    ->where('id_canon',$id_canon)
+    ->update(compact('deleted_at','deleted_id_usuario'));
+
+    $this->CCu->borrar_cuentas($id_canon,$deleted_at,$deleted_id_usuario);
+    
+    $c = DB::table('canon')->select('id_operador','año_mes')->where('id_canon',$id_canon)
+    ->first();
+    if($c !== null){
+      CANON_STREAM_STR(false);
+      $this->CA->recalcular_agrupamiento($c->año_mes);
+      $this->recalcular_saldos($c->id_operador,$c->año_mes);
+    }
+    
+    return 1;
   }
     
   public function buscar(Request $request,bool $paginar = true){
@@ -1199,7 +1210,7 @@ class CanonController extends Controller
     }
     
     $ret->transform(function($c){
-      $c->cuentas = $this->CCu->obtener_cuentas_por_id_canon($c->id_canon);
+      $c->cuentas = $this->CCu->obtener_cuentas($c->id_canon);
       return $c;
     });
     
@@ -1523,5 +1534,43 @@ class CanonController extends Controller
       ->pluck('tipo')->toArray();
     }
     return $ret;
+  }
+
+  public function recalcular_saldos($id_operador,$año_mes){
+    static $cuentas = null;
+    $cuentas = $cuentas ?? $this->CCu->cuentas();
+
+    foreach($cuentas as $c){
+      $this->CCu->recalcular_saldos_operador_año_mes_cuenta($id_operador,$año_mes,$c);
+    }
+
+    $canons = DB::table('canon')
+    ->select('id_canon')
+    ->whereNull('deleted_at')
+    ->where('año_mes','>=',$año_mes)
+    ->where('id_operador',$id_operador)
+    ->get();
+
+    foreach($canons as $c){
+      $this->recalcularSaldoTotalizadoCanon($c->id_canon);
+    }
+  }
+
+  public function recalcularSaldoTotalizadoCanon($id_canon){
+    DB::table('canon')
+    ->where('id_canon',$id_canon)
+    ->update(
+      $this->CCu->totalizarSaldosCuentas($id_canon)
+    );
+  }
+
+  public function recalcular_saldos_Req(Request $request){
+    return DB::transaction(function(){
+      $operadores = $this->CO->operadores();
+      foreach($operadores as $o){
+        $this->recalcular_saldos($o->id_operador,'1970-01-01');
+      }
+      return 1;
+    });
   }
 }

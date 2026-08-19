@@ -650,4 +650,14 @@ class CanonOperadorController extends Controller
     }
     return $ret->get();
   }
+
+  public function cuentas_por_defecto($id_operador){
+    return DB::table('canon_operador_cuenta as coc')
+    ->select('coc.*')
+    ->join('canon_operador as co','co.id_canon_operador','=','coc.id_canon_operador')
+    ->whereNull('co.deleted_at')
+    ->where('co.id_operador',$id_operador)
+    ->orderBy('coc.cuenta','asc')
+    ->get();
+  }
 }

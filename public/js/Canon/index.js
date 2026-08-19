@@ -1614,8 +1614,6 @@ $(function(){
       return O.find(`[name="${name}"]`).val(val ?? '');
     };
   
-    const container = M.find('[data-grafo-agrupamiento]')?.[0];
-
     const allowedGroupLinks = {
       "superior": {
         "superior": true,

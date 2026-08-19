@@ -988,7 +988,7 @@
                 </div>
                 <div style="grid-area: grid_cuenta">
                   <h5>A CUENTA</h5>
-                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo": "*"}]'>
+                  <input class="form-control" data-name="{{$cuenta}}" data-js-texto-no-formatear-numero data-depende="id_casino,año_mes" data-readonly='[{"modo": "*"}]'>
                 </div>
                 <div style="grid-area: grid_vacio2">
                 </div>
@@ -1255,7 +1255,7 @@
                 </div>
                 <div>
                   <h5>A CUENTA</h5>
-                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$cuenta}}" data-js-texto-no-formatear-numero data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
             </div>
@@ -1403,7 +1403,7 @@
                 </div>
                 <div>
                   <h5>A CUENTA</h5>
-                  <input class="form-control" data-name="{{$cuenta}}" data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
+                  <input class="form-control" data-name="{{$cuenta}}" data-js-texto-no-formatear-numero data-depende="id_casino,año_mes" data-readonly='[{"modo":"*"}]'>
                 </div>
               </div>
             </div>

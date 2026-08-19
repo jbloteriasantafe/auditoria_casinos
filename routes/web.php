@@ -1672,10 +1672,12 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
       $stream = true;
       return;
     }
-    echo '<p>'.$str.'</p>';
-    ob_flush();
-    flush();
-    error_log($str);
+    if($stream){
+      echo '<p>'.$str.'</p>';
+      ob_flush();
+      flush();
+      error_log($str);
+    }
   }
   Route::get('/', '\App\Http\Controllers\Canon\CanonController@index');
   Route::post('/buscar', '\App\Http\Controllers\Canon\CanonController@buscar');
@@ -1695,21 +1697,21 @@ Route::group(['prefix' => 'canon', 'middleware' => "${CPermiso}:canon_ver"], fun
     Route::post('/guardar', '\App\Http\Controllers\Canon\CanonController@guardar');
     Route::post('/adjuntar', '\App\Http\Controllers\Canon\CanonController@adjuntar');
     Route::get('/cambiarEstado', '\App\Http\Controllers\Canon\CanonController@cambiarEstado');
-    Route::delete('/borrar', '\App\Http\Controllers\Canon\CanonController@borrar');
+    Route::delete('/borrar', '\App\Http\Controllers\Canon\CanonController@borrar_Req');
   });
   Route::group(['middleware' => "${CPermiso}:canon_deseliminar"],function() use ($CPermiso){
     Route::get('/desborrar', '\App\Http\Controllers\Canon\CanonController@desborrar');
   });
   
   Route::group(['prefix' => 'pagos'],function() use ($CPermiso){
-    Route::get('/obtener', '\App\Http\Controllers\Canon\CanonCuentaController@obtener');
-    Route::get('/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonCuentaController@obtenerConHistorial');
+    Route::get('/obtener', '\App\Http\Controllers\Canon\CanonCuentaController@obtener_req');
+    Route::get('/obtenerConHistorial', '\App\Http\Controllers\Canon\CanonCuentaController@obtenerConHistorial_req');
     Route::group(['middleware' => "${CPermiso}:canon_cargar"],function() use ($CPermiso){
       Route::post('/recalcular', '\App\Http\Controllers\Canon\CanonCuentaController@recalcular_req');
-      Route::post('/guardar', '\App\Http\Controllers\Canon\CanonCuentaController@guardar');
+      Route::post('/guardar', '\App\Http\Controllers\Canon\CanonCuentaController@guardar_req');
     });
     Route::group(['middleware' => 'tiene_rol:superusuario'],function(){
-      Route::get('/recalcularSaldos', '\App\Http\Controllers\Canon\CanonCuentaController@recalcular_saldos_Req');
+      Route::get('/recalcularSaldos', '\App\Http\Controllers\Canon\CanonController@recalcular_saldos_Req');
     });
   });
   

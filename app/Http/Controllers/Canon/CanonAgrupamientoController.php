@@ -240,11 +240,7 @@ class CanonAgrupamientoController extends Controller
   }
     
   private function recalcular_año_mes(string $año_mes){
-    $claves = DB::table('canon_subcanon_a_grupo')
-    ->select('clave')->distinct()->get();
-    foreach($claves as $clave){
-      $this->recalcular_clave_año_mes($clave->clave,$año_mes);
-    }
+    return $this->recalcular_agrupamientos([$año_mes],false);
   }
       
   private function inicializar_agrupamientos(string $clave,string $año_mes){
@@ -645,8 +641,12 @@ class CanonAgrupamientoController extends Controller
   }
   
   public function recalcular_agrupamientos(array $año_meses,bool $stream_progress){
+    $claves = DB::table('canon_subcanon_a_grupo')
+    ->select('clave')->distinct()->get();
     foreach($año_meses as $idx => $am){
-      $this->recalcular_año_mes($am);
+      foreach($claves as $clave){
+        $this->recalcular_clave_año_mes($clave->clave,$am);
+      }
       CANON_STREAM_STR(($am.' | '.round(($idx+1.0)/count($año_meses)*100,2).'%'));
     }
     return $año_meses;
