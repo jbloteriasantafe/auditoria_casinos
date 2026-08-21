@@ -141,7 +141,7 @@ class CanonController extends Controller
       'determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       //subcanons
       'canon_variable' => 'array',
-      'canon_variable.*.cuenta' => ['required','string','max:64'],
+      'canon_variable.*.cuenta' => ['nullable','string','max:64'],
       'canon_variable.*.devengado_apostado_sistema' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
       'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
@@ -154,7 +154,7 @@ class CanonController extends Controller
       'canon_variable.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
       'canon_fijo_mesas' => 'array',
-      'canon_fijo_mesas.*.cuenta' => ['required','string','max:64'],
+      'canon_fijo_mesas.*.cuenta' => ['nullable','string','max:64'],
       'canon_fijo_mesas.*.dias_valor' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',$numeric_rule(0)],
@@ -170,7 +170,7 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_fijo_mesas.*.bruto' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
-      'canon_fijo_mesas_adicionales.*.cuenta' => ['required','string','max:64'],
+      'canon_fijo_mesas_adicionales.*.cuenta' => ['nullable','string','max:64'],
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
@@ -495,40 +495,55 @@ class CanonController extends Controller
     $dias_viernes_sabados = 0;//@RETORNADO
     $dias_domingos = 0;//@RETORNADO
     $dias_todos = 0;//@RETORNADO
-    $dias_fijos = $RD('dias_fijos',0);//@RETORNADO
+    $dias_fijos = $R('dias_fijos',$D('fijos','0'));//@RETORNADO
     
     if($año_mes !== null){     
-      $wdmin_wdmax_count_arr = [
-        'dias_lunes_jueves'    => [1,4,0],
-        'dias_viernes_sabados' => [5,6,0],
-        'dias_domingos'        => [0,0,0],
-        'dias_todos'           => [0,6,0],
+      $rangos = [
+        'lunes_jueves' => [
+          'calcular' => $D('lunes_jueves',true),
+          'desde' => 1,
+          'hasta' => 4,
+          'count' => 0
+        ],
+        'viernes_sabados' => [
+          'calcular' => $D('viernes_sabados',true),
+          'desde' => 5,
+          'hasta' => 6,
+          'count' => 0
+        ],
+        'domingos' => [
+          'calcular' => $D('domingos',true),
+          'desde' => 0,
+          'hasta' => 0,
+          'count' => 0
+        ],
+        'mes' => [
+          'calcular' => $D('mes',true),
+          'desde' => 0,
+          'hasta' => 6,
+          'count' => 0
+        ]
       ];
-      
-      $calcular_dias_lunes_jueves = $D('calcular_dias_lunes_jueves',true);
-      $calcular_dias_viernes_sabados = $D('calcular_dias_viernes_sabados',true);
-      $calcular_dias_domingos = $D('calcular_dias_domingos',true);
-      $calcular_dias_todos = $D('calcular_dias_todos',true);
-      //@SPEED: unset K si no hay que calcular?
-      if($calcular_dias_lunes_jueves || $calcular_dias_viernes_sabados || $calcular_dias_domingos || $calcular_dias_todos){
+
+      {
         $año_mes_arr = explode('-',$año_mes);
         $dias_en_el_mes = cal_days_in_month(CAL_GREGORIAN,intval($año_mes_arr[1]),intval($año_mes_arr[0]));
         for($d=1;$d<=$dias_en_el_mes;$d++){
           $año_mes_arr[2] = $d;
           $f = new \DateTime(implode('-',$año_mes_arr));
           $wd = $f->format('w');
-          foreach($wdmin_wdmax_count_arr as $k => &$wdmin_wdmax_count){
-            if($wd >= $wdmin_wdmax_count[0] && $wd <= $wdmin_wdmax_count[1]){
-              $wdmin_wdmax_count[2] = $wdmin_wdmax_count[2] + 1;
+          foreach($rangos as $k => &$r){
+            if(!$r['calcular']) continue;
+            if($wd >= $r['desde'] && $wd <= $r['hasta']){
+              $r['count'] = $r['count'] + 1;
             }
           }
         }
       }
-      
-      $dias_lunes_jueves = $R('dias_lunes_jueves',$wdmin_wdmax_count_arr['dias_lunes_jueves'][2]);
-      $dias_viernes_sabados = $R('dias_viernes_sabados',$wdmin_wdmax_count_arr['dias_viernes_sabados'][2]);
-      $dias_domingos = $R('dias_domingos',$wdmin_wdmax_count_arr['dias_domingos'][2]);
-      $dias_todos = $R('dias_todos',$wdmin_wdmax_count_arr['dias_todos'][2]);
+      $dias_lunes_jueves = $R('dias_lunes_jueves',$rangos['lunes_jueves']['count']);
+      $dias_viernes_sabados = $R('dias_viernes_sabados',$rangos['viernes_sabados']['count']);
+      $dias_domingos = $R('dias_domingos',$rangos['domingos']['count']);
+      $dias_todos = $R('dias_todos',$rangos['mes']['count']);
     }
     
     $mesas_lunes_jueves      = $RD('mesas_lunes_jueves',0);//@RETORNADO

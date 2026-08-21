@@ -1995,8 +1995,8 @@
       $nombre = $N('nombre');
       $dia_vencimiento = $N('dia_vencimiento');
       $fin_de_semana = $N('fin_de_semana');
-      $interes_diario_simple = $N('interes_diario_simple');
-      $interes_mensual_compuesto = $N('interes_mensual_compuesto');
+      $interes_provincial_diario_simple = $N('interes_provincial_diario_simple');
+      $interes_nacional_mensual_compuesto = $N('interes_nacional_mensual_compuesto');
     ?>
     <tr data-molde-cuenta="{{$idx}}">
       <td><input class="form-control" data-js-texto-no-formatear-numero data-name="{{$nombre}}" data-readonly='[{"modo": "VER"}]'></td>
@@ -2008,8 +2008,8 @@
           <option>Sin Movimiento</option>
         </select>
       </td>
-      <td><input class="form-control" data-name="{{$interes_diario_simple}}" data-readonly='[{"modo": "VER"}]'></td>
-      <td><input class="form-control" data-name="{{$interes_mensual_compuesto}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$interes_provincial_diario_simple}}" data-readonly='[{"modo": "VER"}]'></td>
+      <td><input class="form-control" data-name="{{$interes_nacional_mensual_compuesto}}" data-readonly='[{"modo": "VER"}]'></td>
       <td>
         <button class="btn btn-link" type="button" data-js-click-borrar-tr data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>
           <i class="fa fa-fw fa-trash-alt"></i>

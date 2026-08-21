@@ -281,23 +281,32 @@ class CanonCuentaController extends Controller
     $R = function($s,$dflt = null) use (&$request){
       return (($request[$s] ?? null) === null || ($request[$s] === '') || ($request[$s] === []))? $dflt : $request[$s];
     };
-    
-    $id_canon = $R('id_canon',null);//@RETORNADO
-    $id_canon_cuenta = $R('id_canon_cuenta',null);//@RETORNADO
 
     $año_mes = $R('año_mes','');//@RETORNADO
     if(empty($año_mes)){
       throw new \Exception('año_mes es requerido');
     }
+
     $id_operador = $R('id_operador','');//@RETORNADO
     if(empty($id_operador)){
       throw new \Exception('id_operador es requerido');
     }
 
     $op = $this->CO->obtener_operador($id_operador);
-    $estado = $R('estado','');//@RETORNADO
     $cuenta = $R('cuenta','');//@RETORNADO
     $cuenta_dflt = $op['cuentas'][$cuenta] ?? [];
+
+    $D = function($s,$dflt = null) use (&$cuenta_dflt){
+      return (($cuenta_dflt[$s] ?? null) === null || ($cuenta_dflt[$s] === '') || ($cuenta_dflt[$s] === []))? $dflt : $cuenta_dflt[$s];
+    };
+    $RD = function($s,$dflt = null) use ($R,$D){
+      return $R($s,null) ?? $D($s,null) ?? $dflt;
+    };
+
+    $id_canon = $R('id_canon',null);//@RETORNADO
+    $id_canon_cuenta = $R('id_canon_cuenta',null);//@RETORNADO
+    $estado = $R('estado','');//@RETORNADO
+    
     $es_antiguo = $R('es_antiguo',0);//@RETORNADO
     
     $determinado = '0.00';
@@ -376,17 +385,10 @@ class CanonCuentaController extends Controller
     $a_pagar = $principal;//@RETORNADO
     $pago = '0';//@RETORNADO    
     $PAG = [
-      'interes_provincial_diario_simple' => $R(
-        'interes_provincial_diario_simple',
-        $cuenta['interes_provincial_diario_simple'] ?? '0'
-      ),
-      'interes_nacional_mensual_compuesto' => $R(
-        'interes_nacional_mensual_compuesto',
-        $cuenta['interes_nacional_mensual_compuesto'] ?? '0'
-      ),
+      'interes_provincial_diario_simple' => $RD('interes_provincial_diario_simple','0'),
+      'interes_nacional_mensual_compuesto' => $RD('interes_nacional_mensual_compuesto','0'),
       'fecha_vencimiento' => $R('fecha_vencimiento',null),
     ];
-      
     if($año_mes !== null && $año_mes !== '' && $PAG['fecha_vencimiento'] === null){
       $f = explode('-',$año_mes);
       
@@ -405,7 +407,7 @@ class CanonCuentaController extends Controller
       
       $PAG['fecha_vencimiento'] = $this->CO->mover_fecha(
         new \DateTimeImmutable($PAG['fecha_vencimiento']),
-        $cuenta_dflt['fin_de_semana'] ?? 'Sin Movimiento'
+        $D('fin_de_semana','Sin Movimiento')
       )->format('Y-m-d');
     }
     

@@ -91,8 +91,8 @@ class CanonOperadorController extends Controller
       nombre VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
       dia_vencimiento TINYINT NOT NULL,
       fin_de_semana ENUM('Lunes Próximo','Viernes Anterior','Sin Movimiento') NOT NULL,
-      interes_diario_simple DECIMAL(7,4) NOT NULL,
-      interes_mensual_compuesto DECIMAL(7,4) NOT NULL,
+      interes_provincial_diario_simple DECIMAL(7,4) NOT NULL,
+      interes_nacional_mensual_compuesto DECIMAL(7,4) NOT NULL,
       PRIMARY KEY (id_canon_operador_cuenta),
       UNIQUE KEY `unq_canon_operador_cuenta` (id_canon_operador,nombre),
       CONSTRAINT `fk_canon_operador_cuenta_operador` FOREIGN KEY (`id_canon_operador`) REFERENCES `canon_operador` (`id_canon_operador`)
@@ -464,8 +464,8 @@ class CanonOperadorController extends Controller
       'cuentas.*.nombre' => ['required','string','max:64'],
       'cuentas.*.dia_vencimiento' => ['required','integer','min:1','max:28'],
       'cuentas.*.fin_de_semana' => ['nullable','string',$movimiento_dia_fin_de_semana],
-      'cuentas.*.interes_diario_simple' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
-      'cuentas.*.interes_mensual_compuesto' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      'cuentas.*.interes_provincial_diario_simple' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
+      'cuentas.*.interes_nacional_mensual_compuesto' => ['required','string','regex:/^\d{1,3}(\.\d{0,4})?$/'],
       
       'canon_variable' => ['nullable','array'],
       'canon_variable.*.tipo' => ['required','string','max:32'],
