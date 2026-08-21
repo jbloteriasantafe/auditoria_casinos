@@ -883,28 +883,33 @@ class CanonController extends Controller
       DB::table('canon_archivo')
       ->insert($archivos_resultantes);
     }
+
+    //Le saco los pagos
+    $canon_pagos = [];
+    if(count($canon_anterior) > 0){
+      foreach($this->obtener_cuentas($id_canon) as $cuenta){
+        $canon_pago[$cuenta] = $this->CCu->obtener_cuenta_por_id_canon($canon_anterior[0]->id_canon,$cuenta)['canon_pago'] ?? [];
+      }
+    }
+    foreach($canon_anterior as $c){
+      $this->borrar($c->id_canon,$created_at,$id_usuario);
+    }
     
     foreach($this->obtener_cuentas($id_canon) as $cuenta){
-      $cc = [];
-      if(count($canon_anterior) > 0){
-        $cc = $this->CCu->obtener_cuenta_por_id_canon($canon_anterior[0]->id_canon,$cuenta);
-      }
-      $cc = array_merge($cc,[
+      $cc = [
         'id_canon_cuenta' => null,
         'id_canon' => $id_canon,
         'cuenta' => $cuenta,
         'id_operador' => $datos['id_operador'],
         'año_mes' => $datos['año_mes'],
         'es_antiguo' => $datos['es_antiguo'],
-        'estado' => $datos['estado']
-      ]);
+        'estado' => $datos['estado'],
+        'canon_pago' => $canon_pagos[$cuenta] ?? []
+      ];
       $cc = $this->CCu->recalcular($cc);
       $this->CCu->guardar($cc,$created_at,$id_usuario);
     }
 
-    foreach($canon_anterior as $c){
-      $this->borrar($c->id_canon,$created_at,$id_usuario);
-    }
 
     CANON_STREAM_STR(false);
     $this->CA->recalcular_agrupamiento($datos['año_mes']);
