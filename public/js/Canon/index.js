@@ -138,56 +138,66 @@ $(function(){
           setearIdBotonesFila(fila,obj);
         }
         else if(pant.is('#pant_canon')){
-          {//Arreglo el rowspan al numero de cuentas del canon
-            let filas_cuentas_a_borrar = fila.filter('[data-cuenta]');
-            for(const c of (obj.cuentas ?? [])){
-              const fila_cuenta = fila.filter(`[data-cuenta="${c.cuenta}"]`);
-              const cidx = fila_cuenta.attr('data-cuenta-idx');
-              for(const kc in c){
-                fila_cuenta.find(`[data-name="canon_cuenta[${cidx}][${kc}]"]`).text(c[kc]);
-              }
-              filas_cuentas_a_borrar = filas_cuentas_a_borrar.not(fila_cuenta);//Lo saco del listado para borrar
+          const molde_cuenta = pant.find('[data-molde-canon-cuenta]');
+          const str_molde_cuenta = molde_cuenta.attr('data-molde-canon-cuenta');
+          for(const cidx in (obj.cuentas ?? [])){
+            const fc = molde_cuenta.clone();
+            fc.removeAttr('data-molde-canon-cuenta');
+            const c = obj.cuentas[cidx];
+
+            fc.find('[data-name]').each(function(_,nobj){
+              $(nobj).attr('data-name',
+                $(nobj).attr('data-name').replaceAll(str_molde_cuenta,cidx)
+              );
+            });
+
+            for(const kc in c){
+              fc.find(`[data-name="canon_cuenta[${cidx}][${kc}]"]`).text(c[kc]);
             }
-            filas_cuentas_a_borrar.remove();
-            //Arreglo el rowspan al numero de cuentas
-            fila.find('[data-cuentas-rowspan]').attr('rowspan',1).attr('data-cuentas-rowspan',fila.filter('[data-cuenta]').length+1);
+            fc.attr('data-cuenta',c.cuenta);
+            fc.attr('data-cuenta-idx',cidx);
+            fc.attr('data-cuenta-canon',obj.id_canon);
+
+            tbody.append(fc);
+
+            setearIdBotonesFila(fc,c);
+            agregarPopOvers(fc);
           }
           
-          //Seteo IDs a botones
-          {
-            const $fca = fila.filter('[data-canon]');
-            setearIdBotonesFila($fca,obj);
-            
-            const sp = $fca.find('.saldo_posterior');
+          fila.find('[data-cuentas-rowspan]')
+          .attr('rowspan',1)//Es uno hasta que se togglea, y se intercambia con data-cuentas-rowspan
+          .attr('data-cuentas-rowspan',(obj.cuentas?.length ?? 0)+1);
+
+          fila.attr('data-canon',obj.id_canon);
+          
+          setearIdBotonesFila(fila,obj);
+
+          {  
+            const sp = fila.find('.saldo_posterior');
             sp.addClass(sp.text().trim() == '='? 'saldo-balanceado' : 'saldo-desbalanceado');
           }
-          {
-            for(const c of (obj.cuentas ?? [])){
-              const $fcu = fila.filter(`[data-cuenta="${c.cuenta}"]`);
-              if($fcu.length == 0) continue;
-              setearIdBotonesFila($fcu,c);
-            }
-          }
+          
           {//Agrego el evento de display
-            const f = fila.filter('[data-canon]');
-            const f_cuentas = fila.filter('[data-cuenta]');
-            
             fila.find('[data-js-click-toggle-cuentas]').on('toggleCuentas',function(e,status){
+              const id_canon = fila.attr('data-canon');
+              const f_cuentas = tbody.find(`[data-cuenta-canon="${id_canon}"]`);
               const display = status ?? (f_cuentas.attr('data-cuenta-display') == 'none');
               if(display){
                 f_cuentas.attr('data-cuenta-display','');
-                f.find('[rowspan]').attr('rowspan',f.find('[data-cuentas-rowspan]').attr('data-cuentas-rowspan'));
+                fila.find('[rowspan]').each(function(_,rs){
+                  $(rs).attr('rowspan',$(rs).attr('data-cuentas-rowspan'));
+                });
               }
               else{
                 f_cuentas.attr('data-cuenta-display','none');
-                f.find('[rowspan]').attr('rowspan',1);
+                fila.find('[rowspan]').attr('rowspan',1);
               }
             });
             
             fila.find('[data-js-click-toggle-cuentas]').on('click',function(e,status){
               e.stopPropagation();//Saco el evento por defecto con delay
               fila.find('[data-js-click-toggle-cuentas]').trigger('toggleCuentas');
-              tbody.find('[data-canon]').not(f)
+              tbody.find('[data-canon]').not(fila)
               .find('[data-js-click-toggle-cuentas]').trigger('toggleCuentas',[false]);
             });
           }

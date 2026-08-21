@@ -23,11 +23,13 @@ class CanonCuentaController extends Controller
   private $CC = null;
   private $CO = null;
   private $CGO = null;
+  private $CAgg = null;
   public function __construct(){
     self::$instance = $this;
     $this->CC = CanonController::getInstancia();
     $this->CO = CanonOperadorController::getInstancia();
     $this->CGO = CanonGrupoOperadorController::getInstancia();
+    $this->CAgg = CanonAgrupamientoController::getInstancia();
     $this->middleware(function ($request, $next) {
       $this->u = UsuarioController::getInstancia()->quienSoy()['usuario'];
       return $next($request);
@@ -122,8 +124,8 @@ class CanonCuentaController extends Controller
       
       PRIMARY KEY (id_canon_cuenta),
       
-      UNIQUE KEY `unq_canon_cuenta` (`id_canon`,`cuenta`,`deleted_at`),
-      UNIQUE KEY `unq_canon_cuenta2` (`id_operador`,`año_mes`,`cuenta`,`deleted_at`),
+      INDEX `unq_canon_cuenta` (`id_canon`,`cuenta`,`deleted_at`),
+      INDEX `unq_canon_cuenta2` (`id_operador`,`año_mes`,`cuenta`,`deleted_at`,`id_canon`),
       
       KEY `fk_canon_cuenta_created_by` (`created_by`),
       KEY `fk_canon_cuenta_deleted_by` (`deleted_by`),
@@ -178,10 +180,18 @@ class CanonCuentaController extends Controller
       IF(
         MIN(cp.fecha_vencimiento) = MAX(cp.fecha_vencimiento),
         MIN(cp.fecha_vencimiento),
-        NULL
+        c.año_mes
       ) as fecha_vencimiento,
-      SUM(cp.interes_provincial_diario_simple) as interes_provincial_diario_simple,
-      SUM(cp.interes_nacional_mensual_compuesto) as interes_nacional_mensual_compuesto,
+      IF(
+        MIN(cp.interes_provincial_diario_simple) = MAX(cp.interes_provincial_diario_simple),
+        MIN(cp.interes_provincial_diario_simple),
+        0
+      ) as interes_provincial_diario_simple,
+      IF(
+        MIN(cp.interes_nacional_mensual_compuesto) = MAX(cp.interes_nacional_mensual_compuesto),
+        MIN(cp.interes_nacional_mensual_compuesto),
+        0
+      ) as interes_nacional_mensual_compuesto,
       c.determinado,
       c.saldo_anterior, c.saldo_anterior_cerrado,
       c.intereses_y_cargos, c.motivo_intereses_y_cargos,
@@ -246,6 +256,7 @@ class CanonCuentaController extends Controller
       'id_operador' => ['required','integer','exists:canon_operador,id_operador,deleted_at,NULL'],
       'estado' => ['nullable','string','max:32'],
       'cuenta' => ['nullable','string','max:64'],
+      'es_antiguo' => ['required','integer','in:1,0'],
       'intereses_y_cargos' => ['nullable',$numeric_rule(2)],
       'motivo_intereses_y_cargos' => ['nullable','string','max:128'],
       'fecha_vencimiento' => ['nullable','date'],
@@ -266,19 +277,13 @@ class CanonCuentaController extends Controller
     return $this->recalcular($R);
   }
   
-  private function recalcular(array $request){
+  public function recalcular(array $request){
     $R = function($s,$dflt = null) use (&$request){
       return (($request[$s] ?? null) === null || ($request[$s] === '') || ($request[$s] === []))? $dflt : $request[$s];
     };
     
-    $id_canon = $R('id_canon','');//@RETORNADO
-    if(empty($id_canon)){
-      throw new \Exception('id_canon es requerido');
-    }
-    $id_canon_cuenta = $R('id_canon_cuenta','');//@RETORNADO
-    if(empty($id_canon_cuenta)){
-      throw new \Exception('id_canon_cuenta es requerido');
-    }
+    $id_canon = $R('id_canon',null);//@RETORNADO
+    $id_canon_cuenta = $R('id_canon_cuenta',null);//@RETORNADO
 
     $año_mes = $R('año_mes','');//@RETORNADO
     if(empty($año_mes)){
@@ -289,8 +294,11 @@ class CanonCuentaController extends Controller
       throw new \Exception('id_operador es requerido');
     }
 
+    $op = $this->CO->obtener_operador($id_operador);
     $estado = $R('estado','');//@RETORNADO
     $cuenta = $R('cuenta','');//@RETORNADO
+    $cuenta_dflt = $op['cuentas'][$cuenta] ?? [];
+    $es_antiguo = $R('es_antiguo',0);//@RETORNADO
     
     $determinado = '0.00';
     {
@@ -319,7 +327,7 @@ class CanonCuentaController extends Controller
         foreach($subcanons as $sc => $tipos){
           $Total[$igo][$sc] = $tipos;
         }
-        $clave = 'Cuenta '.$id_canon_cuenta;
+        $clave = 'Cuenta '.($id_canon_cuenta ?? uniqid());
         $agrupamiento = [
           'base' => ['Total' => $Total],
         ];
@@ -334,7 +342,7 @@ class CanonCuentaController extends Controller
       });
     }
 
-    $c_cuenta_ant = $this->get_prev_by_id_operador_año_mes($id_operador,$año_mes)->first();
+    $c_cuenta_ant = $this->get_prev_by_id_operador_año_mes_cuenta($id_operador,$año_mes,$cuenta)->first();
         
     $saldo_anterior = ($c_cuenta_ant !== null)? $c_cuenta_ant->saldo_posterior : '0';//@RETORNADO
     $saldo_anterior_cerrado = $saldo_anterior;//@RETORNADO
@@ -392,12 +400,12 @@ class CanonCuentaController extends Controller
       $PAG['fecha_vencimiento'] = implode('-',[
         $f[0],
         $f[1],
-        str_pad(   $cuenta['dia_vencimiento'] ?? 10,2,'0',STR_PAD_LEFT)
+        str_pad(   $cuenta_dflt['dia_vencimiento'] ?? 10,2,'0',STR_PAD_LEFT)
       ]);
       
       $PAG['fecha_vencimiento'] = $this->CO->mover_fecha(
         new \DateTimeImmutable($PAG['fecha_vencimiento']),
-        $cuenta['fin_de_semana']
+        $cuenta_dflt['fin_de_semana'] ?? 'Sin Movimiento'
       )->format('Y-m-d');
     }
     
@@ -408,6 +416,8 @@ class CanonCuentaController extends Controller
     $factor_interes_nacional_mensual_compuesto = bcdiv($PAG['interes_nacional_mensual_compuesto'],'100',6);
     
     $restante = $principal;
+    $mora_provincial = '0';
+    $mora_nacional   = '0';
     foreach($canon_pago as $idx => &$p){
       $p['capital'] = $restante;
       $p['fecha_pago'] = $p['fecha_pago'] ?? $PAG['fecha_vencimiento'] ?? null;
@@ -452,6 +462,9 @@ class CanonCuentaController extends Controller
       $a_pagar = bcadd($a_pagar,$p['mora_nacional'],2);
       $pago = bcadd($pago,$p['pago'],2);
       $restante = $p['diferencia'];
+
+      $mora_provincial = bcadd_precise($mora_provincial,$p['mora_provincial']);
+      $mora_nacional = bcadd_precise($mora_nacional,$p['mora_nacional']);
     }
     
     $PAG = $this->CC->confluir_datos(compact('canon_pago'),['canon_pago'],array_keys($PAG));
@@ -465,12 +478,14 @@ class CanonCuentaController extends Controller
     return array_merge(
       compact(
         'id_canon','id_canon_cuenta',
-        'año_mes','id_operador','estado','cuenta',
+        'año_mes','id_operador','estado','cuenta','es_antiguo',
         'determinado',
         'saldo_anterior','saldo_anterior_cerrado',
         'intereses_y_cargos','motivo_intereses_y_cargos','principal',
         //Pagos
         'canon_pago',
+        'mora_provincial',
+        'mora_nacional',
         'a_pagar','pago','ajuste','motivo_ajuste','diferencia',
         'saldo_posterior','saldo_posterior_cerrado'
       ),
@@ -478,25 +493,27 @@ class CanonCuentaController extends Controller
     );
   }
 
-  private function get_prev_by_id_operador_año_mes($id_operador,$año_mes){
+  private function get_prev_by_id_operador_año_mes_cuenta($id_operador,$año_mes,$cuenta){
     return DB::table('canon_cuenta')
     ->select('canon_cuenta.*','co.nombre as operador','usuario.user_name as usuario')
     ->join('usuario','usuario.id_usuario','=','canon_cuenta.created_by')
     ->join('canon_operador as co','co.id_operador','=','canon_cuenta.id_operador')
     ->where('canon_cuenta.id_operador',$id_operador)
     ->where('canon_cuenta.año_mes','<',$año_mes)
+    ->where('canon_cuenta.cuenta','=',$cuenta)
     ->whereNull('canon_cuenta.deleted_at')
     ->orderBy('canon_cuenta.año_mes','desc');
   }
 
   
   public function guardar(array $datos,$timestamp,$id_usuario){    
-    $cc_anteriores = ($datos['año_mes'] !== null && $datos['id_operador'] !== null)?
+    $cc_anteriores = ($datos['año_mes'] !== null && $datos['id_operador'] !== null && $datos['cuenta'] !== null)?
       DB::table('canon_cuenta')
       ->select('id_canon_cuenta')
       ->whereNull('deleted_at')
       ->where('año_mes',$datos['año_mes'])
       ->where('id_operador',$datos['id_operador'])
+      ->where('cuenta',$datos['cuenta'])
       ->orderBy('created_at','desc')
       ->get()
     : [];
@@ -508,6 +525,7 @@ class CanonCuentaController extends Controller
     $id_canon_cuenta = DB::table('canon_cuenta')
     ->insertGetId([
       'id_canon' => $datos['id_canon'],
+      'id_operador' => $datos['id_operador'],
       'año_mes' => $datos['año_mes'],
       'estado' => $datos['estado'],
       'es_antiguo' => $datos['es_antiguo'],
@@ -553,23 +571,25 @@ class CanonCuentaController extends Controller
         'a_pagar' => $d['a_pagar'],
         'pago' => $d['pago'],
         'diferencia' => $d['diferencia'],
+        'created_at' => $timestamp,
+        'created_by' => $id_usuario,
+        'deleted_at' => null,
+        'deleted_by' => null
       ]);
     }
-
-    $this->recalcular_saldos_operador_año_mes_cuenta($datos['id_operador'],$datos['año_mes'],$datos['cuenta']);
-    $this->recalcularCuentasEnCanon($datos['id_canon']);
 
     return 1;
   }
   
   public function guardar_req(Request $request){
     $this->validar($request->all());
-    return DB::transaction(function() use ($request,$recalcular){
+    return DB::transaction(function() use ($request){
       $created_at = date('Y-m-d h:i:s');
       $id_usuario = UsuarioController::getInstancia()->quienSoy()['usuario']->id_usuario;
 
       $datos = $this->recalcular($request->all());
-      $id_canon_cuenta = $this->guardar_arr($datos,$created_at,$id_usuario);
+      $id_canon_cuenta = $this->guardar($datos,$created_at,$id_usuario);
+      $this->CC->recalcular_saldos($datos['id_operador'],$datos['año_mes']);
 
       return $id_canon_cuenta;
     });
@@ -586,13 +606,18 @@ class CanonCuentaController extends Controller
     ->whereNull('deleted_at')
     ->where('id_canon_cuenta',$id_canon_cuenta)
     ->update(compact('deleted_at','deleted_by'));
+
+    DB::table('canon_pago')
+    ->whereNull('deleted_at')
+    ->where('id_canon_cuenta',$id_canon_cuenta)
+    ->update(compact('deleted_at','deleted_by'));
     return 1;
   }
 
   public function borrar_cuentas($id_canon,$deleted_at,$deleted_by){
     $cuentas = $this->obtener_cuentas($id_canon);
-    foreach($cuentas as $c){
-      $this->borrar($c->id_canon_cuenta,$deleted_at,$deleted_by);
+    foreach($cuentas as $cc){
+      $this->borrar($cc['id_canon_cuenta'],$deleted_at,$deleted_by);
     }
     return 1;
   }
@@ -601,7 +626,7 @@ class CanonCuentaController extends Controller
     return $this->obtener($request['id_canon_cuenta'] ?? '');
   }
   
-  public function obtenerConHistorial(Request $request){
+  public function obtenerConHistorial_req(Request $request){
     $ultimo = $this->obtener($request['id_canon_cuenta']);
     $ultimo['historial'] = ($ultimo['id_canon_cuenta'] ?? null) !== null?
       DB::table('canon_cuenta')
@@ -625,10 +650,32 @@ class CanonCuentaController extends Controller
     ->first();
 
     $ret = $ret ?? (new \stdClass());
-    $ret->canon_pago = isset($ret->id_canon)?
+    $ret->canon_pago = isset($ret->id_canon_cuenta)?
       DB::table('canon_pago')
-      ->where('id_canon',$ret->id_canon)
-      ->where('cuenta',$ret->cuenta)
+      ->where('id_canon_cuenta',$ret->id_canon_cuenta)
+      ->orderBy('fecha_pago','asc')
+      ->get()
+    : collect([]);
+
+    $ret = json_decode(json_encode($ret),true);
+        
+    return $ret;
+  }
+
+  public function obtener_cuenta_por_id_canon($id_canon,$cuenta){
+    $ret = DB::table('canon_cuenta as cc')
+    ->select('cc.*','co.nombre as operador','u.user_name as usuario')
+    ->where('cc.id_canon',$id_canon)
+    ->where('cc.cuenta',$cuenta)
+    ->whereNull('cc.deleted_at')
+    ->join('usuario as u','u.id_usuario','=','cc.created_by')
+    ->join('canon_operador as co','co.id_operador','=','cc.id_operador')
+    ->first();
+
+    $ret = $ret ?? (new \stdClass());
+    $ret->canon_pago = isset($ret->id_canon_cuenta)?
+      DB::table('canon_pago')
+      ->where('id_canon_cuenta',$ret->id_canon_cuenta)
       ->orderBy('fecha_pago','asc')
       ->get()
     : collect([]);
@@ -643,10 +690,10 @@ class CanonCuentaController extends Controller
     ->where('id_canon',$id_canon)
     ->whereNull('deleted_at')->get()
     ->map(function($cuenta){
-      $cuenta->pagos = DB::table('canon_pago')->where('id_canon',$cuenta->id_canon)
-      ->where('cuenta',$cuenta->cuenta)->get()->toArray();
+      $cuenta->pagos = DB::table('canon_pago')->where('id_canon_cuenta',$cuenta->id_canon_cuenta)
+      ->where('cuenta',$cuenta->cuenta)->whereNull('deleted_at')->get()->toArray();
       return (array) $cuenta;
-    });
+    })->toArray();
   }
   
   public function cuentas($ids_operadores = null){
@@ -661,99 +708,8 @@ class CanonCuentaController extends Controller
     return $ret->orderBy('cuenta','asc')
     ->get()->pluck('cuenta')->toArray();
   }
-
-  public function traspasar_y_borrar_cuentas($id_canon_anterior,$id_canon,$timestamp,$id_usuario){
-    //En este punto, no estan borradas las cuentas
-    $cuentas = DB::table('canon_cuenta')
-    ->where('id_canon',$id_canon_anterior)
-    ->whereNull('deleted_at')
-    ->get();
-
-    foreach($cuentas as $cc){
-      $this->borrar($cc->id_canon_cuenta,$timestamp,$id_usuario);
-    }
-
-    $to_insert = [];
-    foreach($cuentas as $cuenta){
-      $cuenta_arr = (array) $cuenta;
-      $cuenta_arr['id_canon'] = $id_canon;
-      unset($cuenta_arr['id_canon_cuenta']);
-      unset($cuenta_arr['created_at']);
-      unset($cuenta_arr['deleted_at']);
-      unset($cuenta_arr['created_by']);
-      unset($cuenta_arr['deleted_by']);
-      $cuenta_arr['created_at'] = $timestamp;
-      $cuenta_arr['created_by'] = $id_usuario;
-      $to_insert[] = $cuenta_arr;
-    }
-
-    DB::table('canon_cuenta')->insert($to_insert);
-  }
   
-  public function generar_cuentas($id_canon,$timestamp,$id_usuario){
-    $cuentas = DB::table('canon_cuenta')
-    ->where('id_canon',$id_canon)
-    ->whereNull('deleted_at')
-    ->get();
-    
-    if(count($cuentas) > 0){
-      throw new \Exception('El canon ya tiene cuentas generadas');
-    }
-    
-    $cuentas_por_defecto = $this->CO->cuentas_por_defecto($canon->id_operador);
-    if(empty($cuentas_por_defecto)){
-      $cuentas_por_defecto = [new \stdClass()];
-    }
-    
-    $to_insert = [];
-    foreach($cuentas_por_defecto as $cuenta){
-      $fecha_vencimiento = 
-        substr($canon->año_mes,strlen('XXXX-XX-')).
-        str_pad($cuenta->dia_vencimiento ?? 1,2,'0',STR_PAD_LEFT);
-      
-      $fecha_vencimiento = new \DateTimeInmutable($fecha_vencimiento);
-      $fecha_vencimiento = $this->CO->mover_fecha($fecha_vencimiento,$cuenta->fin_de_semana ?? 'Sin Movimiento');
-      $fecha_vencimiento = $fecha_vencimiento->format('Y-m-d');
-
-      $to_insert[] = [
-        //'id_canon_cuenta'
-        'id_canon' => $id_canon,
-        'id_operador' => $canon->id_operador,
-        'año_mes' => $canon->año_mes,
-        'estado' => $canon->estado,
-        'es_antiguo' => $canon->es_antiguo,
-        'cuenta' => $cuenta->cuenta ?? '',
-        'interes_provincial_diario_simple' => $cuenta->interes_provincial_diario_simple ?? '0',
-        'interes_nacional_mensual_compuesto' => $cuenta->interes_nacional_mensual_compuesto ?? '0',
-        'fecha_vencimiento' => $canon->año_mes,//a recalcularse
-        'determinado' => '0',//a recalcularse
-        'saldo_anterior' => '0',//a recalcularse
-        'saldo_anterior_cerrado' => '0',//a recalcularse
-        'intereses_y_cargos' => '0',
-        'motivo_intereses_y_cargos' => '',
-        'principal' => '0',//a recalcularse
-        'mora_provincial' => '0',//a recalcularse
-        'mora_nacional' => '0',//a recalcularse
-        'a_pagar' => '0',//a recalcularse
-        'pago' => '0',
-        'ajuste' => '0',
-        'motivo_ajuste' => '',
-        'diferencia' => '0',//a recalcularse
-        'saldo_posterior_cerrado' => '0',//a recalcularse
-        'saldo_posterior' => '0',//a recalcularse
-        'created_at' => $timestamp,
-        'created_by' => $id_usuario,
-        'deleted_at' => null,
-        'deleted_by' => null
-      ];
-    }
-
-    DB::table('canon_cuenta')
-    ->insert($to_insert);
-
-    return 1;
-  }
-  
+  //Recalcula saldos POSTERIORES a año_mes, esto es porque desde recalcular() ya se calcula el saldo de ese año_mes
   public function recalcular_saldos_operador_año_mes_cuenta($id_operador,$año_mes,$cuenta){
     $canon_cuenta_anterior = DB::table('canon_cuenta')
     ->select('saldo_posterior')

@@ -23,7 +23,6 @@ class CanonOperadorController extends Controller
   private $CPe = null;
   private $CCu = null;
   private $CAgg = null;
-  private $mocking = true;
   public function __construct(){
     self::$instance = $this;
     $this->CC  = CanonController::getInstancia();
@@ -32,12 +31,6 @@ class CanonOperadorController extends Controller
     $this->CPe = CanonPermisoController::getInstancia();
     $this->CCu = CanonCuentaController::getInstancia();
     $this->CAgg = CanonAgrupamientoController::getInstancia();
-    
-    $this->mocking = !Schema::hasTable('canon_operador_canon_variable');
-    $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas');
-    $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_canon_fijo_mesas_adicionales');
-    $this->mocking = $this->mocking || !Schema::hasTable('canon_operador_cuenta');
-    $this->mocking = $this->mocking || !Schema::hasTable('canon_operador');
   }
   
   public function down(){
@@ -231,17 +224,7 @@ class CanonOperadorController extends Controller
     ->orderBy('id_operador','desc')
     ->paginate($request->page_size ?? 10);
   }
-  
-  private function mocking__obtener($id_operador){
-    if($id_operador === null) return null;
-    $co = \App\Casino::find($id_operador)->toArray();
-    $co['cuentas'] = [];
-    $co['canon_variable'] = [];
-    $co['canon_fijo_mesas'] = [];
-    $co['canon_fijo_mesas_adicionales'] = [];
-    return $co;
-  }
-  
+    
   public function _obtener($id_operador){
     if($id_operador === null) return null;
     $co = DB::table('canon_operador')
@@ -601,12 +584,31 @@ class CanonOperadorController extends Controller
   private $op_cache = [];
   public function obtener_operador($id_operador){
     if(!array_key_exists($id_operador,$this->op_cache)){
-      $op = ($this->mocking? $this->mocking__obtener($id_operador) : $this->_obtener($id_operador)) ?? [];
       $to_array = function($o){return (array)$o;};
-      $op['cuentas'] = collect($op['cuentas'] ?? [])->map($to_array)->keyBy('nombre')->toArray();
-      $op['canon_variable'] = collect($op['canon_variable'] ?? [])->map($to_array)->keyBy('tipo')->toArray();
-      $op['canon_fijo_mesas'] = collect($op['canon_fijo_mesas'] ?? [])->map($to_array)->keyBy('tipo')->toArray();
-      $op['canon_fijo_mesas_adicionales'] = collect($op['canon_fijo_mesas_adicionales'] ?? [])->map($to_array)->keyBy('tipo')->toArray();
+      $op = DB::table('canon_operador')
+      ->where('id_operador',$id_operador)
+      ->whereNull('deleted_at')
+      ->first();
+
+      if($op !== null){
+        $op = (array) $op;
+        $op['cuentas'] = DB::table('canon_operador_cuenta')
+        ->where('id_canon_operador',$op['id_canon_operador'])
+        ->get()->map($to_array)->keyBy('nombre')->toArray();
+
+        $op['canon_variable'] = DB::table('canon_operador_canon_variable')
+        ->where('id_canon_operador',$op['id_canon_operador'])
+        ->get()->map($to_array)->keyBy('tipo')->toArray();
+
+        $op['canon_fijo_mesas'] = DB::table('canon_operador_canon_fijo_mesas')
+        ->where('id_canon_operador',$op['id_canon_operador'])
+        ->get()->map($to_array)->keyBy('tipo')->toArray();
+
+        $op['canon_fijo_mesas_adicionales'] = DB::table('canon_operador_canon_fijo_mesas_adicionales')
+        ->where('id_canon_operador',$op['id_canon_operador'])
+        ->get()->map($to_array)->keyBy('tipo')->toArray();
+      }
+
       $this->op_cache[$id_operador] = $op;
     }
     return $this->op_cache[$id_operador];
@@ -639,7 +641,8 @@ class CanonOperadorController extends Controller
       return $lunes_proximo;
       
     }
-    throw new \Exception("No puedo mover fecha ${ISO_yyyymmdd}, Movimiento no soportado: $movimiento");
+    $ISO_yyyymmdd = $date->format('Y-m-d');
+    throw new \Exception("No puedo mover fecha $ISO_yyyymmdd, Movimiento no soportado: $movimiento");
   }
   
   public function operadores($ids_operadores = null){
@@ -657,7 +660,7 @@ class CanonOperadorController extends Controller
     ->join('canon_operador as co','co.id_canon_operador','=','coc.id_canon_operador')
     ->whereNull('co.deleted_at')
     ->where('co.id_operador',$id_operador)
-    ->orderBy('coc.cuenta','asc')
+    ->orderBy('coc.nombre','asc')
     ->get();
   }
 }

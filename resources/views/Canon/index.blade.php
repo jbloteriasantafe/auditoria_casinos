@@ -365,12 +365,11 @@
     @endslot
     
     @slot('molde')
-    <?php $rowspan=count($cuentas)+1; ?>
     <tr class="canon-table-row" data-table-id="id_canon" data-canon>
       <!-- Bootstrap usa data-rowspan -->
-      <td data-cuentas-rowspan="{{$rowspan}}" class="año_mes" style="text-align: center;">AÑO MES</td>
-      <td data-cuentas-rowspan="{{$rowspan}}" class="operador"  style="text-align: center;">OPERADOR</td>
-      <td data-cuentas-rowspan="{{$rowspan}}" class="cambios-estados" style="text-align: center;">
+      <td data-cuentas-rowspan="1" class="año_mes" style="text-align: center;">AÑO MES</td>
+      <td data-cuentas-rowspan="1" class="operador"  style="text-align: center;">OPERADOR</td>
+      <td data-cuentas-rowspan="1" class="cambios-estados" style="text-align: center;">
         @if($permisos('canon_ver') || $permisos('canon_cargar'))
         <div data-content-popover data-molde-popover="acciones-canon" style="flex-direction: row;justify-content: center;"><!-- Esto esta aca porque tiene que estar en el <tr></tr> nomas... no tiene otro sentido -->
           <div style="display: flex;flex-direction: column;justify-content: center;padding-right: 1em;">
@@ -444,14 +443,18 @@
         </button>
         @endif
       </td>
-    </tr>
-    @foreach($cuentas as $cidx => $c)
-    <tr class="canon-table-row canon-table-row-cuenta" data-table-id="id_canon_cuenta" data-cuenta-idx="{{$cidx}}" data-cuenta="{{$c}}" data-cuenta-display="none">
+    </tr>    
+    @endslot
+  @endcomponent
+
+  <table hidden>
+    <?php $cidx = '$mcuentacanon'; ?>
+    <tr data-molde-canon-cuenta="{{$cidx}}" class="canon-table-row canon-table-row-cuenta" data-table-id="id_canon_cuenta" data-cuenta-idx="{{$cidx}}" data-cuenta="--CUENTA--" data-cuenta-display="none">
       <td>
         <div style="display: flex;width: 100%;">
           <span style="text-align: left;">Cuenta: </span>
-          <span style="flex: 1;font-weight: bold;text-align: right;">
-            {{empty($c)? '-' : $cuentas[$cidx-1]}}
+          <span data-name="canon_cuenta[{{$cidx}}][cuenta]" style="flex: 1;font-weight: bold;text-align: right;">
+            --CUENTA--
           </span>
         </div>
         @if($permisos('canon_ver') || $permisos('canon_cargar'))
@@ -479,10 +482,7 @@
         @endif
       </td>
     </tr>
-    @endforeach
-    
-    @endslot
-  @endcomponent
+  </table>
 </div>
 
 @if($permisos('canon_operador_ver') || $permisos('canon_operador_cargar'))
@@ -1513,6 +1513,13 @@
       <div>
         <h5>Cuenta</h5>
         <input name="cuenta" data-js-texto-no-formatear-numero class="form-control" data-check-param data-readonly='[{"modo":"*"}]'>
+      </div>
+      <div>
+        <h5>ANTIGUO</h5>
+        <select class="form-control" name="es_antiguo" data-check-param data-readonly='[{"modo": "*"}]'>
+          <option value="0" selected>NO</option>
+          <option value="1">SI</option>
+        </select>
       </div>
       <div hidden>
         <input name="id_canon_cuenta" data-js-texto-no-formatear-numero  class="form-control" data-readonly='[{"modo":"*"}]'>

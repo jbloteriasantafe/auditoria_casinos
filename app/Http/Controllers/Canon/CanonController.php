@@ -87,7 +87,6 @@ class CanonController extends Controller
     
     $operadores = $this->CO->operadores($iou);
     $cuentas = $this->CCu->cuentas($iou);
-    
     $permisos_u = $this->CPe->permisos_usuario($this->u->id_usuario);
     $permisos = function($p) use (&$permisos_u){
       return array_key_exists($p,$permisos_u);
@@ -142,6 +141,7 @@ class CanonController extends Controller
       'determinado_cotizacion_euro' => ['nullable',$numeric_rule(2)],
       //subcanons
       'canon_variable' => 'array',
+      'canon_variable.*.cuenta' => ['required','string','max:64'],
       'canon_variable.*.devengado_apostado_sistema' => ['nullable',$numeric_rule(2)],
       'canon_variable.*.devengado_apostado_porcentaje_aplicable' => ['nullable',$numeric_rule(4)],
       'canon_variable.*.devengado_apostado_porcentaje_impuesto_ley' => ['nullable',$numeric_rule(4)],
@@ -154,6 +154,7 @@ class CanonController extends Controller
       'canon_variable.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_variable.*.alicuota' => ['nullable',$numeric_rule(4)],
       'canon_fijo_mesas' => 'array',
+      'canon_fijo_mesas.*.cuenta' => ['required','string','max:64'],
       'canon_fijo_mesas.*.dias_valor' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.dias_lunes_jueves' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas.*.mesas_lunes_jueves' => ['nullable',$numeric_rule(0)],
@@ -169,6 +170,7 @@ class CanonController extends Controller
       'canon_fijo_mesas.*.determinado_ajuste' => ['nullable',$numeric_rule(22)],
       'canon_fijo_mesas.*.bruto' => ['nullable',$numeric_rule(2)],
       'canon_fijo_mesas_adicionales' => 'array',
+      'canon_fijo_mesas_adicionales.*.cuenta' => ['required','string','max:64'],
       'canon_fijo_mesas_adicionales.*.dias_mes' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas_dia' => ['nullable',$numeric_rule(0)],
       'canon_fijo_mesas_adicionales.*.horas' => ['nullable',$numeric_rule(0)],
@@ -280,7 +282,7 @@ class CanonController extends Controller
       $COT['determinado_cotizacion_dolar'] = $COT['determinado_cotizacion_dolar'] ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],2,$id_operador) ?? '0';
       $COT['determinado_cotizacion_euro']  = $COT['determinado_cotizacion_euro']  ?? $this->cotizacion($COT['determinado_fecha_cotizacion'],3,$id_operador) ?? '0';
     }
-    
+
     $subcanons = array_map(function($sc){ return []; },array_flip($this->subcanons()));
     
     foreach($subcanons as $subcanon => &$retsc){
@@ -342,7 +344,8 @@ class CanonController extends Controller
       compact(
         'año_mes','id_operador','estado','es_antiguo',
         'devengado_bruto','devengado_deduccion','devengado',
-        'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad'
+        'determinado_bruto','determinado_ajuste','determinado','porcentaje_seguridad',
+        'canon_archivo'
       ),
       $COT,
       $subcanons
@@ -376,7 +379,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $cuenta = $R('cuenta','');
+    $cuenta = $RD('cuenta','');
     $devengado_apostado_sistema = bcadd($R('devengado_apostado_sistema',$this->apostado($tipo,$año_mes,$id_operador)),'0',2);//@RETORNADO    
     $devengado_apostado_porcentaje_aplicable = bcadd($RD('devengado_apostado_porcentaje_aplicable','0.0000'),'0',4);//@RETORNADO
     $factor_apostado_porcentaje_aplicable = bcdiv($devengado_apostado_porcentaje_aplicable,'100',6);
@@ -458,7 +461,7 @@ class CanonController extends Controller
     };
     
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $cuenta = $R('cuenta','');
+    $cuenta = $RD('cuenta','');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -552,6 +555,10 @@ class CanonController extends Controller
     //$total_MONEDA = ($valor_MONEDA*$cotizacion_MONEDA)*($mesas_dias intdiv $dias_valor + ($mesas_dias % $dias_valor)*$factor_dias_valor)
     //$total_MONEDA = $valor_mensual_MONEDA*($mesas_dias intdiv $dias_valor) + $valor_diario_MONEDA*($mesas_dias % $dias_valor)
     //$total_MONEDA = $valor_mensual_MONEDA*$mesas_meses + $valor_diario_MONEDA*$mesas_dias_restantes
+    $devengado_total_dolar_cotizado   = '0';
+    $devengado_total_euro_cotizado    = '0';
+    $determinado_total_dolar_cotizado = '0';
+    $determinado_total_euro_cotizado  = '0';
     if($dias_valor > 0){
       $mesas_meses = intdiv($mesas_dias,$dias_valor);
       $mesas_dias_restantes  = $mesas_dias % $dias_valor;
@@ -657,7 +664,7 @@ class CanonController extends Controller
     $factor_porcentaje = bcdiv($porcentaje,'100',6);
         
     $devengar = $RD('devengar',$es_antiguo? 0 : 1);
-    $cuenta = $R('cuenta','');
+    $cuenta = $RD('cuenta','');
     $devengado_fecha_cotizacion = $COT['devengado_fecha_cotizacion'] ?? null;//@RETORNADO
     $determinado_fecha_cotizacion = $COT['determinado_fecha_cotizacion'] ?? null;//@RETORNADO
     $devengado_cotizacion_dolar = $COT['devengado_cotizacion_dolar'] ?? '0';//@RETORNADO
@@ -876,18 +883,23 @@ class CanonController extends Controller
       DB::table('canon_archivo')
       ->insert($archivos_resultantes);
     }
-
-    //Una vez que se genero un canon con unas cuentas asignadas, no se pueden cambiar las cuentas, solo se pueden traspasar de un canon a otro
-    if(count($canon_anterior) > 0){
-      $this->CCu->traspasar_y_borrar_cuentas(
-        $canon_anterior[0]->id_canon,
-        $id_canon,
-        $created_at,
-        $id_usuario
-      );
-    }
-    else{
-      $this->CCu->generar_cuentas($id_canon,$created_at,$id_usuario);
+    
+    foreach($this->obtener_cuentas($id_canon) as $cuenta){
+      $cc = [];
+      if(count($canon_anterior) > 0){
+        $cc = $this->CCu->obtener_cuenta_por_id_canon($canon_anterior[0]->id_canon,$cuenta);
+      }
+      $cc = array_merge($cc,[
+        'id_canon_cuenta' => null,
+        'id_canon' => $id_canon,
+        'cuenta' => $cuenta,
+        'id_operador' => $datos['id_operador'],
+        'año_mes' => $datos['año_mes'],
+        'es_antiguo' => $datos['es_antiguo'],
+        'estado' => $datos['estado']
+      ]);
+      $cc = $this->CCu->recalcular($cc);
+      $this->CCu->guardar($cc,$created_at,$id_usuario);
     }
 
     foreach($canon_anterior as $c){
@@ -896,10 +908,6 @@ class CanonController extends Controller
 
     CANON_STREAM_STR(false);
     $this->CA->recalcular_agrupamiento($datos['año_mes']);
-    $cuentas_canon = $this->CCu->obtener_cuentas($id_canon);
-    foreach($cuentas_canon as $cc){
-      $this->CCu->actualizar_determinado($cc['id_canon_cuenta'],$created_at,$id_usuario);
-    }
     $this->recalcular_saldos($datos['id_operador'],$datos['año_mes']);
     
     return $id_canon;
@@ -928,7 +936,7 @@ class CanonController extends Controller
     })->validate();
     
     return DB::transaction(function() use ($request,$recalcular){
-      $datos;
+      $datos = null;
       if($recalcular){
         $datos = $this->recalcular($request->all());
         $datos['estado'] = 'Generado';
@@ -1536,6 +1544,22 @@ class CanonController extends Controller
     return $ret;
   }
 
+  public function obtener_cuentas(int $id_canon){
+    $subcanons = $this->subcanons();
+    $ret = [];
+    foreach($subcanons as $sc){
+      $cuentas_sc = DB::table($sc)
+      ->select('cuenta')->distinct()
+      ->where('id_canon',$id_canon)
+      ->get();
+      foreach($cuentas_sc as $cuenta){
+        $ret[$cuenta->cuenta] = true;
+      }
+    }
+    return array_keys($ret);
+  }
+
+  //Recalcula saldos POSTERIORES a año_mes, esto es porque desde recalcular() ya se calcula el saldo de ese año_mes
   public function recalcular_saldos($id_operador,$año_mes){
     static $cuentas = null;
     $cuentas = $cuentas ?? $this->CCu->cuentas();
@@ -1547,7 +1571,7 @@ class CanonController extends Controller
     $canons = DB::table('canon')
     ->select('id_canon')
     ->whereNull('deleted_at')
-    ->where('año_mes','>=',$año_mes)
+    ->where('año_mes','>',$año_mes)
     ->where('id_operador',$id_operador)
     ->get();
 

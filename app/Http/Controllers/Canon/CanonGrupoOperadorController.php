@@ -19,13 +19,10 @@ class CanonGrupoOperadorController extends Controller
   
   private $CV = null;
   private $CAgg = null;
-  private $mocking = true;
   public function __construct(){
     self::$instance = $this;
     $this->CV = CanonValorPorDefectoController::getInstancia();
     $this->CAgg = CanonAgrupamientoController::getInstancia();
-    $this->mocking = !Schema::hasTable('canon_grupo_operador_operador');
-    $this->mocking = $this->mocking || !Schema::hasTable('canon_grupo_operador_operador');
   }
   
   public function down(){
@@ -128,7 +125,7 @@ class CanonGrupoOperadorController extends Controller
   }
   
   private function _obtener($id_grupo_operador){
-    if($this->mocking || $id_grupo_operador === null) return null;
+    if($id_grupo_operador === null) return null;
     $cgo = DB::table('canon_grupo_operador')
     ->where('id_grupo_operador',$id_grupo_operador)
     ->whereNull('deleted_at')
