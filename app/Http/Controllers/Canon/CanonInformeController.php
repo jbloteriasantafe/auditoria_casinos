@@ -52,9 +52,9 @@ class CanonInformeController extends Controller
   private function obtener_para_salida($id_canon,$formatear_decimal = true){
     $data = $this->CC->obtener_arr(compact('id_canon'),false);
     
-    foreach(['id_canon','id_canon_variable','id_canon_fijo_mesas','id_canon_fijo_mesas_adicionales','id_archivo','id_canon_pago','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
+    foreach(['id_canon','id_canon_variable','id_canon_fijo_mesas','id_canon_fijo_mesas_adicionales','id_archivo','id_casino','created_at','created_id_usuario','deleted_at','deleted_id_usuario','usuario','es_antiguo'] as $k){
       unset($data[$k]);
-      foreach(['canon','canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','canon_archivo','canon_pago'] as $arrk){
+      foreach(['canon','canon_variable','canon_fijo_mesas','canon_fijo_mesas_adicionales','canon_archivo'] as $arrk){
         foreach(($data[$arrk] ?? []) as $tipo => $_){
           unset($data[$arrk][$tipo][$k]);
         }
@@ -66,6 +66,20 @@ class CanonInformeController extends Controller
       if(is_array($v)) continue;
       $data['canon'][0][$k] = $v;
       unset($data[$k]);
+    }
+
+    foreach($data['canon_cuenta'] as &$cc){
+      unset($cc['id_canon']);
+      unset($cc['id_canon_cuenta']);
+      if(!isset($cc['pagos'])) continue;
+      foreach($cc['pagos'] as &$cp){
+        unset($cp['id_canon']);
+        unset($cp['id_canon_cuenta']);
+        unset($cp['id_canon_pago']);
+        $data['canon_pago'] = $data['canon_pago'] ?? [];
+        $data['canon_pago'][] = $cp;
+      }
+      unset($cc['pagos']);
     }
     
     //@HACK: Solo para MySQl, lo hago así porque se elimino una dependencia con Doctrine... no quiero tocar el composer.json
@@ -117,7 +131,7 @@ class CanonInformeController extends Controller
     //$dompdf->getCanvas()->page_text(20, 815, $codigo_casino."/".$fecha, $font, 10, array(0,0,0));
     //$dompdf->getCanvas()->page_text(515, 815, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 10, array(0,0,0));
     $año_mes = $datos['canon'][0]['año_mes'];
-    $casino  = $datos['canon'][0]['casino'];
+    $casino  = $datos['canon'][0]['operador'];
     $filename = "Canon-$año_mes-$casino.csv";
     return $dompdf->stream($filename, Array('Attachment'=>0));
   }
