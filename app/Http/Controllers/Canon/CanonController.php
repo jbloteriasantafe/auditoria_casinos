@@ -1188,7 +1188,7 @@ class CanonController extends Controller
         WHERE cc.id_canon = c.id_canon
         GROUP BY "constant"
         LIMIT 1
-      ),0) = 0,"=","≠") as saldo_posterior')
+      ),0) = 0,"🗸","!") as saldo_posterior')
     )
     ->join('canon_operador as co',function($j){
       return $j->on('co.id_operador','=','c.id_operador')->whereNull('co.deleted_at');
@@ -1471,10 +1471,8 @@ class CanonController extends Controller
       ->whereNull('deleted_at')
       ->where('id_canon',$request->id_canon)
       ->update(['estado' => $request->estado]);
-      
-      $c = DB::table('canon')
-      ->where('id_canon',$request->id_canon)
-      ->first();
+
+      $this->CCu->cambiarEstadoCuentas($request->id_canon,$request->estado);
       
       return 1;
     });

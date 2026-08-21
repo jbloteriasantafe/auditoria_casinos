@@ -174,7 +174,7 @@ $(function(){
 
           {  
             const sp = fila.find('.saldo_posterior');
-            sp.addClass(sp.text().trim() == '='? 'saldo-balanceado' : 'saldo-desbalanceado');
+            sp.addClass(sp.text().trim() == '🗸'? 'saldo-balanceado' : 'saldo-desbalanceado');
           }
           
           {//Agrego el evento de display

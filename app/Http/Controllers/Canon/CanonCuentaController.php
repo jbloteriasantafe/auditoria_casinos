@@ -633,6 +633,7 @@ class CanonCuentaController extends Controller
       ->select('created_at','id_canon_cuenta')->distinct()
       ->where('año_mes',$ultimo['año_mes'])
       ->where('id_operador',$ultimo['id_operador'])
+      ->where('cuenta',$ultimo['cuenta'])
       ->orderBy('created_at','desc')
       ->get()->map(function($idc,$idc_idx){
         return $this->obtener($idc->id_canon_cuenta);
@@ -813,5 +814,12 @@ class CanonCuentaController extends Controller
     ->groupBy('id_canon')
     ->first();
     return $ret === null? [] : ((array)$ret);
+  }
+
+  public function cambiarEstadoCuentas($id_canon,$estado){
+    return DB::table('canon_cuenta')
+    ->whereNull('deleted_at')
+    ->where('id_canon',$id_canon)
+    ->update(['estado' => $estado]);
   }
 }
