@@ -67,6 +67,32 @@ input[required], select[required]{
 .hover-pointer:hover{
   cursor: pointer;
 }
+
+/* ---- Resultado de la carga masiva: un color por categoría ---- */
+.bloque-resultado{
+  border-left: 5px solid;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.bloque-resultado h5{
+  margin: 0 0 6px 0;
+  font-weight: bold;
+  font-size: 14px;
+}
+.bloque-resultado ul{
+  font-size: 12px;
+  margin-bottom: 0;
+  padding-left: 20px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.bloque-verde   { border-color:#2e7d32; background:#e8f5e9; color:#1b5e20; }
+.bloque-amarillo{ border-color:#f9a825; background:#fff8e1; color:#8a6100; }
+.bloque-rojo    { border-color:#c62828; background:#ffebee; color:#b71c1c; }
+.bloque-verde .badge   { background-color:#2e7d32; }
+.bloque-amarillo .badge{ background-color:#f9a825; }
+.bloque-rojo .badge    { background-color:#c62828; }
 </style>
 @endsection
 
@@ -1235,23 +1261,26 @@ input[required], select[required]{
             </div>
             <br>
             <div id="mensajeExitoImportacion" hidden>
-                <div class="alert alert-success" style="max-height: 400px; overflow-y: auto;">
+                <div style="max-height: 400px; overflow-y: auto;">
                     <p style="font-weight: bold; font-size: 16px;">Importación finalizada.</p>
-                    <div id="detalleNuevas" hidden>
-                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">✅ Nuevas autoexclusiones (<span class="badge">0</span>)</h5>
-                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    <!-- VERDE: entraron y son personas nuevas -->
+                    <div id="detalleNuevas" class="bloque-resultado bloque-verde" hidden>
+                        <h5>✅ Nuevas autoexclusiones (<span class="badge">0</span>)</h5>
+                        <ul></ul>
                     </div>
-                    <div id="detallePrevias" hidden>
-                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">⚠️ Con autoexclusión previa (<span class="badge">0</span>)</h5>
-                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    <!-- AMARILLO: entraron, pero la persona ya tenía una AE previa -->
+                    <div id="detallePrevias" class="bloque-resultado bloque-amarillo" hidden>
+                        <h5>⚠️ Con autoexclusión previa (<span class="badge">0</span>)</h5>
+                        <ul></ul>
                     </div>
-                    <div id="detalleVigentes" hidden>
-                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">🚫 Ignoradas por estado vigente (<span class="badge">0</span>)</h5>
-                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    <!-- ROJO: no ingresaron -->
+                    <div id="detalleVigentes" class="bloque-resultado bloque-rojo" hidden>
+                        <h5>🚫 NO ingresaron: ya tienen autoexclusión vigente (<span class="badge">0</span>)</h5>
+                        <ul></ul>
                     </div>
-                    <div id="detalleRepetidas" hidden>
-                        <h5 style="margin-top: 10px; font-weight: bold; color: #155724;">📅 Ignoradas por fecha repetida (<span class="badge">0</span>)</h5>
-                        <ul style="font-size: 12px; margin-bottom: 0;"></ul>
+                    <div id="detalleRepetidas" class="bloque-resultado bloque-rojo" hidden>
+                        <h5>📅 NO ingresaron: fecha repetida (<span class="badge">0</span>)</h5>
+                        <ul></ul>
                     </div>
                 </div>
             </div>
@@ -1268,7 +1297,7 @@ input[required], select[required]{
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-successAceptar" id="btn-importar">IMPORTAR</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
+          <button type="button" class="btn btn-default" id="btn-cerrar-importar" data-dismiss="modal">CANCELAR</button>
         </div>
       </div>
     </div>
@@ -1336,7 +1365,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?7" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?8" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

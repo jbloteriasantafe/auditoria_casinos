@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroPublicoCasino extends Model
 {
+    use RegistraHistorialDocumento;
+
   protected $connection = 'mysql';
   protected $table = 'registroPublicoCasino';
   protected $primaryKey = 'id_registroPublicoCasino';

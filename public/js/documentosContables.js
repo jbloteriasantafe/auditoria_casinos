@@ -4,8 +4,6 @@ $.ajaxSetup({
   },
 });
 
-// Global var for viewing files
-var unifiedFilesData = {};
 
 $(document)
   .on("show.bs.modal", ".modal", function () {
@@ -48,12 +46,22 @@ function obtenerIconoValidacion(valido, tipo, id) {
       ' !important; font-size: 1.5em !important; text-shadow: none !important;"></i>'
   );
 
-  return btn;
+  // El botón de historial sale junto al de validar porque es el único punto por el que pasan las
+  // 28 tablas del módulo y ya trae el tipo y el id del documento.
+  return btn.add(botonHistorialDoc(tipo, id));
 }
 
-function _normAli(num) {
-  if (num == null || !isFinite(num)) return 0;
-  return Math.abs(num) > 1.000001 ? num / 100 : num;
+// Botón que abre el historial del documento (quién lo tocó y cuándo).
+function botonHistorialDoc(tipo, id) {
+  return $("<button>")
+    .addClass("btn btn-sm btn-default btn-historial-doc")
+    .attr("type", "button")
+    .attr("data-tipo", tipo)
+    .attr("data-id", id)
+    .attr("data-toggle", "tooltip")
+    .attr("data-placement", "bottom")
+    .attr("title", "VER HISTORIAL")
+    .append('<i class="fa fa-history"></i>');
 }
 
 /**
@@ -177,28 +185,6 @@ function instalarAutoImpuestoAR(options) {
     recalc
   );
   recalc();
-}
-
-function _parseUltimoPuntoDecimal(str) {
-  if (str == null) return null;
-  var s = String(str);
-
-  s = s.replace(/[^\d.\-]/g, "");
-  s = s.replace(/(?!^)-/g, "");
-  if (!s) return null;
-
-  var lastDot = s.lastIndexOf(".");
-  var numStr;
-  if (lastDot >= 0) {
-    var left = s.slice(0, lastDot).replace(/\./g, "");
-    var right = s.slice(lastDot + 1).replace(/\./g, "");
-    numStr = left + (right ? "." + right : "");
-  } else {
-    numStr = s.replace(/\./g, "");
-  }
-
-  var n = Number(numStr);
-  return isFinite(n) ? n : null;
 }
 
 function _smartParseNum(v) {
@@ -401,36 +387,6 @@ function formatoAR(value, decs = null) {
   });
 }
 
-function setDateSmart($group, val) {
-  var v = (val || "").trim();
-  var $inp = $group.find("input");
-  if (!v) {
-    $inp.val("").trigger("input").trigger("change");
-    var dp = $group.data("datepicker");
-    if (dp && $group.datepicker) $group.datepicker("clearDates");
-    var dtp = $group.data("DateTimePicker");
-    if (dtp && dtp.clear) dtp.clear();
-    return;
-  }
-  $inp.val(v).trigger("input").trigger("change");
-
-  var dtp = $group.data("DateTimePicker");
-  if (dtp && dtp.date) {
-    var fmt = v.length === 7 ? "YYYY-MM" : "YYYY-MM-DD";
-    var m = window.moment
-      ? moment(v.length === 7 ? v + "-01" : v, "YYYY-MM-DD")
-      : null;
-    if (m) dtp.date(m);
-  }
-
-  var dp = $group.data("datepicker");
-  if (dp && $group.datepicker) {
-    var d = new Date(v.length === 7 ? v + "-01" : v);
-    $group.datepicker("setDate", d);
-    $group.datepicker("update");
-  }
-}
-
 // Al subir, el archivo se guarda como "<timestamp>_<6 al azar>_<nombre original>" para que dos
 // archivos con el mismo nombre no se pisen. Esto saca ese prefijo para MOSTRAR, así se ve el
 // nombre que subió el usuario.
@@ -450,40 +406,6 @@ function iconoExt(nombre) {
   if (/\.(png|jpe?g|gif|bmp|webp|svg)$/.test(n)) return "🖼️";
   if (/\.(zip|rar|7z|tar|gz)$/.test(n)) return "🗜️";
   return "📎";
-}
-
-function buildArchivoRow(item, registro) {
-  var fid = item.id || item.id_registro_archivo || item.pk || item.file_id;
-  var nombre =
-    item.nombre ||
-    item.archivo ||
-    (item.path ? String(item.path).split("/").pop() : "archivo");
-
-  var href =
-    "/documentosContables/visualizarArchivo/" +
-    registro +
-    "/" +
-    encodeURIComponent(nombre);
-
-  var $row = $('<div class="list-group-item">');
-
-  var $icon = $("<i>")
-    .attr("class", faIconClassByExt(nombre))
-    .css({ marginRight: "8px", fontSize: "16px", lineHeight: "1" });
-
-  var $link = $('<a target="_blank">')
-    .attr("href", href)
-    .text(nombreVisibleArchivo(nombre));
-
-  var $del = $(
-    '<button type="button" class="btn btn-xs btn-danger btn-del-archivo" title="Quitar">'
-  )
-    .attr("data-id", fid)
-    .css({ float: "right" })
-    .append('<i class="fa fa-trash"></i>');
-
-  $row.append($icon).append($link).append($del);
-  return $row;
 }
 
 function attachYYYYMMDDFormatter(sel) {
@@ -550,21 +472,6 @@ function convertirMesAno(input) {
   const mesAbrev = meses[parseInt(month, 10)];
 
   return `${mesAbrev} ${year}`;
-}
-
-function populateSelect($select, items, valueKey, textKey, placeholder) {
-  var html =
-    '<option value="">' + (placeholder || "Seleccioná...") + "</option>";
-  for (var i = 0; i < items.length; i++) {
-    var it = items[i];
-    html +=
-      '<option value="' +
-      it[valueKey] +
-      '">' +
-      (it[textKey] || "") +
-      "</option>";
-  }
-  $select.html(html);
 }
 
 function validarCampoNumSiHayValor($input, contexto, mensaje, valid) {
@@ -729,8 +636,6 @@ $(function () {
 });
 
 function cargarArchivosiibbLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("iibbId", id);
   var $list = $(targetArchivosDoc("iibb", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -786,13 +691,6 @@ function cargarArchivosiibbLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-iibb", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro IIBB");
-  cargarArchivosiibbLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-iibb", function () {
   const id = $(this).data("id");
@@ -978,9 +876,7 @@ function abrirModaliibbEditar(id) {
     $("#saldo_iibb").val(formatoAR(d.saldo));
     $("#total_impuesto_iibb").val(formatoAR(d.impuesto_total));
 
-    $("#obsiibb").val(d.obs || "");
-
-    const $cont = $("#contenedor-inputs-iibb-cargar").empty();
+        const $cont = $("#contenedor-inputs-iibb-cargar").empty();
     const bases = Array.isArray(d.bases) ? d.bases : [];
     let idx = 0;
     if (bases.length) {
@@ -1021,13 +917,12 @@ function resetFormiibb() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameiibb").val("No se ha seleccionado ningún archivo");
-  $("#fileListiibb").empty();
-  $("#uploadiibb").val("");
+  $("#fileNameiibb").val("");
+    $("#uploadiibb").val("");
   $("#uploadsiibbContainer").empty();
   $("#uploadsiibbTable tbody").empty();
   $("#uploadsiibbWrap").hide();
-  $("#fileNameiibb").val("No se ha seleccionado ningún archivo");
+  $("#fileNameiibb").val("");
   $("#contenedor-deducciones-iibb").empty();
   contadorDeduccionIibb = 0;
   $("#deduccionesiibb").val(0);
@@ -1299,27 +1194,7 @@ function generarFilaiibb(iibb, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegiibb")
-    .attr("id", iibb.id_registroiibb)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO IIBB")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (iibb.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-iibb")
-      .attr("type", "button")
-      .attr("data-id", iibb.id_registroiibb)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
 
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-iibb")
@@ -1377,94 +1252,6 @@ $("#btn-eliminariibb").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegiibb", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenariibb/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_iibb").val(fecha);
-    $("#ver_fecha_pres_iibb").val(data.fecha_pres);
-    $("#ver_casino_iibb").val(data.casino);
-
-    $("#contenedor-bases-ver-iibb").empty();
-    data.base.forEach(function (base) {
-      const base_imponible = formatoAR(base.base);
-      const alicuota = formatoAR(base.alicuota);
-      const impuesto = formatoAR(base.impuesto_determinado);
-      const bloque =
-        `
-            <div class="row">
-              <div class="col-md-4">
-                <textarea class="form-control" rows="1" readonly>${base.observacion}</textarea>
-              </div>
-              <div class="col-md-3">
-                <input type="text" class="form-control" value="$ ` +
-        base_imponible +
-        `" readonly>
-              </div>
-              <div class="col-md-3">
-                <input type="text" class="form-control" value="` +
-        alicuota +
-        ` %" readonly>
-              </div>
-              <div class="col-md-2">
-                <input type="text" class="form-control" value="$ ` +
-        impuesto +
-        `" readonly>
-              </div>
-            </div>
-            <br/>
-          `;
-      $("#contenedor-bases-ver-iibb").append(bloque);
-    });
-    // Render deducciones en modal ver
-    $("#contenedor-deducciones-ver-iibb").empty();
-    var dedsList = Array.isArray(data.deducciones_list) ? data.deducciones_list : [];
-    if (dedsList.length) {
-      $("#contenedor-deducciones-ver-iibb").append(
-        '<div class="row"><div class="col-md-6"><h5>Detalle</h5></div><div class="col-md-6"><h5>Monto deducción</h5></div></div> '
-      );
-      dedsList.forEach(function(dd) {
-        var bloqueDed = '<div class="row" style="margin-bottom:4px;">' +
-          '<div class="col-md-6"><input type="text" class="form-control" value="' + (dd.label || '') + '" readonly></div>' +
-          '<div class="col-md-6"><input type="text" class="form-control" value="$ ' + formatoAR(dd.monto) + '" readonly></div>' +
-          '</div>' +
-          '</br>';
-        $("#contenedor-deducciones-ver-iibb").append(bloqueDed);
-      });
-    } else if (data.deducciones) {
-      // Retrocompatibilidad: si no hay filas pero hay valor legacy
-      $("#contenedor-deducciones-ver-iibb").append(
-        '<div class="row"><div class="col-md-6"><h5>Monto deducción</h5></div></div>' +
-        '<div class="row"><div class="col-md-6"><input type="text" class="form-control" value="$ ' + formatoAR(data.deducciones) + '" readonly></div></div>'
-      );
-    }
-    $("#ver_impuestoTotal_iibb").val("$ " + formatoAR(data.impuesto_total));
-    $("#ver_diferencia_iibb").val("$ " + formatoAR(data.diferencia));
-    $("#ver_saldo_iibb").val("$ " + formatoAR(data.saldo));
-    $("#ver_obs_iibb").val(data.obs);
-
-    $("#modalVeriibb").modal("show");
-  });
-});
-
-$("#btn-buscariibb").on("click", function (e) {
-  e.preventDefault();
-  cargariibb({
-    page: 1,
-    perPage: $("#herramientasPaginacioniibb").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 $("#btn-descargariibbCsvRegistros").on("click", function () {
   var _fg = filtrosGlobalDescarga();
   const casino = _fg.casino;
@@ -1474,23 +1261,8 @@ $("#btn-descargariibbCsvRegistros").on("click", function () {
   $("#collapseDescargariibb .has-error").removeClass("has-error");
   $("#collapseDescargariibb .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoiibb")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_iibbDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -1512,23 +1284,8 @@ $("#btn-descargariibbCsvActividades").on("click", function () {
   $("#collapseDescargariibb .has-error").removeClass("has-error");
   $("#collapseDescargariibb .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoiibb")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_iibbDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -1551,22 +1308,8 @@ $("#btn-descargariibbExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoiibb")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_iibbDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -1711,8 +1454,6 @@ instalarAutoSumaAR({
 });
 
 function cargarArchivosDREILista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("DREIId", id);
   var $list = $(targetArchivosDoc("DREI", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -1768,13 +1509,6 @@ function cargarArchivosDREILista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-DREI", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro DREI");
-  cargarArchivosDREILista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-DREI", function () {
   const id = $(this).data("id");
@@ -1992,15 +1726,7 @@ function abrirModalDREIEditar(id) {
         .trigger("input")
         .trigger("change");
 
-      $("#base_imponible_roDREI").val(
-        "$" + formatoAR(d.com_base_imponible ?? "")
-      );
-      $("#alicuota_roDREI").val(formatoAR(d.com_alicuota ?? "") + " % y m2");
-      $("#imp_det_roDREI").val("$ " + formatoAR(d.com_subt_imp_det ?? ""));
-
-      $("#rect1DREI").val("$" + formatoAR(d.rectificativa_1 ?? ""));
-
-      $("#total_roDREI").val("$ " + formatoAR(d.saldo));
+                              $("#total_roDREI").val("$ " + formatoAR(d.saldo));
     }
 
     // Cargar bases extra dinámicas
@@ -2025,13 +1751,12 @@ function resetFormDREI() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameDREI").val("No se ha seleccionado ningún archivo");
-  $("#fileListDREI").empty();
-  $("#uploadDREI").val("");
+  $("#fileNameDREI").val("");
+    $("#uploadDREI").val("");
   $("#uploadsDREIContainer").empty();
   $("#uploadsDREITable tbody").empty();
   $("#uploadsDREIWrap").hide();
-  $("#fileNameDREI").val("No se ha seleccionado ningún archivo");
+  $("#fileNameDREI").val("");
   $("#contenedor-inputs-drei-extra-csf, #contenedor-inputs-drei-extra-mel, #contenedor-inputs-drei-extra-ro").empty();
   contadorDreiExtra = 0;
 }
@@ -2071,23 +1796,8 @@ $("#btn-descargarDREICsv").on("click", function () {
   $("#collapseDescargarDREI .has-error").removeClass("has-error");
   $("#collapseDescargarDREI .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoDREI")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_DREIDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -2110,22 +1820,8 @@ $("#btn-descargarDREIExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoDREI")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_DREIDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -2164,17 +1860,6 @@ $("#btn-eliminarDREI").on("click", function () {
       }
     })
     .fail(() => {});
-});
-
-$("#btn-buscarDREI").on("click", function (e) {
-  e.preventDefault();
-  cargarDREI({
-    page: 1,
-    perPage: $("#herramientasPaginacionDREI").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
 });
 
 function clickIndiceDREI(e, pageNumber, pageSize) {
@@ -2239,27 +1924,7 @@ function generarFilaDREI(drei, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegDREI")
-    .attr("id", drei.id_registroDREI)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO DREI")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (drei.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-DREI")
-      .attr("type", "button")
-      .attr("data-id", drei.id_registroDREI)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DREI")
     .attr("type", "button")
@@ -2287,140 +1952,6 @@ function generarFilaDREI(drei, controlador) {
   fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
-
-$(document).on("click", ".btn-verRegDREI", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarDREI/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-    fecha = convertirMesAno(data.fecha);
-
-    if (data.casino === "Santa Fe") {
-      $("#ver_fecha_csfDREI").val(fecha);
-      $("#ver_fecha_pres_csfDREI").val(data.fecha_pres);
-      $("#ver_casino_csfDREI").val(data.casino);
-
-      $("#ver_com_base_csfDREI").val("$ " + formatoAR(data.com_base));
-      $("#ver_com_ali_csfDREI").val(formatoAR(data.com_alicuota));
-      $("#ver_com_imp_csfDREI").val("$ " + formatoAR(data.com_subt));
-
-      $("#ver_gas_base_csfDREI").val("$ " + formatoAR(data.gas_base));
-      $("#ver_gas_ali_csfDREI").val(formatoAR(data.gas_alicuota));
-      $("#ver_gas_imp_csfDREI").val("$ " + formatoAR(data.gas_imp));
-
-      $("#ver_expl_base_csfDREI").val("$ " + formatoAR(data.expl_base));
-      $("#ver_expl_ali_csfDREI").val(formatoAR(data.expl_alicuota));
-      $("#ver_expl_imp_csfDREI").val("$ " + formatoAR(data.expl_imp));
-
-      $("#ver_apyju_base_csfDREI").val("$ " + formatoAR(data.apyju_base));
-      $("#ver_apyju_ali_csfDREI").val(formatoAR(data.apyju_alicuota));
-      $("#ver_apyju_imp_csfDREI").val("$ " + formatoAR(data.apyju_imp));
-
-      $("#ver_bromatologia_csfDREI").val("$ " + formatoAR(data.bromatologia));
-      $("#ver_deducciones_csfDREI").val("$ " + formatoAR(data.deducciones));
-      $("#ver_total_imp_csfDREI").val("$ " + formatoAR(data.total_imp_det));
-
-      $("#ver_intereses_csfDREI").val("$ " + formatoAR(data.intereses));
-      $("#ver_saldo_csfDREI").val("$ " + formatoAR(data.saldo));
-      $("#ver_obs_csfDREI").val(data.obs);
-
-      // Mostrar bases extra
-      $("#ver-bases-extra-csf-drei-body").empty();
-      if (data.bases && data.bases.length) {
-        data.bases.forEach(function(b) {
-          $("#ver-bases-extra-csf-drei-body").append(
-            '<div class="row" style="margin-bottom:4px;">' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
-            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
-            '</div>'
-          );
-        });
-        $("#ver-bases-extra-csf-drei").show();
-      } else {
-        $("#ver-bases-extra-csf-drei").hide();
-      }
-
-      $("#modalVerCSFDREI").modal("show");
-    } else if (data.casino === "Melincué") {
-      $("#ver_fecha_melDREI").val(fecha);
-      $("#ver_fecha_pres_melDREI").val(data.fecha_pres);
-      $("#ver_casino_melDREI").val(data.casino);
-      $("#ver_monto_melDREI").val("$ " + formatoAR(data.monto_pagado));
-
-      $("#ver_com_base_melDREI").val("$ " + formatoAR(data.com_base));
-      $("#ver_com_ali_melDREI").val(formatoAR(data.com_alicuota) + " %");
-      $("#ver_com_imp_melDREI").val("$ " + formatoAR(data.com_subt));
-
-      $("#ver_gas_base_melDREI").val("$ " + formatoAR(data.gas_base));
-      $("#ver_gas_ali_melDREI").val(formatoAR(data.gas_alicuota) + " %");
-      $("#ver_gas_imp_melDREI").val("$ " + formatoAR(data.gas_imp));
-
-      var total_imp_det_mel = (parseFloat(data.com_subt) || 0) + (parseFloat(data.gas_imp) || 0);
-      if (data.bases && data.bases.length) {
-        data.bases.forEach(function(b) {
-          total_imp_det_mel += parseFloat(b.imp) || 0;
-        });
-      }
-      $("#ver_total_imp_det_melDREI").val("$ " + formatoAR(total_imp_det_mel));
-
-      $("#ver_saldo_melDREI").val("$ " + formatoAR(data.saldo));
-      $("#ver_obs_melDREI").val(data.obs);
-
-      // Mostrar bases extra
-      $("#ver-bases-extra-mel-drei-body").empty();
-      if (data.bases && data.bases.length) {
-        data.bases.forEach(function(b) {
-          $("#ver-bases-extra-mel-drei-body").append(
-            '<div class="row" style="margin-bottom:4px;">' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
-            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
-            '</div>'
-          );
-        });
-        $("#ver-bases-extra-mel-drei").show();
-      } else {
-        $("#ver-bases-extra-mel-drei").hide();
-      }
-
-      $("#modalVerMELDREI").modal("show");
-    } else {
-      $("#ver_fecha_roDREI").val(fecha);
-      $("#ver_fecha_pres_roDREI").val(data.fecha_pres);
-      $("#ver_casino_roDREI").val(data.casino);
-      $("#ver_monto_roDREI").val("$ " + formatoAR(data.monto_pagado));
-
-      $("#ver_saldo_roDREI").val("$ " + formatoAR(data.saldo));
-      $("#ver_obs_roDREI").val(data.obs);
-
-      // Mostrar bases extra
-      $("#ver-bases-extra-ro-drei-body").empty();
-      if (data.bases && data.bases.length) {
-        data.bases.forEach(function(b) {
-          $("#ver-bases-extra-ro-drei-body").append(
-            '<div class="row" style="margin-bottom:4px;">' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="' + (b.label || '') + '"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.monto) + '"></div>' +
-            '<div class="col-md-2"><input type="text" class="form-control" readonly value="' + formatoAR(b.alicuota, 5) + ' %"></div>' +
-            '<div class="col-md-3"><input type="text" class="form-control" readonly value="$ ' + formatoAR(b.imp) + '"></div>' +
-            '</div>'
-          );
-        });
-        $("#ver-bases-extra-ro-drei").show();
-      } else {
-        $("#ver-bases-extra-ro-drei").hide();
-      }
-
-      $("#modalVerRODREI").modal("show");
-    }
-  });
-});
 
 $(document).on("click", "#guardarRegistroDREI", function (e) {
   var $form = $("#formNuevoRegistroDREI");
@@ -2728,8 +2259,6 @@ $(document).on("click", "#guardarRegistroDREI", function (e) {
 
 //IVA
 function cargarArchivosIvaLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("ivaId", id);
   var $list = $(targetArchivosDoc("Iva", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -2786,13 +2315,6 @@ function cargarArchivosIvaLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-iva", function () {
-  var id = $(this).data("id") || $(this).val() || $(this).attr("id"); 
-  $("#tituloArchivos").text("Archivos del registro IVA");
-  cargarArchivosIvaLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-iva", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -2829,13 +2351,12 @@ function resetFormIva() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameIva").val("No se ha seleccionado ningún archivo");
-  $("#fileListIva").empty();
-  $("#uploadIva").val("");
+  $("#fileNameIva").val("");
+    $("#uploadIva").val("");
   $("#uploadsIvaContainer").empty();
   $("#uploadsIvaTable tbody").empty();
   $("#uploadsIvaWrap").hide();
-  $("#fileNameIva").val("No se ha seleccionado ningún archivo");
+  $("#fileNameIva").val("");
 }
 
 function abrirModalIvaCrear() {
@@ -3078,27 +2599,7 @@ function generarFilaIva(iva, controlador) {
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
   // Always add VER REGISTRO IVA button
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegIva")
-    .attr("id", iva.id_registroIva)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO IVA")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (iva.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-iva")
-      .attr("type", "button")
-      .attr("data-id", iva.id_registroIva)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-iva")
     .attr("type", "button")
@@ -3152,44 +2653,11 @@ $("#btn-eliminarIva").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegIva", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarIva/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    const fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_iva").val(fecha);
-    $("#ver_fecha_pres_iva").val(data.fecha_pres);
-    $("#ver_casino_iva").val(data.casino);
-    $("#ver_saldo_iva").val("$ " + formatoAR(data.saldo));
-    $("#ver_obs_iva").val(data.obs || "");
-
-    $("#modalVerIva").modal("show");
-  });
-});
-
 $(document).on("click", "#btn-ObsIva", function (e) {
   const texto = $(this).data("obs");
   $("#obsIvaContent").text(texto);
 
   $("#modalObsIva").modal("show");
-});
-
-$("#btn-buscarIva").on("click", function (e) {
-  e.preventDefault();
-
-  cargarIva({
-    page: 1,
-    perPage: $("#herramientasPaginacionIVA").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
 });
 
 $("#btn-descargarIvaCsv").on("click", function () {
@@ -3201,23 +2669,8 @@ $("#btn-descargarIvaCsv").on("click", function () {
   $("#collapseDescargarIva .has-error").removeClass("has-error");
   $("#collapseDescargarIva .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoIva")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_ivaDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -3239,23 +2692,8 @@ $("#btn-descargarIvaExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoIva")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_ivaDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -3269,7 +2707,6 @@ $("#btn-descargarIvaExcel").on("click", function (e) {
 });
 
 //TGI
-let TGI_PARTIDAS_REQ_ID = 0;
 
 var TGI_SUPPRESS_CASINO_CHANGE = false;
 
@@ -3283,8 +2720,6 @@ $(function () {
 });
 
 function cargarArchivosTGILista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("TGIId", id);
   var $list = $(targetArchivosDoc("TGI", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -3341,48 +2776,6 @@ function cargarArchivosTGILista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-TGI", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro TGI");
-  cargarArchivosTGILista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
-function cargarPartidasTGI(casinoId, selectedId) {
-  const reqId = ++TGI_PARTIDAS_REQ_ID;
-  const $sel = $("#partida_TGI");
-
-  if (selectedId != null) $sel.data("selected-id", String(selectedId));
-
-  $sel.prop("disabled", true).html('<option value="">Cargando…</option>');
-
-  if (!casinoId) {
-    $sel
-      .html('<option value="">Elegí un casino</option>')
-      .prop("disabled", false);
-    $sel.removeData("selected-id");
-    return;
-  }
-
-  $.getJSON("/documentosContables/getTGI_partidaPorCasino", {
-    casino: casinoId,
-  })
-    .done(function (data) {
-      if (reqId !== TGI_PARTIDAS_REQ_ID) return;
-      populateSelect($sel, data, "id", "partida", "Elegí una partida");
-      const sid = $sel.data("selected-id");
-      if (sid != null) $sel.val(sid);
-    })
-    .fail(function () {
-      if (reqId !== TGI_PARTIDAS_REQ_ID) return;
-      $sel.html('<option value="">Error al cargar</option>');
-    })
-    .always(function () {
-      if (reqId !== TGI_PARTIDAS_REQ_ID) return;
-      $sel.prop("disabled", false).removeData("selected-id");
-    });
-}
-
 $(document).on("click", ".btn-del-archivo-TGI", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -3390,13 +2783,6 @@ $(document).on("click", ".btn-del-archivo-TGI", function () {
   $("#btn-eliminarArchivo").attr("data-id", id);
   $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
 });
-
-$("#modalCargarTGI")
-  .off("shown.bs.modal.tgi")
-  .on("shown.bs.modal.tgi", function () {
-    if ($("#TGI_modo").val() === "edit") return;
-    cargarPartidasTGI($("#casinoTGI").val());
-  });
 
 function abrirModalTGIEditar(id) {
   resetFormTGI();
@@ -3474,16 +2860,11 @@ function resetFormTGI() {
     .val("")
     .trigger("change");
 
-  $("#partida_TGI")
-    .removeData("selected-id")
-    .html('<option value="">Elegí una partida</option>');
-
-  $("#uploadsTGITable tbody").empty();
+    $("#uploadsTGITable tbody").empty();
   $("#uploadsTGIWrap").hide();
   $("#uploadsTGIContainer").empty();
-  $("#fileNameTGI").val("No se ha seleccionado ningún archivo");
+  $("#fileNameTGI").val("");
 
-  TGI_PARTIDAS_REQ_ID++;
 }
 
 function abrirModalTGICrear() {
@@ -3509,25 +2890,6 @@ $(document).on("click", ".btn-edit-TGI", function () {
 $(document).on("click", "#TGI_nueva_partida", function (e) {
   $("#modalCargarTGI_partida").modal("show");
 });
-
-function cargarTGI_partidas(selectedId) {
-  $.getJSON("/documentosContables/getTGI_partidaPorCasino", function (data) {
-    $.each(data, function (_, t) {
-      var id = t.id;
-      var txt = t.nombre || "";
-      $sel.append('<option value="' + id + '">' + txt + "</option>");
-    });
-
-    if (selectedId) $sel.val(String(selectedId));
-  })
-    .fail(function (xhr) {
-      console.error(xhr.responseText || xhr);
-      $sel.empty().append('<option value="">Error al cargar</option>');
-    })
-    .always(function () {
-      $sel.prop("disabled", false);
-    });
-}
 
 $(document).on("click", "#TGI_partida_gestionar", function () {
   $("#modalTGI_partida_gestionar").modal("show");
@@ -3844,8 +3206,6 @@ $(document).on("click", ".btn-editTGI_partida", function () {
   const id = $(this).closest("tr").data("id");
   const partida = $(this).closest("tr").data("partida");
   const estado = $(this).closest("tr").data("estado");
-  var $sel = $("#ModifTGI_partida_estado");
-
   $("#ModifId_TGI_partida").val(id);
   $("#ModifEstadoTGI_partida").val(estado);
   $("#ModifTGI_partida_partida").val(partida);
@@ -4114,17 +3474,6 @@ $(document).on("click", "#guardarRegistroTGI", function (e) {
   });
 });
 
-$("#btn-buscarTGI").on("click", function (e) {
-  e.preventDefault();
-  cargarTGI({
-    page: 1,
-    perPage: $("#herramientasPaginacionTGI").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceTGI(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarTGI({
@@ -4187,25 +3536,7 @@ function generarFilaTGI(TGI, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegTGI")
-    .attr("id", TGI.id_registroTGI)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO TGI")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (TGI.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-TGI")
-      .attr("type", "button")
-      .attr("data-id", TGI.id_registroTGI)
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-TGI")
     .attr("type", "button")
@@ -4261,106 +3592,7 @@ $("#btn-eliminarTGI").on("click", function () {
       console.log("error");
     });
 });
-$(document)
-  .off("click", ".btn-verRegTGI")
-  .on("click", ".btn-verRegTGI", function () {
-    const id = $(this).attr("id");
-
-    $.getJSON(`/documentosContables/llenarTGI/${id}`, function (data) {
-      if (!data) {
-        alert("No se encontraron datos");
-        return;
-      }
-
-      $("#ver_fecha_TGI").val(convertirMesAno(data.fecha));
-      $("#ver_casino_TGI").val(data.casino || "");
-
-      renderVerPagosTGI("#ver_pagosTGIContainer", data.pagos || []);
-
-      $("#modalVerTGICSF").modal("show");
-    }).fail(function (xhr) {
-      console.error("Error llenarTGI:", xhr?.responseText || xhr.statusText);
-      alert("No se pudo obtener el registro TGI.");
-    });
-  });
-
 let VER_TGI_PAGOS_IDX = 0;
-
-function renderFilaPagoTGIReadOnly(p) {
-  const idx = ++VER_TGI_PAGOS_IDX;
-
-  const $row = $(
-    '<div class="row pago-row" data-idx="' +
-      idx +
-      '">\
-        <div class="col-md-2">\
-          <h5>Partida</h5>\
-          <div class="form-control">' +
-      (p.partida || "") +
-      '</div>\
-        </div>\
-        <div class="col-md-1">\
-          <h5>Cuota</h5>\
-          <input type="text" class="form-control pago-cuota" id="ver_pago_cuota_' +
-      idx +
-      '" readonly>\
-        </div>\
-        <div class="col-md-2">\
-          <h5>Importe</h5>\
-          <input type="text" class="form-control pago-importe" id="ver_pago_importe_' +
-      idx +
-      '" placeholder="$" readonly>\
-        </div>\
-        <div class="col-md-2">\
-          <h5>Vencimiento</h5>\
-          <div class="input-group date" id="ver_pago_vto_' +
-      idx +
-      '">\
-            <input type="text" class="form-control pago-vto" placeholder="yyyy-mm-dd" autocomplete="off" readonly>\
-          </div>\
-        </div>\
-        <div class="col-md-2">\
-          <h5>Fecha pago</h5>\
-          <div class="input-group date" id="ver_pago_pago_' +
-      idx +
-      '">\
-            <input type="text" class="form-control pago-pago" placeholder="yyyy-mm-dd" autocomplete="off" readonly>\
-          </div>\
-        </div>\
-        <div class="col-md-3">\
-          <h5>Observacion</h5>\
-          <textarea class="form-control pago-observacion" id="ver_pago_observacion_' +
-      idx +
-      '" placeholder="$" readonly></textarea>\
-        </div>\
-      </div>'
-  );
-
-  $row.find(".pago-cuota").val(p.cuota || "");
-  $row
-    .find(".pago-importe")
-    .val(p.importe != null ? "$ " + formatoAR(p.importe) : "");
-  $row.find(".pago-vto").val(p.fecha_vencimiento || "");
-  $row.find(".pago-pago").val(p.fecha_pago || "");
-  $row.find(".pago-observacion").val(p.observacion || "");
-
-  return $row;
-}
-
-function renderVerPagosTGI(containerSelector, pagos) {
-  const $container = $(containerSelector);
-  $container.empty();
-  VER_TGI_PAGOS_IDX = 0;
-
-  if (!Array.isArray(pagos) || pagos.length === 0) {
-    $container.append(
-      '<div class="alert alert-info" role="alert">No hay pagos registrados para este TGI.</div>'
-    );
-    return;
-  }
-
-  pagos.forEach((p) => $container.append(renderFilaPagoTGIReadOnly(p)));
-}
 
 $("#btn-descargarTGICsv").on("click", function () {
   var _fg = filtrosGlobalDescarga();
@@ -4371,23 +3603,8 @@ $("#btn-descargarTGICsv").on("click", function () {
   $("#collapseDescargarTGI .has-error").removeClass("has-error");
   $("#collapseDescargarTGI .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoTGI")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_TGIDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -4410,22 +3627,8 @@ $("#btn-descargarTGIExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoTGI")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_TGIDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -4473,8 +3676,6 @@ $(function () {
 });
 
 function cargarArchivosIMP_AP_OLLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("IMP_AP_OLId", id);
   var $list = $(targetArchivosDoc("IMP_AP_OL", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -4530,13 +3731,6 @@ function cargarArchivosIMP_AP_OLLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-IMP_AP_OL", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro IMP_AP_OL");
-  cargarArchivosIMP_AP_OLLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-IMP_AP_OL", function () {
   const id = $(this).data("id");
@@ -4604,13 +3798,12 @@ function resetFormIMP_AP_OL() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameIMP_AP_OL").val("No se ha seleccionado ningún archivo");
-  $("#fileListIMP_AP_OL").empty();
-  $("#uploadIMP_AP_OL").val("");
+  $("#fileNameIMP_AP_OL").val("");
+    $("#uploadIMP_AP_OL").val("");
   $("#uploadsIMP_AP_OLContainer").empty();
   $("#uploadsIMP_AP_OLTable tbody").empty();
   $("#uploadsIMP_AP_OLWrap").hide();
-  $("#fileNameIMP_AP_OL").val("No se ha seleccionado ningún archivo");
+  $("#fileNameIMP_AP_OL").val("");
 }
 
 function abrirModalIMP_AP_OLCrear() {
@@ -4773,17 +3966,6 @@ $(document).on("click", "#guardarRegistroIMP_AP_OL", function (e) {
   });
 });
 
-$("#btn-buscarIMP_AP_OL").on("click", function (e) {
-  e.preventDefault();
-  cargarIMP_AP_OL({
-    page: 1,
-    perPage: $("#herramientasPaginacionIMP_AP_OL").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceIMP_AP_OL(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarIMP_AP_OL({
@@ -4849,26 +4031,6 @@ function generarFilaIMP_AP_OL(IMP_AP_OL, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegIMP_AP_OL")
-    .attr("id", IMP_AP_OL.id_registroIMP_AP_OL)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO IMPUESTO A APUESTAS ONLINE")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
-  if (IMP_AP_OL.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-IMP_AP_OL")
-      .attr("type", "button")
-      .attr("data-id", IMP_AP_OL.id_registroIMP_AP_OL)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-IMP_AP_OL")
     .attr("type", "button")
@@ -4929,37 +4091,6 @@ $("#btn-eliminarIMP_AP_OL").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegIMP_AP_OL", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarIMP_AP_OL/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_IMP_AP_OL").val(fecha);
-    $("#ver_fecha_pres_IMP_AP_OL").val(data.fecha_pres);
-    $("#ver_casino_IMP_AP_OL").val(data.casino);
-
-    $("#ver_qna_IMP_AP_OL").val(data.qna + "°");
-    $("#ver_fecha_pago_IMP_AP_OL").val(data.fecha_pago);
-    $("#ver_monto_pagado_IMP_AP_OL").val("$ " + formatoAR(data.monto_pagado));
-    $("#ver_monto_apuestas_IMP_AP_OL").val(
-      "$ " + formatoAR(data.monto_apuestas)
-    );
-
-    $("#ver_alicuota_IMP_AP_OL").val(formatoAR(data.alicuota) + " %");
-    $("#ver_impuesto_determinado_IMP_AP_OL").val(
-      "$ " + formatoAR(data.impuesto_determinado)
-    );
-
-    $("#modalVerIMP_AP_OL").modal("show");
-  });
-});
-
 $("#btn-descargarIMP_AP_OLExcel").on("click", function (e) {
   $("#collapseDescargarIMP_AP_OL .has-error").removeClass("has-error");
   $("#collapseDescargarIMP_AP_OL .js-error").remove();
@@ -4970,22 +4101,8 @@ $("#btn-descargarIMP_AP_OLExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoIMP_AP_OL")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_IMP_AP_OLDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -5007,23 +4124,8 @@ $("#btn-descargarIMP_AP_OLCsv").on("click", function () {
   $("#collapseDescargarIMP_AP_OL .has-error").removeClass("has-error");
   $("#collapseDescargarIMP_AP_OL .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoIMP_AP_OL")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_IMP_AP_OLDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -5071,8 +4173,6 @@ $(function () {
 });
 
 function cargarArchivosIMP_AP_MTMLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("IMP_AP_MTMId", id);
   var $list = $(targetArchivosDoc("IMP_AP_MTM", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -5128,13 +4228,6 @@ function cargarArchivosIMP_AP_MTMLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-IMP_AP_MTM", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro IMP_AP_MTM");
-  cargarArchivosIMP_AP_MTMLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-IMP_AP_MTM", function () {
   const id = $(this).data("id");
@@ -5203,13 +4296,12 @@ function resetFormIMP_AP_MTM() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameIMP_AP_MTM").val("No se ha seleccionado ningún archivo");
-  $("#fileListIMP_AP_MTM").empty();
-  $("#uploadIMP_AP_MTM").val("");
+  $("#fileNameIMP_AP_MTM").val("");
+    $("#uploadIMP_AP_MTM").val("");
   $("#uploadsIMP_AP_MTMContainer").empty();
   $("#uploadsIMP_AP_MTMTable tbody").empty();
   $("#uploadsIMP_AP_MTMWrap").hide();
-  $("#fileNameIMP_AP_MTM").val("No se ha seleccionado ningún archivo");
+  $("#fileNameIMP_AP_MTM").val("");
 }
 
 function abrirModalIMP_AP_MTMCrear() {
@@ -5378,17 +4470,6 @@ $(document).on("click", "#guardarRegistroIMP_AP_MTM", function (e) {
   });
 });
 
-$("#btn-buscarIMP_AP_MTM").on("click", function (e) {
-  e.preventDefault();
-  cargarIMP_AP_MTM({
-    page: 1,
-    perPage: $("#herramientasPaginacionIMP_AP_MTM").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceIMP_AP_MTM(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarIMP_AP_MTM({
@@ -5454,26 +4535,6 @@ function generarFilaIMP_AP_MTM(IMP_AP_MTM, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegIMP_AP_MTM")
-    .attr("id", IMP_AP_MTM.id_registroIMP_AP_MTM)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO IMPUESTO A APUESTAS MTM")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
-  if (IMP_AP_MTM.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-IMP_AP_MTM")
-      .attr("type", "button")
-      .attr("data-id", IMP_AP_MTM.id_registroIMP_AP_MTM)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-IMP_AP_MTM")
     .attr("type", "button")
@@ -5532,39 +4593,6 @@ $("#btn-eliminarIMP_AP_MTM").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegIMP_AP_MTM", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarIMP_AP_MTM/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_IMP_AP_MTM").val(fecha);
-    $("#ver_fecha_pres_IMP_AP_MTM").val(data.fecha_pres);
-    $("#ver_casino_IMP_AP_MTM").val(data.casino);
-
-    $("#ver_qna_IMP_AP_MTM").val(data.qna + "°");
-    $("#ver_fecha_pago_IMP_AP_MTM").val(data.fecha_pago);
-    $("#ver_monto_pagado_IMP_AP_MTM").val("$ " + formatoAR(data.monto_pagado));
-    $("#ver_monto_apuestas_IMP_AP_MTM").val(
-      "$ " + formatoAR(data.monto_apuestas)
-    );
-
-    $("#ver_cant_mtm_IMP_AP_MTM").val(data.cant_mtm);
-
-    $("#ver_alicuota_IMP_AP_MTM").val(formatoAR(data.alicuota) + " %");
-    $("#ver_impuesto_determinado_IMP_AP_MTM").val(
-      "$ " + formatoAR(data.impuesto_determinado)
-    );
-
-    $("#modalVerIMP_AP_MTM").modal("show");
-  });
-});
-
 $("#btn-descargarIMP_AP_MTMExcel").on("click", function (e) {
   $("#collapseDescargarIMP_AP_MTM .has-error").removeClass("has-error");
   $("#collapseDescargarIMP_AP_MTM .js-error").remove();
@@ -5575,22 +4603,8 @@ $("#btn-descargarIMP_AP_MTMExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoIMP_AP_MTM")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_IMP_AP_MTMDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -5612,23 +4626,8 @@ $("#btn-descargarIMP_AP_MTMCsv").on("click", function () {
   $("#collapseDescargarIMP_AP_MTM .has-error").removeClass("has-error");
   $("#collapseDescargarIMP_AP_MTM .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoIMP_AP_MTM")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_IMP_AP_MTMDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -5653,8 +4652,6 @@ instalarNumeroFlexibleAR("#importe_dolares_PagosMayoresMesas", {
 });
 
 function cargarArchivosPagosMayoresMesasLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PagosMayoresMesasId", id);
   var $list = $(targetArchivosDoc("PagosMayoresMesas", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -5711,13 +4708,6 @@ function cargarArchivosPagosMayoresMesasLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-PagosMayoresMesas", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro PagosMayoresMesas");
-  cargarArchivosPagosMayoresMesasLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-PagosMayoresMesas", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -5766,13 +4756,12 @@ function resetFormPagosMayoresMesas() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNamePagosMayoresMesas").val("No se ha seleccionado ningún archivo");
-  $("#fileListPagosMayoresMesas").empty();
-  $("#uploadPagosMayoresMesas").val("");
+  $("#fileNamePagosMayoresMesas").val("");
+    $("#uploadPagosMayoresMesas").val("");
   $("#uploadsPagosMayoresMesasContainer").empty();
   $("#uploadsPagosMayoresMesasTable tbody").empty();
   $("#uploadsPagosMayoresMesasWrap").hide();
-  $("#fileNamePagosMayoresMesas").val("No se ha seleccionado ningún archivo");
+  $("#fileNamePagosMayoresMesas").val("");
 }
 
 function abrirModalPagosMayoresMesasCrear() {
@@ -5911,17 +4900,6 @@ $(document).on("click", "#guardarRegistroPagosMayoresMesas", function (e) {
   });
 });
 
-$("#btn-buscarPagosMayoresMesas").on("click", function (e) {
-  e.preventDefault();
-  cargarPagosMayoresMesas({
-    page: $("#herramientasPaginacionPagosMayoresMesas").getCurrentPage(), // antes: PAgos...
-    perPage: $("#herramientasPaginacionPagosMayoresMesas").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePagosMayoresMesas(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPagosMayoresMesas({
@@ -5994,27 +4972,7 @@ function generarFilaPagosMayoresMesas(PagosMayoresMesas, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegPagosMayoresMesas")
-    .attr("id", PagosMayoresMesas.id_registroPagosMayoresMesas)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER PAGO MAYOR DE MESA DE PAÑO")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (PagosMayoresMesas.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-PagosMayoresMesas")
-      .attr("type", "button")
-      .attr("data-id", PagosMayoresMesas.id_registroPagosMayoresMesas)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PagosMayoresMesas")
     .attr("type", "button")
@@ -6067,32 +5025,6 @@ $("#btn-eliminarPagosMayoresMesas").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegPagosMayoresMesas", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarPagosMayoresMesas/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_PagosMayoresMesas").val(fecha);
-    $("#ver_casino_PagosMayoresMesas").val(data.casino);
-
-    $("#ver_cant_pagos_PagosMayoresMesas").val(data.cant_pagos);
-    $("#ver_importe_pesos_PagosMayoresMesas").val(
-      "$ " + formatoAR(data.importe_pesos)
-    );
-    $("#ver_importe_usd_PagosMayoresMesas").val(
-      "USD " + formatoAR(data.importe_usd)
-    );
-
-    $("#modalVerPagosMayoresMesas").modal("show");
-  });
-});
-
 $("#btn-descargarPagosMayoresMesasExcel").on("click", function (e) {
   $("#collapseDescargarPagosMayoresMesas .has-error").removeClass("has-error");
   $("#collapseDescargarPagosMayoresMesas .js-error").remove();
@@ -6103,22 +5035,8 @@ $("#btn-descargarPagosMayoresMesasExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPagosMayoresMesas")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PagosMayoresMesasDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -6140,23 +5058,8 @@ $("#btn-descargarPagosMayoresMesasCsv").on("click", function () {
   $("#collapseDescargarPagosMayoresMesas .has-error").removeClass("has-error");
   $("#collapseDescargarPagosMayoresMesas .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoPagosMayoresMesas")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PagosMayoresMesasDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -6172,8 +5075,6 @@ $("#btn-descargarPagosMayoresMesasCsv").on("click", function () {
 //IMPUESTOS A DEUDA ESTADO
 
 function cargarArchivosDeudaEstadoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("DeudaEstadoId", id);
   var $list = $(targetArchivosDoc("DeudaEstado", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -6230,13 +5131,6 @@ function cargarArchivosDeudaEstadoLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-DeudaEstado", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro DeudaEstado");
-  cargarArchivosDeudaEstadoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-DeudaEstado", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -6291,13 +5185,12 @@ function resetFormDeudaEstado() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameDeudaEstado").val("No se ha seleccionado ningún archivo");
-  $("#fileListDeudaEstado").empty();
-  $("#uploadDeudaEstado").val("");
+  $("#fileNameDeudaEstado").val("");
+    $("#uploadDeudaEstado").val("");
   $("#uploadsDeudaEstadoContainer").empty();
   $("#uploadsDeudaEstadoTable tbody").empty();
   $("#uploadsDeudaEstadoWrap").hide();
-  $("#fileNameDeudaEstado").val("No se ha seleccionado ningún archivo");
+  $("#fileNameDeudaEstado").val("");
 }
 
 function abrirModalDeudaEstadoCrear() {
@@ -6428,17 +5321,6 @@ $(document).on("click", "#guardarRegistroDeudaEstado", function (e) {
   });
 });
 
-$("#btn-buscarDeudaEstado").on("click", function (e) {
-  e.preventDefault();
-  cargarDeudaEstado({
-    page: 1,
-    perPage: $("#herramientasPaginacionDeudaEstado").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceDeudaEstado(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarDeudaEstado({
@@ -6504,28 +5386,6 @@ function generarFilaDeudaEstado(DeudaEstado, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  if (incum == "Si") {
-    const btnView = $("<a>")
-      .addClass("btn btn-success btn-sm btn-verRegDeudaEstado")
-      .attr("id", DeudaEstado.id_registroDeudaEstado)
-      .attr("target", "_blank")
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER INCUMPLIMIENTO")
-      .append($("<i>").addClass("fa fa-fw fa-eye"));
-    // [ver/archivos removidos] tdAcc.append(btnView);
-  }
-  if (DeudaEstado.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-DeudaEstado")
-      .attr("type", "button")
-      .attr("data-id", DeudaEstado.id_registroDeudaEstado)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DeudaEstado")
     .attr("type", "button")
@@ -6586,21 +5446,6 @@ $("#btn-eliminarDeudaEstado").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegDeudaEstado", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarDeudaEstado/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    $("#ver_incumplimiento_DeudaEstado").val(data.incumplimiento);
-
-    $("#modalVerDeudaEstado").modal("show");
-  });
-});
-
 $("#btn-descargarDeudaEstadoExcel").on("click", function (e) {
   $("#collapseDescargarDeudaEstado .has-error").removeClass("has-error");
   $("#collapseDescargarDeudaEstado .js-error").remove();
@@ -6611,22 +5456,8 @@ $("#btn-descargarDeudaEstadoExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoDeudaEstado")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_DeudaEstadoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -6648,23 +5479,8 @@ $("#btn-descargarDeudaEstadoCsv").on("click", function () {
   $("#collapseDescargarDeudaEstado .has-error").removeClass("has-error");
   $("#collapseDescargarDeudaEstado .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoDeudaEstado")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_DeudaEstadoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -6680,8 +5496,6 @@ $("#btn-descargarDeudaEstadoCsv").on("click", function () {
 //REPORTE DE OPERACIONES Y LAVADO DE ACTIVOS
 
 function cargarArchivosReporteYLavadoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("ReporteYLavadoId", id);
   var $list = $(targetArchivosDoc("ReporteYLavado", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -6738,13 +5552,6 @@ function cargarArchivosReporteYLavadoLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-ReporteYLavado", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro ReporteYLavado");
-  cargarArchivosReporteYLavadoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-ReporteYLavado", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -6793,13 +5600,12 @@ function resetFormReporteYLavado() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameReporteYLavado").val("No se ha seleccionado ningún archivo");
-  $("#fileListReporteYLavado").empty();
-  $("#uploadReporteYLavado").val("");
+  $("#fileNameReporteYLavado").val("");
+    $("#uploadReporteYLavado").val("");
   $("#uploadsReporteYLavadoContainer").empty();
   $("#uploadsReporteYLavadoTable tbody").empty();
   $("#uploadsReporteYLavadoWrap").hide();
-  $("#fileNameReporteYLavado").val("No se ha seleccionado ningún archivo");
+  $("#fileNameReporteYLavado").val("");
 }
 
 function abrirModalReporteYLavadoCrear() {
@@ -6979,6 +5785,9 @@ $(document).ready(function () {
     // Some datepickers require calling datetimepicker('update', '') or clearing the widget
     $("#filtro_global_desde").datetimepicker('update', '');
     $("#filtro_global_hasta").datetimepicker('update', '');
+
+    // el boton tambien devuelve las tablas a su orden por defecto
+    if (typeof limpiarOrdenDocs === "function") limpiarOrdenDocs();
 
     validarBotonVerValidados();
     buscarGlobal();
@@ -7551,27 +6360,7 @@ function generarFilaReporteYLavado(ReporteYLavado, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegReporteYLavado")
-    .attr("id", ReporteYLavado.id_registroReporteYLavado)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REPORTE")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (ReporteYLavado.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-ReporteYLavado")
-      .attr("type", "button")
-      .attr("data-id", ReporteYLavado.id_registroReporteYLavado)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ReporteYLavado")
     .attr("type", "button")
@@ -7633,26 +6422,6 @@ $("#btn-eliminarReporteYLavado").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegReporteYLavado", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarReporteYLavado/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_ReporteYLavado").val(fecha);
-    $("#ver_casino_ReporteYLavado").val(data.casino);
-    $("#ver_reporte_sistem_ReporteYLavado").val(data.reporte_sistematico);
-    $("#ver_reporte_oper_ReporteYLavado").val(data.reporte_operaciones);
-
-    $("#modalVerReporteYLavado").modal("show");
-  });
-});
-
 $("#btn-descargarReporteYLavadoCsv").on("click", function () {
   var _fg = filtrosGlobalDescarga();
   const casino = _fg.casino;
@@ -7662,23 +6431,8 @@ $("#btn-descargarReporteYLavadoCsv").on("click", function () {
   $("#collapseDescargarReporteYLavado .has-error").removeClass("has-error");
   $("#collapseDescargarReporteYLavado .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoReporteYLavado")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_ReporteYLavadoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -7701,22 +6455,8 @@ $("#btn-descargarReporteYLavadoExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoReporteYLavado")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_ReporteYLavadoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -7763,8 +6503,6 @@ $(function () {
 });
 
 function cargarArchivosRegistrosContablesLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("RegistrosContablesId", id);
   var $list = $(targetArchivosDoc("RegistrosContables", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -7820,13 +6558,6 @@ function cargarArchivosRegistrosContablesLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-RegistrosContables", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro RegistrosContables");
-  cargarArchivosRegistrosContablesLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-RegistrosContables", function () {
   const id = $(this).data("id");
@@ -7890,13 +6621,12 @@ function resetFormRegistrosContables() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameRegistrosContables").val("No se ha seleccionado ningún archivo");
-  $("#fileListRegistrosContables").empty();
-  $("#uploadRegistrosContables").val("");
+  $("#fileNameRegistrosContables").val("");
+    $("#uploadRegistrosContables").val("");
   $("#uploadsRegistrosContablesContainer").empty();
   $("#uploadsRegistrosContablesTable tbody").empty();
   $("#uploadsRegistrosContablesWrap").hide();
-  $("#fileNameRegistrosContables").val("No se ha seleccionado ningún archivo");
+  $("#fileNameRegistrosContables").val("");
 }
 
 function abrirModalRegistrosContablesCrear() {
@@ -8078,17 +6808,6 @@ $(document).on("click", "#guardarRegistroRegistrosContables", function (e) {
   });
 });
 
-$("#btn-buscarRegistrosContables").on("click", function (e) {
-  e.preventDefault();
-  cargarRegistrosContables({
-    page: 1,
-    perPage: $("#herramientasPaginacionRegistrosContables").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceRegistrosContables(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarRegistrosContables({
@@ -8163,27 +6882,7 @@ function generarFilaRegistrosContables(RegistrosContables, controlador) {
     .append($("<td>").addClass("col-xs-3").text(total_usd));
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegRegistrosContables")
-    .attr("id", RegistrosContables.id_registroRegistrosContables)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO CONTABLE")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (RegistrosContables.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-RegistrosContables")
-      .attr("type", "button")
-      .attr("data-id", RegistrosContables.id_registroRegistrosContables)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-RegistrosContables")
     .attr("type", "button")
@@ -8245,38 +6944,6 @@ $("#btn-eliminarRegistrosContables").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegRegistrosContables", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarRegistrosContables/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_RegistrosContables").val(fecha);
-    $("#ver_casino_RegistrosContables").val(data.casino);
-
-    $("#ver_mtm_RegistrosContables").val("$ " + formatoAR(data.mtm));
-    $("#ver_mtm_usd_RegistrosContables").val("USD " + formatoAR(data.mtm_usd));
-
-    $("#ver_mp_RegistrosContables").val("$ " + formatoAR(data.mp));
-    $("#ver_mp_usd_RegistrosContables").val("USD " + formatoAR(data.mp_usd));
-
-    $("#ver_bingo_RegistrosContables").val("$ " + formatoAR(data.bingo));
-    $("#ver_jol_RegistrosContables").val("$ " + formatoAR(data.jol));
-
-    $("#ver_total_RegistrosContables").val("$ " + formatoAR(data.total));
-    $("#ver_total_usd_RegistrosContables").val(
-      "USD " + formatoAR(data.total_usd)
-    );
-
-    $("#modalVerRegistrosContables").modal("show");
-  });
-});
-
 $("#btn-descargarRegistrosContablesExcel").on("click", function (e) {
   $("#collapseDescargarRegistrosContables .has-error").removeClass("has-error");
   $("#collapseDescargarRegistrosContables .js-error").remove();
@@ -8287,22 +6954,8 @@ $("#btn-descargarRegistrosContablesExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoRegistrosContables")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_RegistrosContablesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -8324,23 +6977,8 @@ $("#btn-descargarRegistrosContablesCsv").on("click", function () {
   $("#collapseDescargarRegistrosContables .has-error").removeClass("has-error");
   $("#collapseDescargarRegistrosContables .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoRegistrosContables")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_RegistrosContablesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -8361,8 +6999,6 @@ instalarNumeroFlexibleAR("#monto_pagado_AportesPatronales", {
 });
 
 function cargarArchivosAportesPatronalesLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("AportesPatronalesId", id);
   var $list = $(targetArchivosDoc("AportesPatronales", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -8418,13 +7054,6 @@ function cargarArchivosAportesPatronalesLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-AportesPatronales", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro AportesPatronales");
-  cargarArchivosAportesPatronalesLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-AportesPatronales", function () {
   const id = $(this).data("id");
@@ -8488,13 +7117,12 @@ function resetFormAportesPatronales() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameAportesPatronales").val("No se ha seleccionado ningún archivo");
-  $("#fileListAportesPatronales").empty();
-  $("#uploadAportesPatronales").val("");
+  $("#fileNameAportesPatronales").val("");
+    $("#uploadAportesPatronales").val("");
   $("#uploadsAportesPatronalesContainer").empty();
   $("#uploadsAportesPatronalesTable tbody").empty();
   $("#uploadsAportesPatronalesWrap").hide();
-  $("#fileNameAportesPatronales").val("No se ha seleccionado ningún archivo");
+  $("#fileNameAportesPatronales").val("");
 }
 
 function abrirModalAportesPatronalesCrear() {
@@ -8646,17 +7274,6 @@ $(document).on("click", "#guardarRegistroAportesPatronales", function (e) {
   });
 });
 
-$("#btn-buscarAportesPatronales").on("click", function (e) {
-  e.preventDefault();
-  cargarAportesPatronales({
-    page: 1,
-    perPage: $("#herramientasPaginacionAportesPatronales").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceAportesPatronales(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarAportesPatronales({
@@ -8728,27 +7345,7 @@ function generarFilaAportesPatronales(AportesPatronales, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegAportesPatronales")
-    .attr("id", AportesPatronales.id_registroAportesPatronales)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER APORTE PATRONAL")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (AportesPatronales.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-AportesPatronales")
-      .attr("type", "button")
-      .attr("data-id", AportesPatronales.id_registroAportesPatronales)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-AportesPatronales")
     .attr("type", "button")
@@ -8810,33 +7407,6 @@ $("#btn-eliminarAportesPatronales").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegAportesPatronales", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarAportesPatronales/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_AportesPatronales").val(fecha);
-    $("#ver_casino_AportesPatronales").val(data.casino);
-
-    $("#ver_fecha_pago_AportesPatronales").val(data.fecha_pago);
-    $("#ver_fecha_AportesPatronalesPres").val(data.fecha_pres);
-
-    $("#ver_cant_empleados_AportesPatronales").val(data.cant_empleados);
-    $("#ver_monto_pagado_AportesPatronales").val(
-      "$ " + formatoAR(data.monto_pagado)
-    );
-    $("#ver_obs_AportesPatronales").val(data.obs_AportesPatronales);
-
-    $("#modalVerAportesPatronales").modal("show");
-  });
-});
-
 $("#btn-descargarAportesPatronalesExcel").on("click", function (e) {
   $("#collapseDescargarAportesPatronales .has-error").removeClass("has-error");
   $("#collapseDescargarAportesPatronales .js-error").remove();
@@ -8847,22 +7417,8 @@ $("#btn-descargarAportesPatronalesExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoAportesPatronales")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_AportesPatronalesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -8884,23 +7440,8 @@ $("#btn-descargarAportesPatronalesCsv").on("click", function () {
   $("#collapseDescargarAportesPatronales .has-error").removeClass("has-error");
   $("#collapseDescargarAportesPatronales .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoAportesPatronales")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_AportesPatronalesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -8921,8 +7462,6 @@ instalarNumeroFlexibleAR("#importe_PromoTickets", {
 });
 
 function cargarArchivosPromoTicketsLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PromoTicketsId", id);
   var $list = $(targetArchivosDoc("PromoTickets", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -8979,13 +7518,6 @@ function cargarArchivosPromoTicketsLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-PromoTickets", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro PromoTickets");
-  cargarArchivosPromoTicketsLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-PromoTickets", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -9028,13 +7560,12 @@ function resetFormPromoTickets() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNamePromoTickets").val("No se ha seleccionado ningún archivo");
-  $("#fileListPromoTickets").empty();
-  $("#uploadPromoTickets").val("");
+  $("#fileNamePromoTickets").val("");
+    $("#uploadPromoTickets").val("");
   $("#uploadsPromoTicketsContainer").empty();
   $("#uploadsPromoTicketsTable tbody").empty();
   $("#uploadsPromoTicketsWrap").hide();
-  $("#fileNamePromoTickets").val("No se ha seleccionado ningún archivo");
+  $("#fileNamePromoTickets").val("");
 }
 
 function abrirModalPromoTicketsCrear() {
@@ -9172,17 +7703,6 @@ $(document).on("click", "#guardarRegistroPromoTickets", function (e) {
   });
 });
 
-$("#btn-buscarPromoTickets").on("click", function (e) {
-  e.preventDefault();
-  cargarPromoTickets({
-    page: 1,
-    perPage: $("#herramientasPaginacionPromoTickets").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePromoTickets(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPromoTickets({
@@ -9247,17 +7767,6 @@ function generarFilaPromoTickets(PromoTickets, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  if (PromoTickets.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-PromoTickets")
-      .attr("type", "button")
-      .attr("data-id", PromoTickets.id_registroPromoTickets)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PromoTickets")
     .attr("type", "button")
@@ -9319,31 +7828,6 @@ $("#btn-eliminarPromoTickets").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegPromoTickets", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarPromoTickets/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_PromoTickets").val(fecha);
-    $("#ver_casino_PromoTickets").val(data.casino);
-
-    $("#ver_fecha_pago_PromoTickets").val(data.fecha_pago);
-    $("#ver_fecha_PromoTicketsPres").val(data.fecha_pres);
-
-    $("#ver_cant_empleados_PromoTickets").val(data.cant_empleados);
-    $("#ver_monto_pagado_PromoTickets").val(data.monto_pagado);
-    $("#ver_obs_PromoTickets").val(data.obs_PromoTickets);
-
-    $("#modalVerPromoTickets").modal("show");
-  });
-});
-
 $("#btn-descargarPromoTicketsExcel").on("click", function (e) {
   $("#collapseDescargarPromoTickets .has-error").removeClass("has-error");
   $("#collapseDescargarPromoTickets .js-error").remove();
@@ -9354,22 +7838,8 @@ $("#btn-descargarPromoTicketsExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPromoTickets")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PromoTicketsDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -9391,23 +7861,8 @@ $("#btn-descargarPromoTicketsCsv").on("click", function () {
   $("#collapseDescargarPromoTickets .has-error").removeClass("has-error");
   $("#collapseDescargarPromoTickets .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoPromoTickets")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PromoTicketsDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -9428,8 +7883,6 @@ instalarNumeroFlexibleAR("#importe_PozosAcumuladosLinkeados", {
 });
 
 function cargarArchivosPozosAcumuladosLinkeadosLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PozosAcumuladosLinkeadosId", id);
   var $list = $(targetArchivosDoc("PozosAcumuladosLinkeados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -9485,13 +7938,6 @@ function cargarArchivosPozosAcumuladosLinkeadosLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-PozosAcumuladosLinkeados", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro PozosAcumuladosLinkeados");
-  cargarArchivosPozosAcumuladosLinkeadosLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on(
   "click",
@@ -9549,15 +7995,14 @@ function resetFormPozosAcumuladosLinkeados() {
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
   $("#fileNamePozosAcumuladosLinkeados").val(
-    "No se ha seleccionado ningún archivo"
+    ""
   );
-  $("#fileListPozosAcumuladosLinkeados").empty();
-  $("#uploadPozosAcumuladosLinkeados").val("");
+    $("#uploadPozosAcumuladosLinkeados").val("");
   $("#uploadsPozosAcumuladosLinkeadosContainer").empty();
   $("#uploadsPozosAcumuladosLinkeadosTable tbody").empty();
   $("#uploadsPozosAcumuladosLinkeadosWrap").hide();
   $("#fileNamePozosAcumuladosLinkeados").val(
-    "No se ha seleccionado ningún archivo"
+    ""
   );
 }
 
@@ -9698,17 +8143,6 @@ $(document).on(
   }
 );
 
-$("#btn-buscarPozosAcumuladosLinkeados").on("click", function (e) {
-  e.preventDefault();
-  cargarPozosAcumuladosLinkeados({
-    page: 1,
-    perPage: $("#herramientasPaginacionPozosAcumuladosLinkeados").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePozosAcumuladosLinkeados(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPozosAcumuladosLinkeados({
@@ -9787,22 +8221,6 @@ function generarFilaPozosAcumuladosLinkeados(
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  if (PozosAcumuladosLinkeados.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass(
-        "btn btn-info btn-sm mr-1 btn-archivos-PozosAcumuladosLinkeados"
-      )
-      .attr("type", "button")
-      .attr(
-        "data-id",
-        PozosAcumuladosLinkeados.id_registroPozosAcumuladosLinkeados
-      )
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PozosAcumuladosLinkeados")
     .attr("type", "button")
@@ -9871,38 +8289,6 @@ $("#btn-eliminarPozosAcumuladosLinkeados").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegPozosAcumuladosLinkeados", function () {
-  const id = $(this).attr("id");
-
-  $.get(
-    `/documentosContables/llenarPozosAcumuladosLinkeados/${id}`,
-    function (data) {
-      if (!data) {
-        alert("No se encontraron datos");
-        return;
-      }
-
-      fecha = convertirMesAno(data.fecha);
-
-      $("#ver_fecha_PozosAcumuladosLinkeados").val(fecha);
-      $("#ver_casino_PozosAcumuladosLinkeados").val(data.casino);
-
-      $("#ver_fecha_pago_PozosAcumuladosLinkeados").val(data.fecha_pago);
-      $("#ver_fecha_PozosAcumuladosLinkeadosPres").val(data.fecha_pres);
-
-      $("#ver_cant_empleados_PozosAcumuladosLinkeados").val(
-        data.cant_empleados
-      );
-      $("#ver_monto_pagado_PozosAcumuladosLinkeados").val(data.monto_pagado);
-      $("#ver_obs_PozosAcumuladosLinkeados").val(
-        data.obs_PozosAcumuladosLinkeados
-      );
-
-      $("#modalVerPozosAcumuladosLinkeados").modal("show");
-    }
-  );
-});
-
 $("#btn-descargarPozosAcumuladosLinkeadosExcel").on("click", function (e) {
   $("#collapseDescargarPozosAcumuladosLinkeados .has-error").removeClass(
     "has-error"
@@ -9915,22 +8301,8 @@ $("#btn-descargarPozosAcumuladosLinkeadosExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPozosAcumuladosLinkeados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PozosAcumuladosLinkeadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -9954,23 +8326,8 @@ $("#btn-descargarPozosAcumuladosLinkeadosCsv").on("click", function () {
   );
   $("#collapseDescargarPozosAcumuladosLinkeados .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoPozosAcumuladosLinkeados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PozosAcumuladosLinkeadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -10006,8 +8363,6 @@ $(function () {
 });
 
 function cargarArchivosContribEnteTuristicoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("ContribEnteTuristicoId", id);
   var $list = $(targetArchivosDoc("ContribEnteTuristico", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -10063,13 +8418,6 @@ function cargarArchivosContribEnteTuristicoLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-ContribEnteTuristico", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro ContribEnteTuristico");
-  cargarArchivosContribEnteTuristicoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 function abrirModalContribEnteTuristicoEditar(id) {
   resetFormContribEnteTuristico();
@@ -10140,15 +8488,14 @@ function resetFormContribEnteTuristico() {
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
   $("#fileNameContribEnteTuristico").val(
-    "No se ha seleccionado ningún archivo"
+    ""
   );
-  $("#fileListContribEnteTuristico").empty();
-  $("#uploadContribEnteTuristico").val("");
+    $("#uploadContribEnteTuristico").val("");
   $("#uploadsContribEnteTuristicoContainer").empty();
   $("#uploadsContribEnteTuristicoTable tbody").empty();
   $("#uploadsContribEnteTuristicoWrap").hide();
   $("#fileNameContribEnteTuristico").val(
-    "No se ha seleccionado ningún archivo"
+    ""
   );
 }
 
@@ -10310,17 +8657,6 @@ $(document).on("click", "#guardarRegistroContribEnteTuristico", function (e) {
   });
 });
 
-$("#btn-buscarContribEnteTuristico").on("click", function (e) {
-  e.preventDefault();
-  cargarContribEnteTuristico({
-    page: 1,
-    perPage: $("#herramientasPaginacionContribEnteTuristico").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceContribEnteTuristico(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarContribEnteTuristico({
@@ -10396,27 +8732,7 @@ function generarFilaContribEnteTuristico(ContribEnteTuristico, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegContribEnteTuristico")
-    .attr("id", ContribEnteTuristico.id_registroContribEnteTuristico)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER CONTRIBUCIÓN ENTE TURISTICO")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (ContribEnteTuristico.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-ContribEnteTuristico")
-      .attr("type", "button")
-      .attr("data-id", ContribEnteTuristico.id_registroContribEnteTuristico)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ContribEnteTuristico")
     .attr("type", "button")
@@ -10481,44 +8797,6 @@ $("#btn-eliminarContribEnteTuristico").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegContribEnteTuristico", function () {
-  const id = $(this).attr("id");
-
-  $.get(
-    `/documentosContables/llenarContribEnteTuristico/${id}`,
-    function (data) {
-      if (!data) {
-        alert("No se encontraron datos");
-        return;
-      }
-
-      fecha = convertirMesAno(data.fecha);
-
-      $("#ver_fecha_ContribEnteTuristico").val(fecha);
-      $("#ver_casino_ContribEnteTuristico").val(data.casino);
-
-      $("#ver_fecha_venc_ContribEnteTuristico").val(data.fecha_venc);
-      $("#ver_fecha_pres_ContribEnteTuristicoPres").val(data.fecha_pres);
-
-      $("#ver_base_imponible_ContribEnteTuristico").val(
-        "$ " + formatoAR(data.base_imponible)
-      );
-      $("#ver_alicuota_ContribEnteTuristico").val(
-        formatoAR(data.alicuota) + " %"
-      );
-      $("#ver_impuesto_determinado_ContribEnteTuristico").val(
-        "$ " + formatoAR(data.impuesto_determinado)
-      );
-      $("#ver_monto_pagado_ContribEnteTuristico").val(
-        "$ " + formatoAR(data.monto_pagado)
-      );
-      $("#ver_obs_ContribEnteTuristico").val(data.obs);
-
-      $("#modalVerContribEnteTuristico").modal("show");
-    }
-  );
-});
-
 $("#btn-descargarContribEnteTuristicoExcel").on("click", function (e) {
   $("#collapseDescargarContribEnteTuristico .has-error").removeClass(
     "has-error"
@@ -10531,12 +8809,7 @@ $("#btn-descargarContribEnteTuristicoExcel").on("click", function (e) {
   let valid = true;
 
   if (desde > hasta && hasta) {
-    $("#fecha_ContribEnteTuristicoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -10555,12 +8828,7 @@ $("#btn-descargarContribEnteTuristicoCsv").on("click", function () {
   $("#collapseDescargarContribEnteTuristico .js-error").remove();
 
   if (desde > hasta && hasta) {
-    $("#fecha_ContribEnteTuristicoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -10652,8 +8920,6 @@ instalarAutoPorcentajeAR({
 });
 
 function cargarArchivosRRHHLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("RRHHId", id);
   var $list = $(targetArchivosDoc("RRHH", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -10709,13 +8975,6 @@ function cargarArchivosRRHHLista(id, target) {
         );
     });
 }
-
-$(document).on("click", ".btn-archivos-RRHH", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro RRHH");
-  cargarArchivosRRHHLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-RRHH", function () {
   const id = $(this).data("id");
@@ -10803,13 +9062,12 @@ function resetFormRRHH() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameRRHH").val("No se ha seleccionado ningún archivo");
-  $("#fileListRRHH").empty();
-  $("#uploadRRHH").val("");
+  $("#fileNameRRHH").val("");
+    $("#uploadRRHH").val("");
   $("#uploadsRRHHContainer").empty();
   $("#uploadsRRHHTable tbody").empty();
   $("#uploadsRRHHWrap").hide();
-  $("#fileNameRRHH").val("No se ha seleccionado ningún archivo");
+  $("#fileNameRRHH").val("");
 }
 
 function abrirModalRRHHCrear() {
@@ -11088,17 +9346,6 @@ $(document).on("shown.bs.modal", "#modalCargarRRHH", function () {
   $("#formNuevoRegistroRRHH").removeData("warn-shown");
 });
 
-$("#btn-buscarRRHH").on("click", function (e) {
-  e.preventDefault();
-  cargarRRHH({
-    page: 1,
-    perPage: $("#herramientasPaginacionRRHH").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceRRHH(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarRRHH({
@@ -11167,27 +9414,7 @@ function generarFilaRRHH(RRHH, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegRRHH")
-    .attr("id", RRHH.id_registroRRHH)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO RRHH")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (RRHH.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-RRHH")
-      .attr("type", "button")
-      .attr("data-id", RRHH.id_registroRRHH)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-RRHH")
     .attr("type", "button")
@@ -11244,100 +9471,6 @@ $("#btn-eliminarRRHH").on("click", function () {
     .fail(() => {});
 });
 
-function marcarErrorVer($inp, on) {
-  var $wrap = $inp.closest(".col-md-4, .col-md-3");
-  if (on) {
-    $wrap.addClass("has-error");
-    $inp.addClass("text-danger");
-  } else {
-    $wrap.removeClass("has-error");
-    $inp.removeClass("text-danger");
-  }
-}
-
-$(document).on("hidden.bs.modal", "#modalVerRRHH", function () {
-  $("#modalVerRRHH .col-md-4, #modalVerRRHH .col-md-3").removeClass(
-    "has-error"
-  );
-  $("#modalVerRRHH input")
-    .removeClass("text-danger is-invalid")
-    .removeAttr("title data-original-title");
-});
-
-$(document).on("click", ".btn-verRegRRHH", function () {
-  const id = $(this).attr("id");
-
-  $.get("/documentosContables/llenarRRHH/" + id, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    var fecha = convertirMesAno(data.fecha);
-    $("#ver_fecha_RRHH").val(fecha);
-    $("#ver_casino_RRHH").val(data.casino);
-
-    $("#ver_personal_inicio_RRHH").val(data.personal_inicio);
-    $("#ver_altas_RRHH").val(data.altas_mes);
-    $("#ver_bajas_RRHH").val(data.bajas);
-    $("#ver_personal_final_RRHH").val(data.personal_final);
-    $("#ver_diferencia_RRHH").val(data.diferencia);
-    $("#ver_personal_nomina_RRHH").val(data.personal_nomina);
-
-    $("#ver_tercerizados_RRHH").val(data.tercerizados);
-    $("#ver_total_personal_RRHH").val(data.total_personal);
-    $("#ver_ofertado_adjudicado_RRHH").val(data.ofertado_adjudicado);
-
-    $("#ver_ludicos_RRHH").val(data.ludico);
-    $("#ver_no_ludicos_RRHH").val(data.no_ludico);
-    $("#ver_total_ludicos_RRHH").val(data.total_tipo);
-
-    $("#ver_porcentaje_ludicos_RRHH").val((data.porcentaje_ludico || 0) + " %");
-    $("#ver_porcentaje_no_ludicos_RRHH").val(
-      (data.porcentaje_no_ludico || 0) + " %"
-    );
-    $("#ver_total_porcentaje_ludicos_RRHH").val(
-      (data.porcentaje_total || 0) + " %"
-    );
-
-    $("#ver_porcentaje_ludicos_sf_RRHH").val(
-      (data.porcentaje_ludico_viviendo || 0) + " %"
-    );
-    $("#ver_porcentaje_no_ludicos_sf_RRHH").val(
-      (data.porcentaje_no_ludico_viviendo || 0) + " %"
-    );
-    $("#ver_porcentaje_total_sf_RRHH").val(
-      (data.porcentaje_total_viviendo || 0) + " %"
-    );
-
-    $("#ver_ludicos_viviendo_RRHH").val(data.ludico_viviendo);
-    $("#ver_no_ludicos_viviendo_RRHH").val(data.no_ludico_viviendo);
-    $("#ver_total_viviendo_RRHH").val(data.total_viviendo);
-
-    $("#ver_dif_nomina_RRHH").val(data.diferencia_nomina);
-    $("#ver_obs_RRHH").val(data.observaciones || "");
-
-    var total = Number(data.total_personal);
-    var adj = Number(data.ofertado_adjudicado);
-    var pctSF = Number(data.porcentaje_total_viviendo);
-    var umbral = 80;
-
-    $("#modalVerRRHH .col-md-4, #modalVerRRHH .col-md-3").removeClass(
-      "has-error"
-    );
-    $("#modalVerRRHH input").removeClass("text-danger");
-
-    var badPersonal = isFinite(total) && isFinite(adj) && total < adj;
-    marcarErrorVer($("#ver_total_personal_RRHH"), badPersonal);
-    marcarErrorVer($("#ver_ofertado_adjudicado_RRHH"), badPersonal);
-
-    var badSF = isFinite(pctSF) && pctSF < umbral;
-    marcarErrorVer($("#ver_porcentaje_total_sf_RRHH"), badSF);
-
-    $("#modalVerRRHH").modal("show");
-  });
-});
-
 $("#btn-descargarRRHHExcel").on("click", function (e) {
   $("#collapseDescargarRRHH .has-error").removeClass("has-error");
   $("#collapseDescargarRRHH .js-error").remove();
@@ -11348,22 +9481,8 @@ $("#btn-descargarRRHHExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoRRHH")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_RRHHDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -11385,23 +9504,8 @@ $("#btn-descargarRRHHCsv").on("click", function () {
   $("#collapseDescargarRRHH .has-error").removeClass("has-error");
   $("#collapseDescargarRRHH .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoRRHH")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_RRHHDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -11434,8 +9538,6 @@ $(function () {
 });
 
 function cargarArchivosGananciasLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("GananciasId", id);
   var $list = $(targetArchivosDoc("Ganancias", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -11492,13 +9594,6 @@ function cargarArchivosGananciasLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-Ganancias", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro Ganancias");
-  cargarArchivosGananciasLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-Ganancias", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -11554,13 +9649,12 @@ function resetFormGanancias() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameGanancias").val("No se ha seleccionado ningún archivo");
-  $("#fileListGanancias").empty();
-  $("#uploadGanancias").val("");
+  $("#fileNameGanancias").val("");
+    $("#uploadGanancias").val("");
   $("#uploadsGananciasContainer").empty();
   $("#uploadsGananciasTable tbody").empty();
   $("#uploadsGananciasWrap").hide();
-  $("#fileNameGanancias").val("No se ha seleccionado ningún archivo");
+  $("#fileNameGanancias").val("");
 }
 
 function abrirModalGananciasCrear() {
@@ -11725,8 +9819,6 @@ $(document).on("click", "#guardarRegistroGanancias", function (e) {
 });
 
 function cargarArchivosGanancias_periodoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("Ganancias_periodoId", id);
   var $list = $(targetArchivosDoc("Ganancias_periodo", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -11783,13 +9875,6 @@ function cargarArchivosGanancias_periodoLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-Ganancias_periodo", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro Ganancias_periodo");
-  cargarArchivosGanancias_periodoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-Ganancias_periodo", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -11843,13 +9928,12 @@ function resetFormGanancias_periodo() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameGanancias_periodo").val("No se ha seleccionado ningún archivo");
-  $("#fileListGanancias_periodo").empty();
-  $("#uploadGanancias_periodo").val("");
+  $("#fileNameGanancias_periodo").val("");
+    $("#uploadGanancias_periodo").val("");
   $("#uploadsGanancias_periodoContainer").empty();
   $("#uploadsGanancias_periodoTable tbody").empty();
   $("#uploadsGanancias_periodoWrap").hide();
-  $("#fileNameGanancias_periodo").val("No se ha seleccionado ningún archivo");
+  $("#fileNameGanancias_periodo").val("");
 }
 
 function abrirModalGanancias_periodoCrear() {
@@ -12104,26 +10188,6 @@ function generarFilaGanancias(Ganancias, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegGanancias")
-    .attr("id", Ganancias.id_registroGanancias)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO GANANCIAS")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
-  if (Ganancias.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-Ganancias")
-      .attr("type", "button")
-      .attr("data-id", Ganancias.id_registroGanancias)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
 
   // Check if this removal is correct pattern
   var btnEdit = $("<button>")
@@ -12204,27 +10268,7 @@ function generarFilaGanancias_periodo(Ganancias_periodo, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegGanancias_periodo")
-    .attr("id", Ganancias_periodo.id_registroGanancias_periodo)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO PERIODO FISCAL")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (Ganancias_periodo.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-Ganancias_periodo")
-      .attr("type", "button")
-      .attr("data-id", Ganancias_periodo.id_registroGanancias_periodo)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-Ganancias_periodo")
     .attr("type", "button")
@@ -12279,71 +10323,6 @@ $("#btn-eliminarGanancias_periodo").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegGanancias", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarGanancias/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    $("#ver_casino_Ganancias").val(data.casino);
-    $("#ver_fecha_GananciasPres").val(data.periodo);
-    $("#ver_nro_anticipo_Ganancias").val(data.nro_anticipo);
-
-    $("#ver_anticipo_Ganancias").val(formatoAR(data.anticipo));
-    $("#ver_abonado_Ganancias").val(formatoAR(data.abonado));
-    $("#ver_computa_Ganancias").val(formatoAR(data.computo));
-    $("#ver_diferencia_Ganancias").val(formatoAR(data.diferencia));
-
-    $("#ver_fecha_pago_Ganancias").val(data.fecha_pago);
-    $("#ver_obs_Ganancias").val(data.obs);
-
-    $("#modalVerGanancias").modal("show");
-  });
-});
-
-$(document).on("click", ".btn-verRegGanancias_periodo", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarGanancias_periodo/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    $("#ver_casino_Ganancias_periodo").val(data.casino);
-    $("#ver_periodo_Ganancias_periodo").val(data.periodo);
-    $("#ver_fecha_pres_Ganancias_periodo").val(data.fecha_presentacion);
-
-    $("#ver_forma_pago_Ganancias_periodo").val(data.forma_pago);
-    $("#ver_saldo_Ganancias_periodo").val(data.saldo);
-
-    $("#ver_obs_Ganancias_periodo").val(data.obs);
-
-    $("#modalVerGanancias_periodo").modal("show");
-  });
-});
-
-$("#btn-buscarGanancias").on("click", function (e) {
-  e.preventDefault();
-  cargarGanancias({
-    page: 1,
-    perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-  cargarGanancias_periodo({
-    page: $("#herramientasPaginacionGanancias").getCurrentPage() || 1,
-    perPage: $("#herramientasPaginacionGanancias").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 $("#btn-descargarGananciasCsvAnticipos").on("click", function () {
   var _fg = filtrosGlobalDescarga();
   const casino = _fg.casino;
@@ -12353,23 +10332,8 @@ $("#btn-descargarGananciasCsvAnticipos").on("click", function () {
   $("#collapseDescargarGanancias .has-error").removeClass("has-error");
   $("#collapseDescargarGanancias .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoGanancias")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_GananciasDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -12391,23 +10355,8 @@ $("#btn-descargarGananciasCsvPeriodos").on("click", function () {
   $("#collapseDescargarGanancias .has-error").removeClass("has-error");
   $("#collapseDescargarGanancias .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoGanancias")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_GananciasDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -12430,22 +10379,8 @@ $("#btn-descargarGananciasExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoGanancias")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_GananciasDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -12466,8 +10401,6 @@ instalarNumeroFlexibleAR("#importe_JackpotsPagados", {
 });
 
 function cargarArchivosJackpotsPagadosLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("JackpotsPagadosId", id);
   var $list = $(targetArchivosDoc("JackpotsPagados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -12524,13 +10457,6 @@ function cargarArchivosJackpotsPagadosLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-JackpotsPagados", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro JackpotsPagados");
-  cargarArchivosJackpotsPagadosLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-JackpotsPagados", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -12575,13 +10501,12 @@ function resetFormJackpotsPagados() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameJackpotsPagados").val("No se ha seleccionado ningún archivo");
-  $("#fileListJackpotsPagados").empty();
-  $("#uploadJackpotsPagados").val("");
+  $("#fileNameJackpotsPagados").val("");
+    $("#uploadJackpotsPagados").val("");
   $("#uploadsJackpotsPagadosContainer").empty();
   $("#uploadsJackpotsPagadosTable tbody").empty();
   $("#uploadsJackpotsPagadosWrap").hide();
-  $("#fileNameJackpotsPagados").val("No se ha seleccionado ningún archivo");
+  $("#fileNameJackpotsPagados").val("");
 }
 
 function abrirModalJackpotsPagadosCrear() {
@@ -12712,17 +10637,6 @@ $(document).on("click", "#guardarRegistroJackpotsPagados", function (e) {
   });
 });
 
-$("#btn-buscarJackpotsPagados").on("click", function (e) {
-  e.preventDefault();
-  cargarJackpotsPagados({
-    page: 1,
-    perPage: $("#herramientasPaginacionJackpotsPagados").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceJackpotsPagados(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarJackpotsPagados({
@@ -12793,17 +10707,6 @@ function generarFilaJackpotsPagados(JackpotsPagados, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
 
-  if (JackpotsPagados.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-JackpotsPagados")
-      .attr("type", "button")
-      .attr("data-id", JackpotsPagados.id_registroJackpotsPagados)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-JackpotsPagados")
     .attr("type", "button")
@@ -12865,31 +10768,6 @@ $("#btn-eliminarJackpotsPagados").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegJackpotsPagados", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarJackpotsPagados/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_JackpotsPagados").val(fecha);
-    $("#ver_casino_JackpotsPagados").val(data.casino);
-
-    $("#ver_fecha_pago_JackpotsPagados").val(data.fecha_pago);
-    $("#ver_fecha_JackpotsPagadosPres").val(data.fecha_pres);
-
-    $("#ver_cant_empleados_JackpotsPagados").val(data.cant_empleados);
-    $("#ver_monto_pagado_JackpotsPagados").val(data.monto_pagado);
-    $("#ver_obs_JackpotsPagados").val(data.obs_JackpotsPagados);
-
-    $("#modalVerJackpotsPagados").modal("show");
-  });
-});
-
 $("#btn-descargarJackpotsPagadosExcel").on("click", function (e) {
   $("#collapseDescargarJackpotsPagados .has-error").removeClass("has-error");
   $("#collapseDescargarJackpotsPagados .js-error").remove();
@@ -12900,22 +10778,8 @@ $("#btn-descargarJackpotsPagadosExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoJackpotsPagados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_JackpotsPagadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -12937,23 +10801,8 @@ $("#btn-descargarJackpotsPagadosCsv").on("click", function () {
   $("#collapseDescargarJackpotsPagados .has-error").removeClass("has-error");
   $("#collapseDescargarJackpotsPagados .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoJackpotsPagados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_JackpotsPagadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -12974,8 +10823,6 @@ instalarNumeroFlexibleAR("#importe_PremiosPagados", {
 });
 
 function cargarArchivosPremiosPagadosLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PremiosPagadosId", id);
   var $list = $(targetArchivosDoc("PremiosPagados", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -13032,13 +10879,6 @@ function cargarArchivosPremiosPagadosLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-PremiosPagados", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro PremiosPagados");
-  cargarArchivosPremiosPagadosLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-PremiosPagados", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -13083,13 +10923,12 @@ function resetFormPremiosPagados() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNamePremiosPagados").val("No se ha seleccionado ningún archivo");
-  $("#fileListPremiosPagados").empty();
-  $("#uploadPremiosPagados").val("");
+  $("#fileNamePremiosPagados").val("");
+    $("#uploadPremiosPagados").val("");
   $("#uploadsPremiosPagadosContainer").empty();
   $("#uploadsPremiosPagadosTable tbody").empty();
   $("#uploadsPremiosPagadosWrap").hide();
-  $("#fileNamePremiosPagados").val("No se ha seleccionado ningún archivo");
+  $("#fileNamePremiosPagados").val("");
 }
 
 function abrirModalPremiosPagadosCrear() {
@@ -13212,17 +11051,6 @@ $(document).on("click", "#guardarRegistroPremiosPagados", function (e) {
   });
 });
 
-$("#btn-buscarPremiosPagados").on("click", function (e) {
-  e.preventDefault();
-  cargarPremiosPagados({
-    page: 1,
-    perPage: $("#herramientasPaginacionPremiosPagados").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePremiosPagados(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPremiosPagados({
@@ -13293,17 +11121,6 @@ function generarFilaPremiosPagados(PremiosPagados, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  if (PremiosPagados.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-PremiosPagados")
-      .attr("type", "button")
-      .attr("data-id", PremiosPagados.id_registroPremiosPagados)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PremiosPagados")
     .attr("type", "button")
@@ -13365,31 +11182,6 @@ $("#btn-eliminarPremiosPagados").on("click", function () {
 });
 
 //no se usa
-$(document).on("click", ".btn-verRegPremiosPagados", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarPremiosPagados/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_PremiosPagados").val(fecha);
-    $("#ver_casino_PremiosPagados").val(data.casino);
-
-    $("#ver_fecha_pago_PremiosPagados").val(data.fecha_pago);
-    $("#ver_fecha_PremiosPagadosPres").val(data.fecha_pres);
-
-    $("#ver_cant_empleados_PremiosPagados").val(data.cant_empleados);
-    $("#ver_monto_pagado_PremiosPagados").val(data.monto_pagado);
-    $("#ver_obs_PremiosPagados").val(data.obs_PremiosPagados);
-
-    $("#modalVerPremiosPagados").modal("show");
-  });
-});
-
 $("#btn-descargarPremiosPagadosExcel").on("click", function (e) {
   $("#collapseDescargarPremiosPagados .has-error").removeClass("has-error");
   $("#collapseDescargarPremiosPagados .js-error").remove();
@@ -13400,22 +11192,8 @@ $("#btn-descargarPremiosPagadosExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPremiosPagados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PremiosPagadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -13437,23 +11215,8 @@ $("#btn-descargarPremiosPagadosCsv").on("click", function () {
   $("#collapseDescargarPremiosPagados .has-error").removeClass("has-error");
   $("#collapseDescargarPremiosPagados .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoPremiosPagados")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PremiosPagadosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -13508,8 +11271,6 @@ $(document).on('shown.bs.modal', '#modalCargarPremiosMTM', function(){
 */
 
 function cargarArchivosPremiosMTMLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PremiosMTMId", id);
   var $list = $(targetArchivosDoc("PremiosMTM", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -13566,13 +11327,6 @@ function cargarArchivosPremiosMTMLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-PremiosMTM", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro PremiosMTM");
-  cargarArchivosPremiosMTMLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-PremiosMTM", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -13580,250 +11334,6 @@ $(document).on("click", ".btn-del-archivo-PremiosMTM", function () {
   $("#btn-eliminarArchivo").attr("data-id", id);
   $("#modalEliminarArchivo").data({ id, regId, scope }).modal("show");
 });
-function abrirModalPremiosMTMEditar(id) {
-  resetFormPremiosMTM();
-  $("#PremiosMTM_modo").val("edit");
-  $("#id_registroPremiosMTM").val(id);
-  $("#modalCargarPremiosMTM .modal-title").text(
-    "| EDITAR REGISTRO DE PREMIOS MTM"
-  );
-  $("#guardarRegistroPremiosMTM_Unificado").text("ACTUALIZAR");
-  $("#modalCargarPremiosMTM").modal("show");
-
-  $.getJSON("/documentosContables/llenarPremiosMTMEdit/" + id, function (d) {
-    var ym = String(d.fecha || "").slice(0, 7);
-
-    $('#fechaPremiosMTM input[name="fecha_PremiosMTM"]')
-      .val(ym)
-      .trigger("input")
-      .trigger("change");
-    $("#casinoPremiosMTM").val(d.casino).trigger("change");
-
-    $('input[name="cancel_PremiosMTM"]').val("$ " + formatoAR(d.cancel));
-    $('input[name="cancel_usd_PremiosMTM"]').val(
-      "USD " + formatoAR(d.cancel_usd)
-    );
-
-    $('input[name="progre_PremiosMTM"]').val("$ " + formatoAR(d.progre));
-    $('input[name="progre_usd_PremiosMTM"]').val(
-      "USD " + formatoAR(d.progre_usd)
-    );
-
-    $('input[name="jack_PremiosMTM"]').val("$ " + formatoAR(d.jack));
-    $('input[name="jack_usd_PremiosMTM"]').val("USD " + formatoAR(d.jack_usd));
-
-    $('input[name="total_PremiosMTM"]').val("$ " + formatoAR(d.total));
-    $('input[name="total_usd_PremiosMTM"]').val(
-      "USD " + formatoAR(d.total_usd)
-    );
-  }).fail(function (xhr) {
-    console.error("[PremiosMTM] GET FAIL", xhr.status, xhr.responseText);
-    alert("No se pudo cargar el registro.");
-  });
-}
-
-function resetFormPremiosMTM() {
-  var $f = $("#formNuevoRegistroPremiosMTM");
-  // Si ese form no está en la pantalla, no se hace nada: un $f[0] undefined
-  // tiraba TypeError y jQuery cortaba los demás handlers del mismo click.
-  if (!$f.length) return;
-  $f[0].reset();
-  $f.find(".has-error").removeClass("has-error");
-  $f.find(".help-block.js-error").remove();
-  $("#fileNamePremiosMTM").val("No se ha seleccionado ningún archivo");
-  $("#fileListPremiosMTM").empty();
-  $("#uploadPremiosMTM").val("");
-  $("#uploadsPremiosMTMContainer").empty();
-  $("#uploadsPremiosMTMTable tbody").empty();
-  $("#uploadsPremiosMTMWrap").hide();
-  $("#fileNamePremiosMTM").val("No se ha seleccionado ningún archivo");
-}
-
-function abrirModalPremiosMTMCrear() {
-  // Limpia el formulario: si no, al venir de ver/editar otro registro quedaban
-  // precargados sus datos y sus archivos.
-  resetFormPremiosMTM();
-  $("#PremiosMTM_modo").val("create");
-  $("#id_registroPremiosMTM").val("");
-  $("#modalCargarPremiosMTM .modal-title").text(
-    "| NUEVO REGISTRO DE PREMIOS MTM"
-  );
-  $("#guardarRegistroPremiosMTM_Unificado").text("GENERAR");
-  $("#modalCargarPremiosMTM").modal("show");
-}
-
-$(document).on("click", "#PremiosMTM_nuevo", function () {
-  abrirModalPremiosMTMCrear();
-});
-
-$(document).on("click", ".btn-edit-PremiosMTM", function () {
-  var id = $(this).data("id");
-  abrirModalPremiosMTMEditar(id);
-});
-
-$(document).on("click", "#guardarRegistroPremiosMTM", function (e) {
-  var $form = $("#formNuevoRegistroPremiosMTM");
-  let valid = true;
-  var id = $("#id_registroPremiosMTM").val() || "";
-  var modo = $("#PremiosMTM_modo").val() || "create";
-
-  $form.find(".has-error").removeClass("has-error");
-  $form.find(".help-block.js-error").remove();
-
-  valid = validarCampo(
-    "select[name='casinoPremiosMTM']",
-    ".col-md-3",
-    "El casino es requerido.",
-    valid
-  );
-
-  valid = validarCampo(
-    "input[name='fecha_PremiosMTM']",
-    ".col-md-4",
-    "La fecha es requerida.",
-    valid
-  );
-
-  valid = validarCampoNumSiHayValor(
-    $("input[name='cancel_PremiosMTM']"),
-    ".col-md-5",
-    "La cantidad es requerida.",
-    valid
-  );
-  valid = validarCampoNumSiHayValor(
-    $("input[name='cancel_usd_PremiosMTM']"),
-    ".col-md-5",
-    "El importe es requerido.",
-    valid
-  );
-
-  valid = validarCampoNumSiHayValor(
-    $("input[name='jack_PremiosMTM']"),
-    ".col-md-5",
-    "La cantidad es requerida.",
-    valid
-  );
-  valid = validarCampoNumSiHayValor(
-    $("input[name='jack_usd_PremiosMTM']"),
-    ".col-md-5",
-    "El importe es requerido.",
-    valid
-  );
-
-  valid = validarCampoNumSiHayValor(
-    $("input[name='progre_PremiosMTM']"),
-    ".col-md-5",
-    "La cantidad es requerida.",
-    valid
-  );
-  valid = validarCampoNumSiHayValor(
-    $("input[name='progre_usd_PremiosMTM']"),
-    ".col-md-5",
-    "El importe es requerido.",
-    valid
-  );
-
-  valid = validarCampoNumSiHayValor(
-    $("input[name='total_PremiosMTM']"),
-    ".col-md-5",
-    "La cantidad es requerida.",
-    valid
-  );
-  valid = validarCampoNumSiHayValor(
-    $("input[name='total_usd_PremiosMTM']"),
-    ".col-md-5",
-    "El importe es requerido.",
-    valid
-  );
-
-  if (!valid) return 0;
-
-  let formElem = $form[0];
-  let formData = new FormData(formElem);
-  var fd = new FormData();
-
-  $form.serializeArray().forEach(function (p) {
-    let escapeSelector = function(str) { return str.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); };
-    let $inp = $form.find(`[name="${escapeSelector(p.name)}"]`).filter(function() { return $(this).val() === p.value; }).first();
-    let val = p.value;
-    if ($inp.length > 0) {
-      let isDate = $inp.hasClass("datepicker") || $inp.hasClass("pago-fecha") || p.name.toLowerCase().includes("fecha") || p.name === "periodo" || $inp.attr("placeholder") === "yyyy-mm-dd";
-      let dataNum = $inp.data("num");
-      let numflex = $inp.data("_numflex_dec");
-      if (!isDate && dataNum !== undefined && dataNum !== null) {
-        val = dataNum;
-      } else if (!isDate && ($inp.hasClass("formato-ar") || numflex !== undefined)) {
-        let parsed = parseNumeroFlexible(val);
-        if (parsed) val = parsed.num !== null ? parsed.num : "";
-      } else if (!isDate && typeof val === 'string') {
-        let cleaned = val.replace(/[$\s%]/g, '');
-        if (/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(cleaned) || /^-?\d+(?:\.\d+)?$/.test(cleaned)) {
-          let parsed = parseNumeroFlexible(val);
-          if (parsed) val = parsed.num !== null ? parsed.num : "";
-        }
-      }
-    }
-    fd.append(p.name, val === null ? "" : val);
-  });
-
-  $(
-    '#uploadsPremiosMTMContainer input[type="file"][name="uploadPremiosMTM[]"]'
-  ).each(function () {
-    var files = this.files || [];
-    for (var i = 0; i < files.length; i++) {
-      fd.append("uploadPremiosMTM[]", files[i]);
-    }
-  });
-
-  var cur = document.getElementById("uploadPremiosMTM");
-  if (cur && cur.files && cur.files.length) {
-    for (var j = 0; j < cur.files.length; j++) {
-      fd.append("uploadPremiosMTM[]", cur.files[j]);
-    }
-  }
-
-  var url =
-    modo === "edit"
-      ? "/documentosContables/actualizarPremiosMTM/" + id
-      : "/documentosContables/guardarPremiosMTM";
-  $.ajax({
-    url: url,
-    method: "POST",
-    data: fd,
-    processData: false,
-    contentType: false,
-    success: function (res) {
-      cargarPremiosMTM({
-        page: $("#herramientasPaginacionPremiosMTM").getCurrentPage() || 1,
-        perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
-        casino: $("#filtro_global_casino").val(),
-        desde: $("#filtro_global_desde_input").val(),
-        hasta: $("#filtro_global_hasta_input").val(),
-      });
-      setTimeout(() => $("#modalCargarPremiosMTM").modal("hide"), 1000);
-      resetFormPremiosMTM();
-    },
-    error: function (xhr) {
-      $("#salir").next(".help-block.js-error").remove();
-      $("#salir").after(
-        '<span class="help-block js-error text-danger" style="color:red;" >Ocurrió un error.</span>'
-      );
-      console.error("Error al guardar:", xhr);
-    },
-  });
-});
-
-$("#btn-buscarPremiosMTM").on("click", function (e) {
-  e.preventDefault();
-  cargarPremiosMTM({
-    page: 1,
-    perPage: $("#herramientasPaginacionPremiosMTM").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePremiosMTM(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPremiosMTM({
@@ -13882,14 +11392,6 @@ function generarFilaPremiosMTM(reg) {
 
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<button>")
-    .addClass("btn btn-success btn-sm btn-verRegPremiosMTM_Unificado")
-    .attr("data-fecha", reg.fecha)
-    .attr("data-casino", reg.casino)
-    .attr("data-toggle", "tooltip")
-    .attr("title", "VER PREMIOS")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
   const btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-PremiosMTM_Unificado")
@@ -13919,42 +11421,6 @@ function generarFilaPremiosMTM(reg) {
   fila.find('[data-toggle="tooltip"]')// .tooltip();
   return fila;
 }
-
-$(document).on("click", "#PremiosMTM_nuevo", function () {
-  $("#modalCargarPremiosMTM_titulo").text("| NUEVO PREMIO MTM");
-  clearUnifiedModalInputs();
-  $("#PremiosMTM_Unificado_modo").val("create");
-  $("#guardarRegistroPremiosMTM_Unificado").show();
-  $("#fecha_Unificado, #casino_Unificado").attr("disabled", false);
-
-  // Default visibility for new record
-  $(".prize-section").hide();
-  $(".file-group-unified").show();
-  $(".btn-ver-archivos-unified").hide();
-
-  // Show sections based on selected casino (or if empty, hidden until casino selection)
-  const storedCasino = $("#filtro_global_casino").val(); // Maybe preselect?
-  if (storedCasino)
-    $("#selectCasinoUnificado").val(storedCasino).trigger("change");
-
-  $("#modalCargarPremiosMTM").modal("show");
-});
-
-$(document).on("click", ".btn-deletePremiosMTM", function () {
-  const $b = $(this);
-  $("#btn-eliminarPremiosMTM")
-    .attr("data-fecha", $b.attr("data-fecha"))
-    .attr("data-casino", $b.attr("data-casino"));
-  // Se aclara qué se va a borrar: son todos los documentos de ese mes y casino, no uno solo.
-  $("#titulo-modal-eliminarPremiosMTM").text(
-    "¿Seguro desea eliminar TODOS los registros contables y premios de " +
-      ($b.attr("data-mes") || "") +
-      " - " +
-      ($b.attr("data-casino-nombre") || "") +
-      "? Se borran también sus archivos adjuntos."
-  );
-  $("#modalEliminarPremiosMTM").modal("show");
-});
 
 // UNIFIED PRIZE LOGIC
 const prizeSectionsByCasino = {
@@ -14011,12 +11477,30 @@ function endpointsCsvUnificado(id_casino) {
     .filter(Boolean);
 }
 
+// Apuestas deportivas: solo las llevan Santa Fe (2) y Rosario (3). A diferencia de
+// prizeSectionsByCasino, esto no es una seccion entera sino dos campos adentro de
+// Registros Contables. El espejo en el backend es casinoLlevaApuestasDeportivas().
+const casinosConApuestasDeportivas = [2, 3];
+
+function casinoLlevaApuestasDeportivas(id_casino) {
+  return casinosConApuestasDeportivas.indexOf(parseInt(id_casino, 10)) !== -1;
+}
+
 function updateUnifiedSections(id_casino) {
   $(".prize-section").hide();
   if (id_casino && prizeSectionsByCasino[id_casino]) {
     prizeSectionsByCasino[id_casino].forEach((secId) => {
       $("#" + secId).show();
     });
+  }
+
+  // Campos que dependen del casino pero no son una seccion completa.
+  if (casinoLlevaApuestasDeportivas(id_casino)) {
+    $(".campo-apuestas-deportivas").show();
+  } else {
+    // Se vacian al ocultarlos para que no viaje el valor de un casino en otro.
+    // El change dispara el recalculo de Total y Total USD (son sources de la auto-suma).
+    $(".campo-apuestas-deportivas").hide().find("input").val("").trigger("change");
   }
 }
 
@@ -14027,18 +11511,35 @@ $(document).on("change", "#casino_Unificado", function () {
 $(document).on("click", "#PremiosMTM_nuevo", function () {
   $("#formNuevoRegistroPremiosMTM_Unificado")[0].reset();
   $(
-    "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select"
+    "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select, #formNuevoRegistroPremiosMTM_Unificado textarea"
   ).attr("disabled", false);
+  $("#obs_Unificado").val("");
   // Clear file containers and displays
   $(".containerUnified").empty();
   $(".wrapUnified").hide();
-  $(".displayUnified").val("No se ha seleccionado ningún archivo");
+  $(".displayUnified").val("");
 
   $("#PremiosMTM_Unificado_modo").val("create");
   $("#modalCargarPremiosMTM_titulo").text("| NUEVO REGISTRO UNIFICADO");
   $("#guardarRegistroPremiosMTM_Unificado").text("GENERAR");
   $(".prize-section").hide();
   $("#modalCargarPremiosMTM").modal("show");
+});
+
+$(document).on("click", ".btn-deletePremiosMTM", function () {
+  const $b = $(this);
+  $("#btn-eliminarPremiosMTM")
+    .attr("data-fecha", $b.attr("data-fecha"))
+    .attr("data-casino", $b.attr("data-casino"));
+  // Se aclara qué se va a borrar: son todos los documentos de ese mes y casino, no uno solo.
+  $("#titulo-modal-eliminarPremiosMTM").text(
+    "¿Seguro desea eliminar TODOS los registros contables y premios de " +
+      ($b.attr("data-mes") || "") +
+      " - " +
+      ($b.attr("data-casino-nombre") || "") +
+      "? Se borran también sus archivos adjuntos."
+  );
+  $("#modalEliminarPremiosMTM").modal("show");
 });
 
 // Auto-sumas para el modal unificado y formateo
@@ -14056,6 +11557,8 @@ $(function () {
     "#jol_RegistrosContables_Unified",
     "#mtm_usd_RegistrosContables_Unified",
     "#mp_usd_RegistrosContables_Unified",
+    "#apuestas_RegistrosContables_Unified",
+    "#apuestas_usd_RegistrosContables_Unified",
     // Totales (Enabled, but auto-calculated)
     "#total_PremiosMTM_Unified",
     "#total_usd_PremiosMTM_Unified",
@@ -14063,6 +11566,7 @@ $(function () {
     "#total_usd_RegistrosContables_Unified",
     // Otros campos numericos
     "#importe_PromoTickets_Unified",
+    "#importe_usd_PromoTickets_Unified",
     "#importe_Pozos_Unified",
     "#importe_Jackpots_Unified",
     "#importe_usd_Jackpots_Unified",
@@ -14101,6 +11605,7 @@ $(function () {
       "#mp_pesos_RegistrosContables_Unified",
       "#bingo_RegistrosContables_Unified",
       "#jol_RegistrosContables_Unified",
+      "#apuestas_RegistrosContables_Unified",
     ],
     target: "#total_RegistrosContables_Unified",
     decimales: 2,
@@ -14109,6 +11614,7 @@ $(function () {
     sources: [
       "#mtm_usd_RegistrosContables_Unified",
       "#mp_usd_RegistrosContables_Unified",
+      "#apuestas_usd_RegistrosContables_Unified",
     ],
     target: "#total_usd_RegistrosContables_Unified",
     decimales: 2,
@@ -14177,7 +11683,7 @@ function renderUnifiedUploads(mod) {
   $("#display_" + mod).val(
     totalFiles
       ? totalFiles + " archivo(s) seleccionado(s)"
-      : "No se ha seleccionado ningún archivo"
+      : ""
   );
 }
 
@@ -14224,7 +11730,7 @@ function clearUnifiedModalInputs() {
   // Clear file containers
   $(".containerUnified").empty();
   $(".wrapUnified").hide();
-  $(".displayUnified").val("No se ha seleccionado ningún archivo");
+  $(".displayUnified").val("");
   // Clear validation errors
   $("#formNuevoRegistroPremiosMTM_Unificado")
     .find(".has-error")
@@ -14235,13 +11741,6 @@ function clearUnifiedModalInputs() {
 }
 
 // Clear on Casino Change
-$("#selectCasinoUnificado").on("change", function () {
-  clearUnifiedModalInputs();
-  // Re-trigger visual logic if needed (it is handled by change event already but we cleared inputs)
-  // We might want to keep the casino selected? The user asked "cada vez que cambie de pestaña que me limpie todo".
-  // "Pestaña" refers to tabs properly, but for this unified modal, maybe casino selection acts as tabs?
-});
-
 $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
   $("#fecha_Unificado, #casino_Unificado").attr("disabled", false); // Re-enable primary keys BEFORE FormData
   const formData = new FormData($("#formNuevoRegistroPremiosMTM_Unificado")[0]);
@@ -14252,7 +11751,6 @@ $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
 
   // Reset file/view buttons
   $(".file-group-unified").show();
-  $(".btn-ver-archivos-unified").hide();
   $("#fechaPremiosMTM_Unificado").show();
 
   // Clean errors
@@ -14292,6 +11790,7 @@ $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
     "PremiosMTM[total_usd]",
     "PromoTickets[cantidad]",
     "PromoTickets[importe]",
+    "PromoTickets[importe_usd]",
     "Pozos[importe]",
     "Jackpots[importe]",
     "Jackpots[importe_usd]",
@@ -14307,6 +11806,8 @@ $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
     "RegistrosContables[mp_dolares]",
     "RegistrosContables[bingo]",
     "RegistrosContables[juego_online]",
+    "RegistrosContables[apuestas_deportivas]",
+    "RegistrosContables[apuestas_deportivas_usd]",
     "RegistrosContables[total]",
     "RegistrosContables[total_usd]",
   ];
@@ -14359,8 +11860,7 @@ $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
       $("#mensajeExito p").text("Los datos han sido guardados correctamente.");
       $("#mensajeExito").show();
       // Refresh current table logic
-      $("#btn-buscarPremiosMTM").click();
-    },
+          },
     error: function (data) {
       const response = data.responseJSON;
       if (response.errors) {
@@ -14379,13 +11879,13 @@ $(document).on("click", "#guardarRegistroPremiosMTM_Unificado", function () {
 
 $(document).on(
   "click",
-  ".btn-edit-PremiosMTM_Unificado, .btn-verRegPremiosMTM_Unificado",
+  ".btn-edit-PremiosMTM_Unificado",
   function () {
     // El botón "ver" se quitó de la tabla: ahora se entra siempre por el de editar. En registros
     // contables y premios se validan todos juntos, así que el estado de la fila gobierna todo el
     // modal: si está validado se abre en el modo de solo lectura que ya tenía el unificado.
     const isView =
-      $(this).hasClass("btn-verRegPremiosMTM_Unificado") || docContableValidado($(this));
+      docContableValidado($(this));
     $("#modalCargarPremiosMTM").toggleClass("doc-solo-lectura", isView);
     const fecha = $(this).data("fecha");
     const casino = $(this).data("casino");
@@ -14404,22 +11904,17 @@ $(document).on(
     // Toggle File Inputs / Buttons
     if (isView) {
       $(".file-group-unified").hide();
-      $(".btn-ver-archivos-unified").show();
       $("#fechaPremiosMTM_Unificado").show(); // Ensure date is visible
     } else {
       $(".file-group-unified").show();
-      $(".btn-ver-archivos-unified").hide();
       $("#fechaPremiosMTM_Unificado").show();
     }
 
-    // Global var for viewing files
-    // unifiedFilesData is defined at top level
 
     $.getJSON(
       "/documentosContables/llenarPremiosMTM_Unificado",
       { fecha: fecha.substring(0, 7), casino: casino },
       function (res) {
-        unifiedFilesData = {}; // Reset
 
         // Fill all forms
         if (res.PremiosMTM) {
@@ -14434,7 +11929,6 @@ $(document).on(
           $('[name="PremiosMTM[jackpots_usd]"]').val(formatoAR(d.jackpots_usd));
           $('[name="PremiosMTM[total]"]').val(formatoAR(d.total));
           $('[name="PremiosMTM[total_usd]"]').val(formatoAR(d.total_usd));
-          if (d.archivos) unifiedFilesData.PremiosMTM = d.archivos;
           if (d.id_registroPremiosMTM)
             $("#id_registroPremiosMTM_Unified").val(d.id_registroPremiosMTM);
         }
@@ -14442,7 +11936,7 @@ $(document).on(
           const d = res.PromoTickets;
           $('[name="PromoTickets[cantidad]"]').val(d.cantidad);
           $('[name="PromoTickets[importe]"]').val(formatoAR(d.importe));
-          if (d.archivos) unifiedFilesData.PromoTickets = d.archivos;
+          $('[name="PromoTickets[importe_usd]"]').val(formatoAR(d.importe_usd));
           if (d.id_registroPromoTickets)
             $("#id_registroPromoTickets_Unified").val(
               d.id_registroPromoTickets
@@ -14451,7 +11945,6 @@ $(document).on(
         if (res.Pozos) {
           const d = res.Pozos;
           $('[name="Pozos[importe]"]').val(formatoAR(d.importe));
-          if (d.archivos) unifiedFilesData.Pozos = d.archivos;
           if (d.id_registroPozosAcumuladosLinkeados)
             $("#id_registroPozos_Unified").val(
               d.id_registroPozosAcumuladosLinkeados
@@ -14461,7 +11954,6 @@ $(document).on(
           const d = res.Jackpots;
           $('[name="Jackpots[importe]"]').val(formatoAR(d.importe));
           $('[name="Jackpots[importe_usd]"]').val(formatoAR(d.importe_usd));
-          if (d.archivos) unifiedFilesData.Jackpots = d.archivos;
           if (d.id_registroJackpotsPagados)
             $("#id_registroJackpots_Unified").val(d.id_registroJackpotsPagados);
         }
@@ -14472,7 +11964,6 @@ $(document).on(
           $('[name="PremiosPagados[importe_usd]"]').val(
             formatoAR(d.importe_usd)
           );
-          if (d.archivos) unifiedFilesData.PremiosPagados = d.archivos;
           if (d.id_registroPremiosPagados)
             $("#id_registroPremiosPagados_Unified").val(
               d.id_registroPremiosPagados
@@ -14483,7 +11974,6 @@ $(document).on(
           $('[name="PagosMesas[cantidad]"]').val(d.cant_pagos); // DB column alias
           $('[name="PagosMesas[importe]"]').val(formatoAR(d.importe_pesos)); // DB column alias
           $('[name="PagosMesas[importe_usd]"]').val(formatoAR(d.importe_usd));
-          if (d.archivos) unifiedFilesData.PagosMesas = d.archivos;
           if (d.id_registroPagosMayoresMesas)
             $("#id_registroPagosMesas_Unified").val(
               d.id_registroPagosMayoresMesas
@@ -14499,16 +11989,25 @@ $(document).on(
           $('[name="RegistrosContables[mp_dolares]"]').val(formatoAR(d.mp_usd));
           $('[name="RegistrosContables[bingo]"]').val(formatoAR(d.bingo));
           $('[name="RegistrosContables[juego_online]"]').val(formatoAR(d.jol));
+          $('[name="RegistrosContables[apuestas_deportivas]"]').val(
+            formatoAR(d.apuestas_deportivas)
+          );
+          $('[name="RegistrosContables[apuestas_deportivas_usd]"]').val(
+            formatoAR(d.apuestas_deportivas_usd)
+          );
           $('[name="RegistrosContables[total]"]').val(formatoAR(d.total));
           $('[name="RegistrosContables[total_usd]"]').val(
             formatoAR(d.total_usd)
           );
-          if (d.archivos) unifiedFilesData.RegistrosContables = d.archivos;
           if (d.id_registroRegistrosContables)
             $("#id_registroRegistrosContables_Unified").val(
               d.id_registroRegistrosContables
             );
         }
+        // Observación de todo el registro (mes + casino), no de una sección.
+        $("#obs_Unificado").val(
+          res.Observaciones ? res.Observaciones.observaciones || "" : ""
+        );
 
         // Trigger calculation updates (change event for auto-sum)
         $(
@@ -14516,7 +12015,8 @@ $(document).on(
             "#cancel_usd_PremiosMTM_Unified, #jack_usd_PremiosMTM_Unified, #progre_usd_PremiosMTM_Unified, " +
             "#mtm_pesos_RegistrosContables_Unified, #mp_pesos_RegistrosContables_Unified, #bingo_RegistrosContables_Unified, #jol_RegistrosContables_Unified, " +
             "#mtm_usd_RegistrosContables_Unified, #mp_usd_RegistrosContables_Unified, " +
-            "#cant_PromoTickets_Unified, #importe_PromoTickets_Unified, " +
+            "#apuestas_RegistrosContables_Unified, #apuestas_usd_RegistrosContables_Unified, " +
+            "#cant_PromoTickets_Unified, #importe_PromoTickets_Unified, #importe_usd_PromoTickets_Unified, " +
             "#importe_Pozos_Unified, " +
             "#importe_Jackpots_Unified, #importe_usd_Jackpots_Unified, " +
             "#cant_PremiosPagados_Unified, #importe_PremiosPagados_Unified, #importe_usd_PremiosPagados_Unified, " +
@@ -14524,25 +12024,23 @@ $(document).on(
         ).trigger("change");
         if (isView) {
           $(
-            "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select"
+            "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select, #formNuevoRegistroPremiosMTM_Unificado textarea"
           ).attr("disabled", true);
           // Hide file pickers and containers in View mode
           $(".file-group-unified").hide();
           $(".wrapUnified").hide();
           // Show "Ver Archivos" buttons
-          $(".btn-ver-archivos-unified").show();
           $("#guardarRegistroPremiosMTM_Unificado").hide();
           // Ensure Date is visible
           $("#fechaPremiosMTM_Unificado").show();
           $("#fecha_Unificado").show().attr("disabled", true);
         } else {
           $(
-            "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select"
+            "#formNuevoRegistroPremiosMTM_Unificado input, #formNuevoRegistroPremiosMTM_Unificado select, #formNuevoRegistroPremiosMTM_Unificado textarea"
           ).attr("disabled", false);
           $("#fecha_Unificado, #casino_Unificado").attr("disabled", true); // Freeze primary keys on edit
           // Show file inputs
           $(".file-group-unified").show();
-          $(".btn-ver-archivos-unified").hide();
           $("#guardarRegistroPremiosMTM_Unificado").show();
           $("#fechaPremiosMTM_Unificado").show();
           $("#fecha_Unificado").show().attr("disabled", true);
@@ -14560,7 +12058,7 @@ $(document).on(
 // Modal unificado: la lista de archivos de cada sub-documento se muestra inline, debajo de su
 // botón de subir archivos (antes había un botón "VER ARCHIVOS" que abría un modal aparte).
 // OJO: las claves son los nombres cortos (Pozos/Jackpots/PagosMesas), igual que la respuesta
-// del backend, los contenedores del blade y unifiedFilesData.
+// del backend y los contenedores del blade.
 var MAP_ARCHIVOS_UNIFICADO = {
   PremiosMTM: { id: "#id_registroPremiosMTM_Unified", fn: "cargarArchivosPremiosMTMLista" },
   PromoTickets: { id: "#id_registroPromoTickets_Unified", fn: "cargarArchivosPromoTicketsLista" },
@@ -14618,40 +12116,6 @@ $("#btn-eliminarPremiosMTM").on("click", function () {
     });
 });
 
-$(document).on("click", ".btn-verRegPremiosMTM", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarPremiosMTM/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_PremiosMTM").val(fecha);
-    $("#ver_casino_PremiosMTM").val(data.casino);
-
-    $("#ver_cancel_PremiosMTM").val("$ " + formatoAR(data.cancel));
-    $("#ver_cancel_usd_PremiosMTM").val("USD " + formatoAR(data.cancel_usd));
-
-    $("#ver_progre_PremiosMTM").val("$ " + formatoAR(data.progresivos));
-    $("#ver_progre_usd_PremiosMTM").val(
-      "USD " + formatoAR(data.progresivos_usd)
-    );
-
-    $("#ver_jackpots_PremiosMTM").val("$ " + formatoAR(data.jackpots));
-    $("#ver_jackpots_usd_PremiosMTM").val(
-      "USD " + formatoAR(data.jackpots_usd)
-    );
-
-    $("#ver_total_PremiosMTM").val("$ " + formatoAR(data.total));
-    $("#ver_total_usd_PremiosMTM").val("USD " + formatoAR(data.total_usd));
-
-    $("#modalVerPremiosMTM").modal("show");
-  });
-});
-
 $("#btn-descargarPremiosMTMExcel").on("click", function (e) {
   $("#collapseDescargarPremiosMTM .has-error").removeClass("has-error");
   $("#collapseDescargarPremiosMTM .js-error").remove();
@@ -14662,22 +12126,8 @@ $("#btn-descargarPremiosMTMExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPremiosMTM")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PremiosMTMDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
   if (!valid) return;
@@ -14701,22 +12151,8 @@ $("#btn-descargarPremiosMTMCsv").on("click", function () {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPremiosMTM")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_PremiosMTMDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
   if (!valid) return;
@@ -14745,8 +12181,6 @@ $(document).on("click", "#AutDirectores_nuevo_director", function (e) {
 });
 
 function cargarArchivosAutDirectoresLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("AutDirectoresId", id);
   var $list = $(targetArchivosDoc("AutDirectores", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -14803,13 +12237,6 @@ function cargarArchivosAutDirectoresLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-AutDirectores", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro AutDirectores");
-  cargarArchivosAutDirectoresLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-AutDirectores", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -14856,9 +12283,8 @@ function resetFormAutDirectores_autorizacion() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameAutDirectores").val("No se ha seleccionado ningún archivo");
-  $("#fileListAutDirectores").empty();
-  $("#zona-directores")
+  $("#fileNameAutDirectores").val("");
+    $("#zona-directores")
     .empty()
     .html(
       '<div class="col-md-12 text-muted">Elegí un casino para ver los directores.</div>'
@@ -14867,7 +12293,7 @@ function resetFormAutDirectores_autorizacion() {
   $("#uploadsAutDirectoresContainer").empty();
   $("#uploadsAutDirectoresTable tbody").empty();
   $("#uploadsAutDirectoresWrap").hide();
-  $("#fileNameAutDirectores").val("No se ha seleccionado ningún archivo");
+  $("#fileNameAutDirectores").val("");
 }
 
 function abrirModalAutDirectoresCrear() {
@@ -15004,8 +12430,6 @@ $(document).on("click", ".btn-editAutDirectores_director", function () {
   const cuit = $(this).closest("tr").data("cuit");
 
   const estado = $(this).closest("tr").data("estado");
-  var $sel = $("#ModifTGI_partida_estado");
-
   $("#ModifId_AutDirectores_director").val(id);
   $("#ModifAutDirectores_director_nombre").val(nombre);
   $("#ModifAutDirectores_director_cuit").val(cuit);
@@ -15256,17 +12680,6 @@ $(document).on(
   }
 );
 
-$("#btn-buscarAutDirectores").on("click", function (e) {
-  e.preventDefault();
-  cargarAutDirectores({
-    page: 1,
-    perPage: $("#herramientasPaginacionAutDirectores").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceAutDirectores(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarAutDirectores({
@@ -15327,27 +12740,7 @@ function generarFilaAutDirectores(AutDirectores, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegAutDirectores_autorizacion")
-    .attr("id", AutDirectores.id_registroAutDirectores)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER AUTÓNOMOS DE DIRECTORES")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (AutDirectores.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-AutDirectores")
-      .attr("type", "button")
-      .attr("data-id", AutDirectores.id_registroAutDirectores)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-AutDirectores")
     .attr("type", "button")
@@ -15409,60 +12802,6 @@ $("#btn-eliminarAutDirectores_autorizacion").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegAutDirectores_autorizacion", function () {
-  const id = $(this).attr("id");
-
-  $("#detalle-AutDirectores-body").html("");
-
-  $.get(`/documentosContables/llenarAutDirectores/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    var autorizaciones = data.autorizaciones;
-
-    fecha = convertirMesAno(data.fecha);
-
-    $("#ver_fecha_AutDirectores").val(fecha);
-    $("#ver_casino_AutDirectores").val(data.casino);
-
-    var rows = "";
-
-    autorizaciones.forEach(function (a) {
-      var dir = a.director;
-      var nombre = dir.nombre || "";
-      var cuit = dir.cuit || "";
-      var ok = a.autoriza;
-
-      var icono = ok
-        ? '<span class="text-success"><i class="fa fa-check"></i></span>'
-        : '<span class="text-danger"><i class="fa fa-times"></i></span>';
-
-      rows +=
-        "<tr>" +
-        "<td>" +
-        escapeHtml(nombre) +
-        "</td>" +
-        "<td>" +
-        escapeHtml(cuit) +
-        "</td>" +
-        '<td class="text-center">' +
-        icono +
-        "</td>" +
-        "<td>" +
-        escapeHtml(a.observaciones || "") +
-        "</td>" +
-        "</tr>";
-    });
-    if (rows === "")
-      rows =
-        '<tr><td colspan="4" class="text-muted">Sin autorizaciones.</td></tr>';
-    $("#detalle-AutDirectores-body").html(rows);
-
-    $("#modalVerAutDirectores_autorizacion").modal("show");
-  });
-});
 $("#btn-descargarAutDirectoresExcel").on("click", function (e) {
   $("#collapseDescargarAutDirectores .has-error").removeClass("has-error");
   $("#collapseDescargarAutDirectores .js-error").remove();
@@ -15473,22 +12812,8 @@ $("#btn-descargarAutDirectoresExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoAutDirectores")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_AutDirectoresDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -15510,23 +12835,8 @@ $("#btn-descargarAutDirectoresCsv").on("click", function () {
   $("#collapseDescargarAutDirectores .has-error").removeClass("has-error");
   $("#collapseDescargarAutDirectores .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoAutDirectores")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_AutDirectoresDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -15541,7 +12851,7 @@ $("#btn-descargarAutDirectoresCsv").on("click", function () {
 
 // SEGUROS
 
-instalarNumeroFlexibleAR("#monto_Seguros , #cta_paga_Seguros", {
+instalarNumeroFlexibleAR("#monto_Seguros", {
   decimales: 2,
   permitirNegativos: true,
 });
@@ -15551,8 +12861,6 @@ $(document).on("click", "#Seguros_nuevo_tipo", function (e) {
 });
 
 function cargarArchivosSegurosLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("SegurosId", id);
   var $list = $(targetArchivosDoc("Seguros", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -15609,13 +12917,6 @@ function cargarArchivosSegurosLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-Seguros", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro Seguros");
-  cargarArchivosSegurosLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-Seguros", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -15628,7 +12929,7 @@ function abrirModalSegurosEditar(id) {
   resetFormSeguros();
   $("#Seguros_modo").val("edit");
   $("#id_registroSeguros").val(id);
-  $("#modalCargarSeguros .modal-title").text("| EDITAR REGISTRO DE SEGUROS");
+  $("#modalCargarSeguros .modal-title").text("| EDITAR PÓLIZA DE SEGURO");
   $("#guardarRegistroSeguros").text("ACTUALIZAR");
   $("#modalCargarSeguros").modal("show");
 
@@ -15643,13 +12944,10 @@ function abrirModalSegurosEditar(id) {
       .trigger("change");
     $("#casinoSeguros").val(d.casino).trigger("change");
     $("#tipo_Seguros").val(d.tipo_id).trigger("change");
-    $("#art_Seguros").val(d.art ?? "");
     $("#comp_Seguros").val(d.compania || "");
     $("#poliza_Seguros").val(d.poliza || "");
     $("#monto_Seguros").val(formatoAR(d.monto ?? ""));
-    $("#cta_paga_Seguros").val(formatoAR(d.cta_paga_total ?? ""));
     $("#estado_Seguros").val(d.estado ?? "");
-    $("#requerimento_Seguros").val(d.requerimiento_anual ?? "");
     $('[name="obs_Seguros"]').val(d.obs || "");
   }).fail(function (xhr) {
     console.error("[SEGUROS] GET FAIL", xhr.status, xhr.responseText);
@@ -15665,13 +12963,12 @@ function resetFormSeguros() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameSeguros").val("No se ha seleccionado ningún archivo");
-  $("#fileListSeguros").empty();
-  $("#uploadSeguros").val("");
+  $("#fileNameSeguros").val("");
+    $("#uploadSeguros").val("");
   $("#uploadsSegurosContainer").empty();
   $("#uploadsSegurosTable tbody").empty();
   $("#uploadsSegurosWrap").hide();
-  $("#fileNameSeguros").val("No se ha seleccionado ningún archivo");
+  $("#fileNameSeguros").val("");
 }
 
 function abrirModalSegurosCrear() {
@@ -15680,7 +12977,7 @@ function abrirModalSegurosCrear() {
   resetFormSeguros();
   $("#Seguros_modo").val("create");
   $("#id_registroSeguros").val("");
-  $("#modalCargarSeguros .modal-title").text("| NUEVO REGISTRO DE SEGUROS");
+  $("#modalCargarSeguros .modal-title").text("| NUEVA PÓLIZA DE SEGURO");
   $("#guardarRegistroSeguros").text("GENERAR");
   $("#modalCargarSeguros").modal("show");
 }
@@ -15923,14 +13220,6 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
     valid
   );
 
-  const $cta_paga = $("input[name='cta_paga_Seguros']");
-  valid = validarCampoNumSiHayValor(
-    $cta_paga,
-    ".col-md-4",
-    "El monto es requerido.",
-    valid
-  );
-
   valid = validarCampoNum(
     "input[name='poliza_Seguros']",
     ".col-md-4",
@@ -16028,17 +13317,6 @@ $(document).on("click", "#guardarRegistroSeguros", function (e) {
   });
 });
 
-$("#btn-buscarSeguros").on("click", function (e) {
-  e.preventDefault();
-  cargarSeguros({
-    page: 1,
-    perPage: $("#herramientasPaginacionSeguros").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceSeguros(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarSeguros({
@@ -16093,27 +13371,24 @@ function generarFilaSeguros(Seguros, controlador) {
   const periodoFin = Seguros.periodoFin || "-";
   const tipo = Seguros.tipo || "-";
   const casino = Seguros.casino || "-";
-  const estado = Seguros.estado == 1 ? "VIGENTE" : "VENCIDO";
+  const vencido = Seguros.estado != 1;
+  const estado = vencido ? "VENCIDO" : "VIGENTE";
+
+  // El backend ya marca como vencido lo que pasó de su período hasta; acá solo se resalta en
+  // amarillo la celda de estado para que se vea de un vistazo en la tabla.
+  const $tdEstado = $("<td>").addClass("col-xs-2").text(estado);
+  if (vencido) $tdEstado.addClass("seguro-vencido");
 
   fila
     .append($("<td>").addClass("col-xs-2").text(periodoIn))
     .append($("<td>").addClass("col-xs-2").text(periodoFin))
     .append($("<td>").addClass("col-xs-2").text(tipo))
     .append($("<td>").addClass("col-xs-2").text(casino))
-    .append($("<td>").addClass("col-xs-2").text(estado));
+    .append($tdEstado);
 
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegSeguros")
-    .attr("id", Seguros.id_registroSeguros)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO DE SEGURO")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
   if (Seguros.estado == 1) {
     var btnCheck = $("<a>")
@@ -16126,17 +13401,6 @@ function generarFilaSeguros(Seguros, controlador) {
     tdAcc.append(btnCheck);
   }
 
-  if (Seguros.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-Seguros")
-      .attr("type", "button")
-      .attr("data-id", Seguros.id_registroSeguros)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-Seguros")
     .attr("type", "button")
@@ -16221,33 +13485,6 @@ $(document).on("click", ".btn-estadoRegSeguros", function (e) {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegSeguros", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarSeguros/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    $("#ver_monto_Seguros").val(formatoAR(data.monto));
-
-    $("#ver_casino_Seguros").val(data.casino);
-    $("#ver_fecha_SegurosDes").val(data.periodo_inicio);
-    $("#ver_fecha_SegurosHas").val(data.periodo_fin);
-    $("#ver_tipo_Seguros").val(data.tipoSeguro);
-    $("#ver_compañia_Seguros").val(data.compañia);
-    $("#ver_poliza_Seguros").val(data.nro_poliza);
-    $("#ver_cta_paga_Seguros").val(formatoAR(data.cta_paga_total));
-    $("#ver_art_Seguros").val(data.art);
-    $("#ver_requerimento_Seguros").val(data.requerimento_anual);
-    $("#ver_obs_Seguros").val(data.observaciones);
-    $("#ver_estado_Seguros").val(data.estado);
-
-    $("#modalVerSeguros").modal("show");
-  });
-});
-
 $("#btn-descargarSegurosExcel").on("click", function (e) {
   $("#collapseDescargarSeguros .has-error").removeClass("has-error");
   $("#collapseDescargarSeguros .js-error").remove();
@@ -16258,22 +13495,8 @@ $("#btn-descargarSegurosExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoSeguros")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
   if (desde > hasta && hasta) {
-    $("#fecha_SegurosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -16295,23 +13518,8 @@ $("#btn-descargarSegurosCsv").on("click", function () {
   $("#collapseDescargarSeguros .has-error").removeClass("has-error");
   $("#collapseDescargarSeguros .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoSeguros")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_SegurosDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -16332,8 +13540,6 @@ instalarNumeroFlexibleAR("#monto_DerechoAcceso", {
 });
 
 function cargarArchivosDerechoAccesoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("DerechoAccesoId", id);
   var $list = $(targetArchivosDoc("DerechoAcceso", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -16390,13 +13596,6 @@ function cargarArchivosDerechoAccesoLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-DerechoAcceso", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro DerechoAcceso");
-  cargarArchivosDerechoAccesoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-DerechoAcceso", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -16449,13 +13648,12 @@ function resetFormDerechoAcceso() {
   $f[0].reset();
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
-  $("#fileNameDerechoAcceso").val("No se ha seleccionado ningún archivo");
-  $("#fileListDerechoAcceso").empty();
-  $("#uploadDerechoAcceso").val("");
+  $("#fileNameDerechoAcceso").val("");
+    $("#uploadDerechoAcceso").val("");
   $("#uploadsDerechoAccesoContainer").empty();
   $("#uploadsDerechoAccesoTable tbody").empty();
   $("#uploadsDerechoAccesoWrap").hide();
-  $("#fileNameDerechoAcceso").val("No se ha seleccionado ningún archivo");
+  $("#fileNameDerechoAcceso").val("");
 }
 
 function abrirModalDerechoAccesoCrear() {
@@ -16588,17 +13786,6 @@ $(document).on("click", "#guardarRegistroDerechoAcceso", function (e) {
   });
 });
 
-$("#btn-buscarDerechoAcceso").on("click", function (e) {
-  e.preventDefault();
-  cargarDerechoAcceso({
-    page: 1,
-    perPage: $("#herramientasPaginacionDerechoAcceso").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceDerechoAcceso(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarDerechoAcceso({
@@ -16666,24 +13853,6 @@ function generarFilaDerechoAcceso(DerechoAcceso, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<button>")
-    .addClass("btn btn-success btn-sm btn-verRegDerechoAcceso")
-    .attr("id", DerechoAcceso.id_registroDerechoAcceso)
-    .attr("data-toggle", "tooltip")
-    .attr("title", "VER REGISTRO DERECHO DE ACCESO")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
-  if (DerechoAcceso.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-DerechoAcceso")
-      .attr("type", "button")
-      .attr("data-id", DerechoAcceso.id_registroDerechoAcceso)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-DerechoAcceso")
     .attr("type", "button")
@@ -16744,21 +13913,6 @@ $("#btn-eliminarDerechoAcceso").on("click", function () {
     .fail(() => {});
 });
 
-$(document).on("click", ".btn-verRegDerechoAcceso", function () {
-  const id = $(this).attr("id");
-
-  $.get(`/documentosContables/llenarDerechoAcceso/${id}`, function (data) {
-    if (!data) {
-      alert("No se encontraron datos");
-      return;
-    }
-
-    $("#obsDerechoAcceso").text(data.obs);
-
-    $("#modalVerDerechoAcceso").modal("show");
-  });
-});
-
 $("#btn-descargarDerechoAccesoExcel").on("click", function (e) {
   $("#collapseDescargarDerechoAcceso .has-error").removeClass("has-error");
   $("#collapseDescargarDerechoAcceso .js-error").remove();
@@ -16769,12 +13923,7 @@ $("#btn-descargarDerechoAccesoExcel").on("click", function (e) {
   let valid = true;
 
   if (desde > hasta && hasta) {
-    $("#fecha_DerechoAccesoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -16791,12 +13940,7 @@ $("#btn-descargarDerechoAccesoCsv").on("click", function () {
   $("#collapseDescargarDerechoAcceso .js-error").remove();
 
   if (desde > hasta && hasta) {
-    $("#fecha_DerechoAccesoDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -17004,112 +14148,12 @@ $(document)
 
 var VER_PAT_PAGOS_IDX = 0;
 
-function renderFilaPagoPatentesReadOnly(p) {
-  VER_PAT_PAGOS_IDX++;
-  var idx = VER_PAT_PAGOS_IDX;
-
-  var $row = $(
-    '<div class="row pago-row" data-idx="' +
-      idx +
-      '">' +
-      '<div class="col-md-2"><h5>Patente</h5><div class="form-control fc-wrap"></div></div>' +
-      '<div class="col-md-1"><h5>Cuota</h5><input type="text" class="form-control" readonly></div>' +
-      '<div class="col-md-2"><h5>Importe</h5><input type="text" class="form-control ver-pago-importe" readonly></div>' +
-      '<div class="col-md-2"><h5>Fecha</h5><div class="input-group date"><input type="text" class="form-control ver-pago-fecha" readonly></div></div>' +
-      '<div class="col-md-5"><h5>Observación</h5><textarea class="form-control" rows="1" readonly></textarea></div>' +
-      "</div>"
-  );
-
-  (function injectWrapCss() {
-    if (document.getElementById("patente-wrap-css")) return;
-    var css = `
-    .fc-wrap{
-      min-height:34px;
-      height:auto;
-      padding-top:6px;
-      overflow:hidden;
-      white-space:normal;           /* permite múltiples líneas */
-      word-break:break-word;        /* corta palabras largas */
-      overflow-wrap:anywhere;       /* fuerza corte si es necesario */
-    }
-  `;
-    var s = document.createElement("style");
-    s.id = "patente-wrap-css";
-    s.textContent = css;
-    document.head.appendChild(s);
-  })();
-
-  var importeFmt =
-    p.importe != null && p.importe !== ""
-      ? typeof formatoAR === "function"
-        ? "$ " + formatoAR(p.importe)
-        : p.importe
-      : "";
-
-  $row
-    .find(".col-md-2 .form-control")
-    .first()
-    .text(p.patenteDe || p.nombre || "");
-  $row.find(".col-md-1 input").val(p.cuota || "");
-  $row.find(".ver-pago-importe").val(importeFmt);
-  $row.find(".ver-pago-fecha").val(p.fecha_pres || p.fecha || "");
-  $row.find("textarea").val(p.observacion || p.obs || "");
-
-  return $row;
-}
-
-function renderVerPagosPatentes(containerSelector, pagos) {
-  var $c = $(containerSelector);
-  $c.empty();
-  VER_PAT_PAGOS_IDX = 0;
-
-  if (!Array.isArray(pagos) || !pagos.length) {
-    $c.append(
-      '<div class="alert alert-info" role="alert">No hay pagos registrados.</div>'
-    );
-    return;
-  }
-  pagos.forEach(function (p) {
-    $c.append(renderFilaPagoPatentesReadOnly(p));
-  });
-}
-
-$(document)
-  .off("click", ".btn-verRegPatentes")
-  .on("click", ".btn-verRegPatentes", function () {
-    const id = $(this).attr("id");
-    $.getJSON("/documentosContables/llenarPatentes/" + id, function (data) {
-      if (!data) {
-        alert("No se encontraron datos");
-        return;
-      }
-
-      const fecha = convertirMesAno(data.fecha_Patentes || data.fecha);
-      $("#ver_fecha_Patentes").val(fecha || "");
-      $("#ver_casino_Patentes").val(data.casino || "");
-      $("#ver_obs_Patentes").val(data.observaciones || data.obs || "");
-
-      renderVerPagosPatentes("#ver_pagosPatentesContainer", data.pagos || []);
-
-      $("#modalVerPatentes").modal("show");
-    }).fail(function (xhr) {
-      console.error("llenarPatentes fail", xhr.responseText || xhr.statusText);
-      alert("No se pudo obtener el registro.");
-    });
-  });
-
-instalarNumeroFlexibleAR("#total_Patentes", {
-  decimales: 2,
-  permitirNegativos: true,
-});
 
 $(document).on("click", "#Patentes_nuevo_patenteDe", function (e) {
   $("#modalCargarPatentes_patenteDe").modal("show");
 });
 
 function cargarArchivosPatentesLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PatentesId", id);
   var $list = $(targetArchivosDoc("Patentes", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -17166,13 +14210,6 @@ function cargarArchivosPatentesLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-Patentes", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro Patentes");
-  cargarArchivosPatentesLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-Patentes", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -17190,7 +14227,7 @@ function resetFormPatentes() {
   $("#uploadsPatentesContainer").empty();
   $("#uploadsPatentesTable tbody").empty();
   $("#uploadsPatentesWrap").hide();
-  $("#fileNamePatentes").val("No se ha seleccionado ningún archivo");
+  $("#fileNamePatentes").val("");
   $("#uploadPatentes").val("");
 
   $("#pagosPatentesContainer").empty();
@@ -17262,53 +14299,6 @@ function abrirModalPatentesEditar(id) {
     })
     .always(function () {
       window.PAT_SUPPRESS_CASINO_CHANGE = false;
-    });
-}
-
-$(document).on("change", "#casinoPatentes", function () {
-  var sid = $("#elementoPatentable_Patentes").data("selected-id");
-  cargarElementosPatentables($(this).val(), sid);
-});
-
-function cargarElementosPatentables(casinoId, selectedId) {
-  var $sel = $("#elementoPatentable_Patentes");
-  $sel
-    .prop("disabled", true)
-    .empty()
-    .append('<option value="">Cargando...</option>');
-
-  if (!casinoId) {
-    $sel
-      .html('<option value="">Elige un elemento patentable</option>')
-      .prop("disabled", false);
-    $sel.removeData("selected-id");
-    return;
-  }
-
-  $.getJSON(
-    "/documentosContables/getPatentes_patenteDeHabilitadosPorCasino/" +
-      casinoId,
-    function (data) {
-      var opts = '<option value="">Elige un elemento patentable</option>';
-      $.each(data || [], function (_, t) {
-        opts +=
-          '<option value="' + t.id + '">' + (t.nombre || "") + "</option>";
-      });
-      $sel.html(opts);
-
-      var sid =
-        selectedId != null && selectedId !== ""
-          ? String(selectedId)
-          : String($sel.data("selected-id") || "");
-      if (sid) $sel.val(sid);
-      $sel.removeData("selected-id");
-    }
-  )
-    .fail(function () {
-      $sel.html('<option value="">Error al cargar</option>');
-    })
-    .always(function () {
-      $sel.prop("disabled", false);
     });
 }
 
@@ -17624,17 +14614,6 @@ $(document)
     });
   });
 
-$("#btn-buscarPatentes").on("click", function (e) {
-  e.preventDefault();
-  cargarPatentes({
-    page: 1,
-    perPage: $("#herramientasPaginacionPatentes").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndicePatentes(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarPatentes({
@@ -17694,26 +14673,7 @@ function generarFilaPatentes(Patentes) {
   // Acciones
   const tdAcc = $("<td>").addClass("col-xs-2 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegPatentes")
-    .attr("id", Patentes.id_registroPatentes)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("title", "VER REGISTRO PATENTES")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (Patentes.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-Patentes")
-      .attr("type", "button")
-      .attr("data-id", Patentes.id_registroPatentes)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
 
   const btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-Patentes")
@@ -17786,23 +14746,8 @@ $("#btn-descargarPatentesExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoPatentes")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PatentesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -17824,23 +14769,8 @@ $("#btn-descargarPatentesCsv").on("click", function () {
   $("#collapseDescargarPatentes .has-error").removeClass("has-error");
   $("#collapseDescargarPatentes .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoPatentes")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_PatentesDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -18044,130 +14974,8 @@ $(document)
 
 var VER_IMP_PAGOS_IDX = 0;
 
-function renderFilaPagoImpInmobiliarioReadOnly(p) {
-  VER_IMP_PAGOS_IDX++;
-  var idx = VER_IMP_PAGOS_IDX;
-
-  var $row = $(
-    '<div class="row pago-row" data-idx="' +
-      idx +
-      '">' +
-      '<div class="col-md-2"><h5>Partida</h5><div class="form-control partida-box fc-wrap"></div></div>' +
-      '<div class="col-md-1"><h5>Cuota</h5><input type="text" class="form-control" readonly></div>' +
-      '<div class="col-md-2"><h5>Importe</h5><input type="text" class="form-control" readonly></div>' +
-      '<div class="col-md-2"><h5>Fecha</h5><div class="input-group date"><input type="text" class="form-control" readonly></div></div>' +
-      '<div class="col-md-5"><h5>Observación</h5><textarea class="form-control" rows="1" readonly></textarea></div>' +
-      "</div>"
-  );
-
-  var txtPartida = (p.partida || p.partida_nombre || p.nombre || "").toString();
-  $row.find(".partida-box").text(txtPartida);
-
-  (function injectWrapCssPartida() {
-    if (document.getElementById("partida-wrap-css")) return;
-    var css = `
-    .fc-wrap{
-      min-height:34px;
-      height:auto;
-      padding-top:6px;
-      overflow:hidden;
-      white-space:normal;
-      word-break:break-word;
-      overflow-wrap:anywhere;
-    }
-  `;
-    var s = document.createElement("style");
-    s.id = "partida-wrap-css";
-    s.textContent = css;
-    document.head.appendChild(s);
-  })();
-
-  var importeFmt =
-    p.importe != null && p.importe !== ""
-      ? typeof formatoAR === "function"
-        ? "$ " + formatoAR(p.importe)
-        : p.importe
-      : "";
-
-  $row
-    .find(".col-md-2 .form-control")
-    .first()
-    .text(p.partida || "");
-  $row.find(".col-md-1 input").val(p.cuota || "");
-  $row.find(".col-md-2 input.form-control").first().val(importeFmt);
-  $row
-    .find(".col-md-2 .input-group.date input")
-    .val(p.fecha_pres || p.fecha || "");
-  $row.find("textarea").val(p.observacion || p.obs || "");
-
-  return $row;
-}
-
-function renderVerPagosImpInmobiliario(containerSelector, pagos) {
-  var $c = $(containerSelector);
-  $c.empty();
-  VER_IMP_PAGOS_IDX = 0;
-
-  if (!Array.isArray(pagos) || !pagos.length) {
-    $c.append(
-      '<div class="alert alert-info" role="alert">No hay pagos registrados.</div>'
-    );
-    return;
-  }
-  for (var i = 0; i < pagos.length; i++) {
-    $c.append(renderFilaPagoImpInmobiliarioReadOnly(pagos[i]));
-  }
-}
-
-$(document)
-  .off("click", ".btn-verRegImpInmobiliario")
-  .on("click", ".btn-verRegImpInmobiliario", function () {
-    var id = $(this).attr("id");
-
-    $.getJSON(
-      "/documentosContables/llenarImpInmobiliario/" + id,
-      function (data) {
-        if (!data) {
-          alert("No se encontraron datos");
-          return;
-        }
-
-        const fecha = convertirMesAno(data.fecha);
-        console.log(fecha);
-        $("#ver_fecha_ImpInmobiliario").val(fecha);
-        $("#ver_casino_ImpInmobiliario").val(data.casino || "");
-
-        renderVerPagosImpInmobiliario(
-          "#ver_pagosImpInmobiliarioContainer",
-          data.pagos || []
-        );
-
-        $("#modalVerImpInmobiliario").modal("show");
-      }
-    ).fail(function (xhr) {
-      console.error(
-        "llenarImpInmobiliario fail",
-        xhr.responseText || xhr.statusText
-      );
-      alert("No se pudo obtener el registro.");
-    });
-  });
-
-let IMP_PARTIDAS_REQ_ID = 0;
 let IMP_SUPPRESS_CASINO_CHANGE = false;
 
-$(document)
-  .off("change.imp", "#casinoImpInmobiliario")
-  .on("change.imp", "#casinoImpInmobiliario", function () {
-    if (IMP_SUPPRESS_CASINO_CHANGE) return;
-    const sid = $("#partida_ImpInmobiliario").data("selected-id");
-    cargarPartidasImpInmobiliario($(this).val(), sid ?? null);
-  });
-
-instalarNumeroFlexibleAR("#total_ImpInmobiliario", {
-  decimales: 2,
-  permitirNegativos: true,
-});
 
 $(document).on("click", "#ImpInmobiliario_nuevo", function (e) {
   $("#modalCargarImpInmobiliario").modal("show");
@@ -18176,40 +14984,6 @@ $(document).on("click", "#ImpInmobiliario_nuevo", function (e) {
 $(document).on("click", "#ImpInmobiliario_nueva_partida", function (e) {
   $("#modalCargarImpInmobiliario_partida").modal("show");
 });
-
-function cargarPartidasImpInmobiliario(casinoId, selectedId) {
-  const reqId = ++IMP_PARTIDAS_REQ_ID;
-  const $sel = $("#partida_ImpInmobiliario");
-
-  if (selectedId != null) $sel.data("selected-id", String(selectedId));
-  $sel.prop("disabled", true).html('<option value="">Cargando…</option>');
-
-  if (!casinoId) {
-    $sel
-      .html('<option value="">Elegí un casino</option>')
-      .prop("disabled", false);
-    $sel.removeData("selected-id");
-    return;
-  }
-
-  $.getJSON("/documentosContables/getImpInmobiliario_partidaPorCasino", {
-    casino: casinoId,
-  })
-    .done(function (data) {
-      if (reqId !== IMP_PARTIDAS_REQ_ID) return;
-      populateSelect($sel, data, "id", "partida", "Elegí una partida");
-      const sid = $sel.data("selected-id");
-      if (sid != null) $sel.val(sid);
-    })
-    .fail(function () {
-      if (reqId !== IMP_PARTIDAS_REQ_ID) return;
-      $sel.html('<option value="">Error al cargar</option>');
-    })
-    .always(function () {
-      if (reqId !== IMP_PARTIDAS_REQ_ID) return;
-      $sel.prop("disabled", false).removeData("selected-id");
-    });
-}
 
 function abrirModalImpInmobiliarioEditar(id) {
   resetFormImpInmobiliario();
@@ -18230,11 +15004,6 @@ function abrirModalImpInmobiliarioEditar(id) {
       $('#fechaImpInmobiliario input[name="fecha_ImpInmobiliario"]').val(ym);
 
       $("#casinoImpInmobiliario").val(d.casino); // NO dispares change acá
-
-      if (d.partida_id != null && d.partida_id !== "") {
-        $("#partida_ImpInmobiliario").data("selected-id", String(d.partida_id));
-      }
-      cargarPartidasImpInmobiliario(d.casino, d.partida_id);
 
       var $cont = $("#pagosImpInmobiliarioContainer").empty();
       IMP_PAGOS_IDX = 0;
@@ -18474,8 +15243,6 @@ $(document).on(
 );
 
 function cargarArchivosImpInmobiliarioLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("ImpInmobiliarioId", id);
   var $list = $(targetArchivosDoc("ImpInmobiliario", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -18532,13 +15299,6 @@ function cargarArchivosImpInmobiliarioLista(id, target) {
     });
 }
 
-$(document).on("click", ".btn-archivos-ImpInmobiliario", function () {
-  var id = $(this).data("id");
-  $("#tituloArchivos").text("Archivos del registro ImpInmobiliario");
-  cargarArchivosImpInmobiliarioLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
-
 $(document).on("click", ".btn-del-archivo-ImpInmobiliario", function () {
   const id = $(this).data("id");
   const regId = $(this).data("regId");
@@ -18553,16 +15313,11 @@ function resetFormImpInmobiliario() {
   $f.find(".has-error").removeClass("has-error");
   $f.find(".help-block.js-error").remove();
 
-  $("#partida_ImpInmobiliario")
-    .removeData("selected-id")
-    .html('<option value="">Elegí una partida</option>');
-
-  $("#uploadsImpInmobiliarioContainer").empty();
+    $("#uploadsImpInmobiliarioContainer").empty();
   $("#uploadsImpInmobiliarioTable tbody").empty();
   $("#uploadsImpInmobiliarioWrap").hide();
-  $("#fileNameImpInmobiliario").val("No se ha seleccionado ningún archivo");
+  $("#fileNameImpInmobiliario").val("");
 
-  IMP_PARTIDAS_REQ_ID++;
 }
 
 function abrirModalImpInmobiliarioCrear() {
@@ -18710,17 +15465,6 @@ $(document).on("click", "#guardarRegistroImpInmobiliario", function (e) {
   });
 });
 
-$("#btn-buscarImpInmobiliario").on("click", function (e) {
-  e.preventDefault();
-  cargarImpInmobiliario({
-    page: 1,
-    perPage: $("#herramientasPaginacionImpInmobiliario").getPageSize(),
-    casino: $("#filtro_global_casino").val(),
-    desde: $("#filtro_global_desde_input").val(),
-    hasta: $("#filtro_global_hasta_input").val(),
-  });
-});
-
 function clickIndiceImpInmobiliario(e, pageNumber, pageSize) {
   if (e) e.preventDefault();
   cargarImpInmobiliario({
@@ -18789,27 +15533,7 @@ function generarFilaImpInmobiliario(ImpInmobiliario, controlador) {
   // Columna de ACCIONES
   const tdAcc = $("<td>").addClass("col-xs-4 d-flex flex-wrap");
 
-  const btnView = $("<a>")
-    .addClass("btn btn-success btn-sm btn-verRegImpInmobiliario")
-    .attr("id", ImpInmobiliario.id_registroImpInmobiliario)
-    .attr("target", "_blank")
-    .attr("data-toggle", "tooltip")
-    .attr("data-placement", "bottom")
-    .attr("title", "VER REGISTRO DE IMPUESTO INMOBILIARIO")
-    .append($("<i>").addClass("fa fa-fw fa-eye"));
-  // [ver/archivos removidos] tdAcc.append(btnView);
 
-  if (ImpInmobiliario.tiene_archivos) {
-    const btnFiles = $("<button>")
-      .addClass("btn btn-info btn-sm mr-1 btn-archivos-ImpInmobiliario")
-      .attr("type", "button")
-      .attr("data-id", ImpInmobiliario.id_registroImpInmobiliario)
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "bottom")
-      .attr("title", "VER ARCHIVOS ASOCIADOS")
-      .append($("<i>").addClass("fa fa-file"));
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
   var btnEdit = $("<button>")
     .addClass("btn btn-info btn-sm mr-1 btn-edit-ImpInmobiliario")
     .attr("type", "button")
@@ -18881,23 +15605,8 @@ $("#btn-descargarImpInmobiliarioExcel").on("click", function (e) {
   const hasta = _fg.hasta;
   let valid = true;
 
-  if (!casino) {
-    $("#DCasinoImpInmobiliario")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_ImpInmobiliarioDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -18919,23 +15628,8 @@ $("#btn-descargarImpInmobiliarioCsv").on("click", function () {
   $("#collapseDescargarImpInmobiliario .has-error").removeClass("has-error");
   $("#collapseDescargarImpInmobiliario .js-error").remove();
 
-  if (!casino) {
-    $("#DCasinoImpInmobiliario")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El casino es requerido.</span>'
-      );
-    valid = false;
-  }
-
   if (desde > hasta && hasta) {
-    $("#fecha_ImpInmobiliarioDescDesde")
-      .closest(".col-lg-3")
-      .addClass("has-error")
-      .append(
-        '<span class="help-block js-error text-danger">El intérvalo de inicio no puede ser posterior al de fin.</span>'
-      );
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
     valid = false;
   }
 
@@ -19028,7 +15722,7 @@ $(function () {
         $("#fileNameIva").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -19050,8 +15744,6 @@ $(function () {
         renderUploadsIva();
       });
 
-      attachYYYYMMFormatter("#fecha_ivaDesde");
-      attachYYYYMMFormatter("#fecha_ivaHasta");
       attachYYYYMMFormatter("#fecha_iva");
       attachYYYYMMDDFormatter("#fecha_ivaPres");
 
@@ -19081,59 +15773,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaIvaDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIvaDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIvaDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIvaHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_iibb") {
+                            } else if (selector === "#pant_iibb") {
       // cargariibb({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickiibb", function () {
         $("#uploadiibb").click();
@@ -19196,7 +15836,7 @@ $(function () {
         $("#fileNameiibb").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -19218,68 +15858,10 @@ $(function () {
         renderUploadsiibb();
       });
 
-      attachYYYYMMFormatter("#fecha_iibbDesde");
-      attachYYYYMMFormatter("#fecha_iibbHasta");
       attachYYYYMMFormatter("#fecha_iibb");
       attachYYYYMMDDFormatter("#fecha_iibbPres");
 
-      $("#fechaiibbDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaiibbDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaiibbDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaiibbHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaiibb").datetimepicker({
+                              $("#fechaiibb").datetimepicker({
         language: "es",
         todayBtn: 1,
         autoclose: 1,
@@ -19499,7 +16081,7 @@ $(function () {
         $("#fileNameDREI").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -19565,8 +16147,6 @@ $(function () {
         });
       });
 
-      attachYYYYMMFormatter("#fecha_DREIDesde");
-      attachYYYYMMFormatter("#fecha_DREIHasta");
       attachYYYYMMDDFormatter("#fecha_DREIPres");
       attachYYYYMMFormatter("#fecha_DREI");
       attachYYYYMMDDFormatter("#fecha_DREIVenc");
@@ -19612,63 +16192,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaDREIDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDREIHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDREIDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDREIDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_tgi") {
+                            } else if (selector === "#pant_tgi") {
       // cargarTGI({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickTGI", function () {
         $("#uploadTGI").click();
@@ -19731,7 +16255,7 @@ $(function () {
         $("#fileNameTGI").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -19753,16 +16277,8 @@ $(function () {
         renderUploadsTGI();
       });
 
-      $(document).on("change", "#casinoTGI", function () {
-        var sid = $("#partida_TGI").data("selected-id");
-        if ($("#TGI_modo").val() === "edit" && sid != null) return;
-        cargarPartidasTGI($(this).val());
-      });
-
       attachYYYYMMFormatter("#fecha_TGI");
 
-      attachYYYYMMFormatter("#fecha_TGIDesde");
-      attachYYYYMMFormatter("#fecha_TGIHasta");
 
       $("#fechaTGI").datetimepicker({
         language: "es",
@@ -19778,35 +16294,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaTGIDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaTGIHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_imp_ap_ol") {
+                } else if (selector === "#pant_imp_ap_ol") {
       // cargarIMP_AP_OL({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickIMP_AP_OL", function () {
         $("#uploadIMP_AP_OL").click();
@@ -19869,7 +16357,7 @@ $(function () {
         $("#fileNameIMP_AP_OL").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -19897,8 +16385,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_IMP_AP_OLDesde");
-      attachYYYYMMFormatter("#fecha_IMP_AP_OLHasta");
       attachYYYYMMFormatter("#fecha_IMP_AP_OL");
       attachYYYYMMDDFormatter("#fecha_IMP_AP_OLPres");
       attachYYYYMMDDFormatter("#fecha_pago_IMP_AP_OL");
@@ -19945,63 +16431,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaIMP_AP_OLDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_OLHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_OLDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_OLDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_imp_ap_mtm") {
+                            } else if (selector === "#pant_imp_ap_mtm") {
       // cargarIMP_AP_MTM({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickIMP_AP_MTM", function () {
         $("#uploadIMP_AP_MTM").click();
@@ -20064,7 +16494,7 @@ $(function () {
         $("#fileNameIMP_AP_MTM").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -20092,8 +16522,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_IMP_AP_MTMDesde");
-      attachYYYYMMFormatter("#fecha_IMP_AP_MTMHasta");
       attachYYYYMMFormatter("#fecha_IMP_AP_MTM");
       attachYYYYMMDDFormatter("#fecha_IMP_AP_MTMPres");
       attachYYYYMMDDFormatter("#fecha_pago_IMP_AP_MTM");
@@ -20140,63 +16568,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaIMP_AP_MTMDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_MTMHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_MTMDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaIMP_AP_MTMDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_deuda") {
+                            } else if (selector === "#pant_deuda") {
       // cargarDeudaEstado({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickDeudaEstado", function () {
@@ -20260,7 +16632,7 @@ $(function () {
         $("#fileNameDeudaEstado").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -20300,8 +16672,6 @@ $(function () {
         });
       });
 
-      attachYYYYMMFormatter("#fecha_DeudaEstadoDesde");
-      attachYYYYMMFormatter("#fecha_DeudaEstadoHasta");
       attachYYYYMMFormatter("#fecha_DeudaEstado");
       attachYYYYMMDDFormatter("#fecha_DeudaEstadoPres");
 
@@ -20333,77 +16703,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fecha_pagoDeudaEstado").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDeudaEstadoDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDeudaEstadoHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDeudaEstadoDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDeudaEstadoDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_pagos_mesas") {
+                                  } else if (selector === "#pant_pagos_mesas") {
       // cargarPagosMayoresMesas({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickPagosMayoresMesas", function () {
@@ -20467,7 +16767,7 @@ $(function () {
         $("#fileNamePagosMayoresMesas").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -20494,8 +16794,6 @@ $(function () {
           renderUploadsPagosMayoresMesas();
         }
       );
-      attachYYYYMMFormatter("#fecha_PagosMayoresMesasDesde");
-      attachYYYYMMFormatter("#fecha_PagosMayoresMesasHasta");
       attachYYYYMMFormatter("#fecha_PagosMayoresMesas");
 
       $("#fechaPagosMayoresMesas").datetimepicker({
@@ -20512,91 +16810,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaPagosMayoresMesasPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoPagosMayoresMesas").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPagosMayoresMesasDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPagosMayoresMesasHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPagosMayoresMesasDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPagosMayoresMesasDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_oper") {
+                                        } else if (selector === "#pant_oper") {
       // cargarReporteYLavado({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickReporteYLavado", function () {
         $("#uploadReporteYLavado").click();
@@ -20659,7 +16873,7 @@ $(function () {
         $("#fileNameReporteYLavado").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -20688,8 +16902,6 @@ $(function () {
       );
 
       attachYYYYMMFormatter("#fecha_ReporteYLavado");
-      attachYYYYMMFormatter("#fecha_ReporteYLavadoDesde");
-      attachYYYYMMFormatter("#fecha_ReporteYLavadoHasta");
 
       $("#fechaReporteYLavado").datetimepicker({
         language: "es",
@@ -20705,91 +16917,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaReporteYLavadoPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoReporteYLavado").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaReporteYLavadoDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaReporteYLavadoHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaReporteYLavadoDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaReporteYLavadoDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_registros") {
+                                        } else if (selector === "#pant_registros") {
       // cargarRegistrosContables({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickRegistrosContables", function () {
         $("#uploadRegistrosContables").click();
@@ -20852,7 +16980,7 @@ $(function () {
         $("#fileNameRegistrosContables").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -20881,8 +17009,6 @@ $(function () {
       );
 
       attachYYYYMMFormatter("#fecha_RegistrosContables");
-      attachYYYYMMFormatter("#fecha_RegistrosContablesDesde");
-      attachYYYYMMFormatter("#fecha_RegistrosContablesHasta");
 
       $("#fechaRegistrosContables").datetimepicker({
         language: "es",
@@ -20898,91 +17024,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaRegistrosContablesPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoRegistrosContables").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRegistrosContablesDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRegistrosContablesHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRegistrosContablesDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRegistrosContablesDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_aportes") {
+                                        } else if (selector === "#pant_aportes") {
       // cargarAportesPatronales({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickAportesPatronales", function () {
@@ -21046,7 +17088,7 @@ $(function () {
         $("#fileNameAportesPatronales").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -21074,8 +17116,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_AportesPatronalesDesde");
-      attachYYYYMMFormatter("#fecha_AportesPatronalesHasta");
       attachYYYYMMFormatter("#fecha_AportesPatronales");
       attachYYYYMMDDFormatter("#fecha_AportesPatronalesPres");
       attachYYYYMMDDFormatter("#fecha_pago_AportesPatronales");
@@ -21122,63 +17162,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaAportesPatronalesDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAportesPatronalesHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAportesPatronalesDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAportesPatronalesDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_promoticket") {
+                            } else if (selector === "#pant_promoticket") {
       // cargarPromoTickets({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickPromoTickets", function () {
@@ -21242,7 +17226,7 @@ $(function () {
         $("#fileNamePromoTickets").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -21270,8 +17254,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_PromoTicketsDesde");
-      attachYYYYMMFormatter("#fecha_PromoTicketsHasta");
       attachYYYYMMFormatter("#fecha_PromoTickets");
 
       $("#fechaPromoTickets").datetimepicker({
@@ -21288,91 +17270,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaPromoTicketsPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoPromoTickets").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPromoTicketsDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPromoTicketsHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPromoTicketsDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPromoTicketsDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_pozos_acumulados") {
+                                        } else if (selector === "#pant_pozos_acumulados") {
       // cargarPozosAcumuladosLinkeados({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickPozosAcumuladosLinkeados", function () {
         $("#uploadPozosAcumuladosLinkeados").click();
@@ -21440,7 +17338,7 @@ $(function () {
         $("#fileNamePozosAcumuladosLinkeados").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -21469,8 +17367,6 @@ $(function () {
       );
 
       attachYYYYMMFormatter("#fecha_PozosAcumuladosLinkeados");
-      attachYYYYMMFormatter("#fecha_PozosAcumuladosLinkeadosHasta");
-      attachYYYYMMFormatter("#fecha_PozosAcumuladosLinkeadosDesde");
 
       $("#fechaPozosAcumuladosLinkeados").datetimepicker({
         language: "es",
@@ -21486,91 +17382,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaPozosAcumuladosLinkeadosPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoPozosAcumuladosLinkeados").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPozosAcumuladosLinkeadosDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPozosAcumuladosLinkeadosHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPozosAcumuladosLinkeadosDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPozosAcumuladosLinkeadosDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_contrib_ente") {
+                                        } else if (selector === "#pant_contrib_ente") {
       // cargarContribEnteTuristico({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickContribEnteTuristico", function () {
         $("#uploadContribEnteTuristico").click();
@@ -21636,7 +17448,7 @@ $(function () {
         $("#fileNameContribEnteTuristico").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -21664,8 +17476,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_ContribEnteTuristicoDesde");
-      attachYYYYMMFormatter("#fecha_ContribEnteTuristicoHasta");
       attachYYYYMMFormatter("#fecha_ContribEnteTuristico");
 
       attachYYYYMMDDFormatter("#fecha_venc_ContribEnteTuristico");
@@ -21713,63 +17523,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaContribEnteTuristicoDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaContribEnteTuristicoHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaContribEnteTuristicoDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaContribEnteTuristicoDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_rrhh") {
+                            } else if (selector === "#pant_rrhh") {
       // cargarRRHH({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickRRHH", function () {
         $("#uploadRRHH").click();
@@ -21832,7 +17586,7 @@ $(function () {
         $("#fileNameRRHH").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -21944,8 +17698,6 @@ $(function () {
           .popover({ container: "body", trigger: "hover focus" });
       });
       attachYYYYMMFormatter("#fecha_RRHH");
-      attachYYYYMMFormatter("#fecha_RRHHDesde");
-      attachYYYYMMFormatter("#fecha_RRHHHasta");
 
       $("#fechaRRHH").datetimepicker({
         language: "es",
@@ -21961,91 +17713,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaRRHHPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoRRHH").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRRHHDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRRHHHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRRHHDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaRRHHDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_ganancias") {
+                                        } else if (selector === "#pant_ganancias") {
       // cargarGanancias({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       // cargarGanancias_periodo({ page: 1, perPage: 10}); // COMMENTED: moved to buscarPestana
 
@@ -22110,7 +17778,7 @@ $(function () {
         $("#fileNameGanancias").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -22199,7 +17867,7 @@ $(function () {
         $("#fileNameGanancias_periodo").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -22284,60 +17952,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaGananciasDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy",
-        pickerPosition: "top-left",
-        startView: 4,
-        minView: 4,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaGananciasHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy",
-        pickerPosition: "top-left",
-        startView: 4,
-        minView: 4,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaGananciasDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy",
-        pickerPosition: "top-left",
-        startView: 4,
-        minView: 4,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaGananciasDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy",
-        pickerPosition: "top-left",
-        startView: 4,
-        minView: 4,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_jackpots_pagados") {
+                            } else if (selector === "#pant_jackpots_pagados") {
       // cargarJackpotsPagados({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickJackpotsPagados", function () {
         $("#uploadJackpotsPagados").click();
@@ -22400,7 +18015,7 @@ $(function () {
         $("#fileNameJackpotsPagados").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -22428,8 +18043,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_JackpotsPagadosDesde");
-      attachYYYYMMFormatter("#fecha_JackpotsPagadosHasta");
       attachYYYYMMFormatter("#fecha_JackpotsPagados");
 
       $("#fechaJackpotsPagados").datetimepicker({
@@ -22446,91 +18059,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaJackpotsPagadosPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoJackpotsPagados").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaJackpotsPagadosDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaJackpotsPagadosHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaJackpotsPagadosDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaJackpotsPagadosDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_premios_pagados") {
+                                        } else if (selector === "#pant_premios_pagados") {
       // cargarPremiosPagados({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickPremiosPagados", function () {
         $("#uploadPremiosPagados").click();
@@ -22593,7 +18122,7 @@ $(function () {
         $("#fileNamePremiosPagados").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -22621,8 +18150,6 @@ $(function () {
         }
       );
       attachYYYYMMFormatter("#fecha_PremiosPagados");
-      attachYYYYMMFormatter("#fecha_PremiosPagadosDesde");
-      attachYYYYMMFormatter("#fecha_PremiosPagadosHasta");
 
       $("#fechaPremiosPagados").datetimepicker({
         language: "es",
@@ -22638,113 +18165,8 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaPremiosPagadosPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoPremiosPagados").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosPagadosDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosPagadosHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosPagadosDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosPagadosDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_premios_mtm") {
+                                        } else if (selector === "#pant_premios_mtm") {
       // cargarPremiosMTM({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
-
-      $(document).on("click", "#btnPickPremiosMTM", function () {
-        $("#uploadPremiosMTM").click();
-      });
-
-      $(document).on("change", "#uploadPremiosMTM", function () {
-        if (!this.files || !this.files.length) return;
-        var gid =
-          "lote_" +
-          (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
-        $(this)
-          .attr("data-group", gid)
-          .removeAttr("id")
-          .addClass("archived")
-          .appendTo("#uploadsPremiosMTMContainer");
-        renderUploadsPremiosMTM();
-        var $new = $(
-          '<input type="file" id="uploadPremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">'
-        );
-        $("#btnPickPremiosMTM").closest(".input-group").append($new);
-      });
 
       function humanSize(n) {
         if (n >= 1024 * 1024) return (n / 1048576).toFixed(1) + " MB";
@@ -22752,157 +18174,7 @@ $(function () {
         return n + " B";
       }
 
-      function renderUploadsPremiosMTM() {
-        var $tbody = $("#uploadsPremiosMTMTable tbody").empty();
-        var total = 0,
-          row = 1;
-
-        $(
-          '#uploadsPremiosMTMContainer input[type=file][name="uploadPremiosMTM[]"]'
-        ).each(function (ix) {
-          var $inp = $(this);
-          var gid = $inp.attr("data-group");
-          var files = this.files || [];
-          for (var i = 0; i < files.length; i++) {
-            var f = files[i];
-            total++;
-            var $tr = $("<tr></tr>");
-            $tr.append("<td>" + row++ + "</td>");
-            $tr.append("<td>" + f.name + "</td>");
-            $tr.append("<td>" + humanSize(f.size) + "</td>");
-            var $btn = $(
-              '<button type="button" class="btn btn-xs btn-danger btn-remove-file" title="Quitar">' +
-                '<i class="fa fa-trash"></i>' +
-                "</button>"
-            )
-              .attr("data-group", gid)
-              .attr("data-idx", i);
-            $tr.append($("<td></td>").append($btn));
-            $tbody.append($tr);
-          }
-        });
-
-        $("#uploadsPremiosMTMWrap").css("display", total ? "" : "none");
-        $("#fileNamePremiosMTM").val(
-          total
-            ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
-        );
-      }
-
-      $(document).on(
-        "click",
-        "#uploadsPremiosMTMTable .btn-danger",
-        function () {
-          var gid = $(this).attr("data-group");
-          var idx = parseInt($(this).attr("data-idx"), 10);
-          var $inp = $(
-            '#uploadsPremiosMTMContainer input[type=file][data-group="' +
-              gid +
-              '"]'
-          );
-          if (!$inp.length) return;
-
-          var dt = new DataTransfer();
-          var files = $inp[0].files;
-          for (var i = 0; i < files.length; i++) {
-            if (i !== idx) dt.items.add(files[i]);
-          }
-          $inp[0].files = dt.files;
-          if ($inp[0].files.length === 0) $inp.remove();
-          renderUploadsPremiosMTM();
-        }
-      );
-
-      attachYYYYMMFormatter("#fecha_PremiosMTMDesde");
-      attachYYYYMMFormatter("#fecha_PremiosMTMHasta");
-      attachYYYYMMFormatter("#fecha_PremiosMTM");
-
-      $("#fechaPremiosMTM").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "bottom-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosMTMPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoPremiosMTM").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosMTMDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosMTMHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosMTMDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPremiosMTM_Unificado").datetimepicker({
+                                          $("#fechaPremiosMTM_Unificado").datetimepicker({
         language: "es",
         todayBtn: 1,
         autoclose: 1,
@@ -22915,21 +18187,7 @@ $(function () {
         container: $("#modalCargarPremiosMTM"),
       });
 
-      $("#fechaPremiosMTMDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_direct") {
+          } else if (selector === "#pant_direct") {
       // cargarAutDirectores({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickAutDirectores", function () {
@@ -22993,7 +18251,7 @@ $(function () {
         $("#fileNameAutDirectores").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -23021,8 +18279,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_AutDirectoresDesde");
-      attachYYYYMMFormatter("#fecha_AutDirectoresHasta");
       attachYYYYMMFormatter("#fecha_AutDirectores_autorizacion");
 
       $("#casinoAutDirectores_autorizacion")
@@ -23063,91 +18319,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaAutDirectoresPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoAutDirectores").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAutDirectoresDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAutDirectoresHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAutDirectoresDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaAutDirectoresDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_seguros") {
+                                        } else if (selector === "#pant_seguros") {
       // cargarSeguros({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
       $(document).on("click", "#btnPickSeguros", function () {
         $("#uploadSeguros").click();
@@ -23210,7 +18382,7 @@ $(function () {
         $("#fileNameSeguros").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -23232,8 +18404,6 @@ $(function () {
         renderUploadsSeguros();
       });
 
-      attachYYYYMMFormatter("#fecha_SegurosDesde");
-      attachYYYYMMFormatter("#fecha_SegurosHasta");
       attachYYYYMMDDFormatter("#fecha_SegurosDes");
       attachYYYYMMDDFormatter("#fecha_SegurosHas");
       cargarTiposSeguro();
@@ -23262,87 +18432,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaSegurosPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_pagoSeguros").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaSegurosDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "top-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaSegurosHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "top-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaSegurosDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "top-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaSegurosDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "top-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_derecho") {
+                                        } else if (selector === "#pant_derecho") {
       // cargarDerechoAcceso({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickDerechoAcceso", function () {
@@ -23406,7 +18496,7 @@ $(function () {
         $("#fileNameDerechoAcceso").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -23434,8 +18524,6 @@ $(function () {
         }
       );
 
-      attachYYYYMMFormatter("#fecha_DerechoAccesoDesde");
-      attachYYYYMMFormatter("#fecha_DerechoAccesoHasta");
       attachYYYYMMFormatter("#fecha_DerechoAcceso");
       attachYYYYMMDDFormatter("#fecha_venc_DerechoAcceso");
 
@@ -23453,7 +18541,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaDerechoAccesoPres").datetimepicker({
+            $("#fecha_vencDerechoAcceso").datetimepicker({
         language: "es",
         todayBtn: 1,
         autoclose: 1,
@@ -23467,77 +18555,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fecha_vencDerechoAcceso").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDerechoAccesoDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDerechoAccesoHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDerechoAccesoDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaDerechoAccesoDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_patentes") {
+                            } else if (selector === "#pant_patentes") {
       // cargarPatentes({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickPatentes", function () {
@@ -23601,7 +18619,7 @@ $(function () {
         $("#fileNamePatentes").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -23623,9 +18641,6 @@ $(function () {
         renderUploadsPatentes();
       });
 
-      attachYYYYMMFormatter("#fecha_PatentesDesde");
-      attachYYYYMMFormatter("#fecha_PatentesHasta");
-      attachYYYYMMDDFormatter("#fecha_PatentesPres");
       attachYYYYMMFormatter("#fecha_Patentes");
 
       $("#fechaPatentes").datetimepicker({
@@ -23641,90 +18656,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaPatentesPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_vencPatentes").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPatentesDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPatentesHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPatentesDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaPatentesDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    } else if (selector === "#pant_inmobiliario") {
+                                        } else if (selector === "#pant_inmobiliario") {
       // cargarImpInmobiliario({ page: 1, perPage: 10}); // COMMENTED: buscarPestana() already loads with filters
 
       $(document).on("click", "#btnPickImpInmobiliario", function () {
@@ -23788,7 +18720,7 @@ $(function () {
         $("#fileNameImpInmobiliario").val(
           total
             ? total + " archivo(s) seleccionado(s)"
-            : "No se ha seleccionado ningún archivo"
+            : ""
         );
       }
 
@@ -23817,9 +18749,6 @@ $(function () {
       );
 
       attachYYYYMMFormatter("#fecha_ImpInmobiliario");
-      attachYYYYMMDDFormatter("#fecha_ImpInmobiliarioPres");
-      attachYYYYMMFormatter("#fecha_ImpInmobiliarioDesde");
-      attachYYYYMMFormatter("#fecha_ImpInmobiliarioHasta");
 
       $("#fechaImpInmobiliario").datetimepicker({
         language: "es",
@@ -23834,90 +18763,7 @@ $(function () {
         timePicker: false,
         container: $("main section"),
       });
-      $("#fechaImpInmobiliarioPres").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fecha_vencImpInmobiliario").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm-dd",
-        pickerPosition: "bottom-left",
-        startView: 2,
-        minView: 2,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaImpInmobiliarioDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaImpInmobiliarioHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaImpInmobiliarioDescDesde").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-      $("#fechaImpInmobiliarioDescHasta").datetimepicker({
-        language: "es",
-        todayBtn: 1,
-        autoclose: 1,
-        todayHighlight: 1,
-        format: "yyyy-mm",
-        pickerPosition: "top-left",
-        startView: 3,
-        minView: 3,
-        ignoreReadonly: true,
-
-        timePicker: false,
-        container: $("main section"),
-      });
-    }
+                                        }
   });
   $("[data-js-tabs] a").first().trigger("click");
 });
@@ -23980,8 +18826,6 @@ $(document).on("click", "#btn-confirmar-validacion", function () {
 // botón de borrar. Se saca afuera para que sea global, igual que las otras 26 funciones
 // cargarArchivos*Lista del módulo.
 function cargarArchivosEstadoContableLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("EstadoContableId", id);
   var $list = $(targetArchivosDoc("EstadoContable", target))
     .empty()
     .append('<div class="list-group-item">Cargando...</div>');
@@ -24103,7 +18947,7 @@ $(document).ready(function() {
     });
 
     $("#uploadsEstadoContableWrap").css("display", total ? "" : "none");
-    $("#fileNameEstadoContable").val(total ? total + " archivo(s) seleccionado(s)" : "No se ha seleccionado ningún archivo");
+    $("#fileNameEstadoContable").val(total ? total + " archivo(s) seleccionado(s)" : "");
   }
 
   $(document).on("click", "#uploadsEstadoContableTable .btn-danger", function () {
@@ -24297,68 +19141,7 @@ $(document).ready(function() {
     });
   });
 
-  $(document).on("click", ".btn-verRegEstadoContable", function(e) {
-    e.preventDefault();
-    var id = $(this).val();
-    
-    $.ajax({
-      type: "GET",
-      url: "documentosContables/llenarEstadoContableEdit/" + id,
-      success: function(res) {
-        $("#v_casinoEstadoContable").val(res.casino_nombre);
-        $("#v_fechaEstadoContable").val(res.fecha_EstadoContable);
-        
-        const formatEditVal = (val) => {
-          if(!val && val !== 0) return '';
-          return formatoAR(val, 2);
-        };
-        $("#v_activo_corriente").val(formatEditVal(res.activo_corriente));
-        $("#v_activo_corriente_reexpresado").val(formatEditVal(res.activo_corriente_reexpresado));
-        $("#v_activo_nocorriente").val(formatEditVal(res.activo_nocorriente));
-        $("#v_activo_nocorriente_reexpresado").val(formatEditVal(res.activo_nocorriente_reexpresado));
-        
-        $("#v_pasivo_corriente").val(formatEditVal(res.pasivo_corriente));
-        $("#v_pasivo_corriente_reexpresado").val(formatEditVal(res.pasivo_corriente_reexpresado));
-        $("#v_pasivo_nocorriente").val(formatEditVal(res.pasivo_nocorriente));
-        $("#v_pasivo_nocorriente_reexpresado").val(formatEditVal(res.pasivo_nocorriente_reexpresado));
-        
-        $("#v_ingresos").val(formatEditVal(res.ingresos));
-        $("#v_ingresos_reexpresado").val(formatEditVal(res.ingresos_reexpresado));
-        $("#v_costos").val(formatEditVal(res.costos));
-        $("#v_costos_reexpresado").val(formatEditVal(res.costos_reexpresado));
-
-        $("#v_gastos_comercio").val(formatEditVal(res.gastos_comercio));
-        $("#v_gastos_comercio_reexpresado").val(formatEditVal(res.gastos_comercio_reexpresado));
-        $("#v_gastos_adm").val(formatEditVal(res.gastos_adm));
-        $("#v_gastos_adm_reexpresado").val(formatEditVal(res.gastos_adm_reexpresado));
-        $("#v_recpam").val(formatEditVal(res.recpam));
-        $("#v_recpam_reexpresado").val(formatEditVal(res.recpam_reexpresado));
-        $("#v_otros").val(formatEditVal(res.otros));
-        $("#v_otros_reexpresado").val(formatEditVal(res.otros_reexpresado));
-        $("#v_imp_ganancias").val(formatEditVal(res.imp_ganancias));
-        $("#v_imp_ganancias_reexpresado").val(formatEditVal(res.imp_ganancias_reexpresado));
-
-        if (res.fecha_EstadoContable) {
-          const year = parseInt(res.fecha_EstadoContable.split('-')[0]);
-          $('#modalVerEstadoContable .ec-anio-actual').text(year);
-          $('#modalVerEstadoContable .ec-anio-anterior').text((year - 1) + ' Reexpresado');
-        }
-        calcularTotalesEstadoContable('v_');
-
-        $("#modalVerEstadoContable").modal("show");
-      }
-    });
-  });
-
-  $(document).on("click", ".btn-archivos-EstadoContable", function(e) {
-    e.preventDefault();
-    const id = $(this).data("id") || $(this).val();
-    $("#tituloArchivos").text("Archivos del Estado Contable");
-    cargarArchivosEstadoContableLista(id);
-    $("#modalArchivosAsociados").modal("show");
-  });
-
-  $(document).on("click", ".btn-del-archivo-EstadoContable", function () {
+      $(document).on("click", ".btn-del-archivo-EstadoContable", function () {
     const id = $(this).data("id");
     const regId = $(this).data("regId");
     const scope = $(this).data("scope");
@@ -24414,10 +19197,6 @@ function generarFilaEstadoContable(est) {
 
   const tdAcc = $("<td>").addClass("col-xs-4");
 
-  const btnView = $("<button>").addClass("btn btn-info btn-verRegEstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-eye"))
-  .attr("data-toggle", "tooltip")
-  .attr("data-placement", "bottom")
-  .attr("title", "VER ESTADO CONTABLE");
   const btnEdit = $("<button>").addClass("btn btn-warning btn-edit-EstadoContable").val(est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-pencil-alt"))
   .attr("data-toggle", "tooltip")
   .attr("data-placement", "bottom")
@@ -24438,10 +19217,6 @@ function generarFilaEstadoContable(est) {
 
   tdAcc.append(btnEdit).append(btnDel).append(btnValidar);
 
-  if (est.tiene_archivos) {
-    const btnFiles = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-EstadoContable").attr("data-id", est.id_registroEstadoContable).append($("<i>").addClass("fa fa-fw fa-file")).attr("data-toggle", "tooltip").attr("title", "VER ARCHIVOS ASOCIADOS");
-    // [ver/archivos removidos] tdAcc.append(btnFiles);
-  }
 
   fila.append(tdAcc);
   // Initialize tooltips immediately when generating row
@@ -24542,12 +19317,12 @@ $('#dtpFechaEstadoContable').on('changeDate', function(e) {
 
 // ----------------- PÚBLICO CASINO -----------------
 
-$(document).on("click", ".btn-editar-publico-casino, .btn-ver-publico-casino", function () {
+$(document).on("click", ".btn-editar-publico-casino", function () {
   const id = $(this).val();
   // El botón "ver" se quitó de la tabla: ahora se entra siempre por el de editar, y el modal queda
   // en solo lectura únicamente si el documento ya está validado.
   const readonly =
-    $(this).hasClass("btn-ver-publico-casino") || docContableValidado($(this));
+    docContableValidado($(this));
   
   $.get("/documentosContables/llenarPublicoCasino/" + id, function (data) {
     $("#id_registroPublicoCasino").val(id);
@@ -24555,7 +19330,7 @@ $(document).on("click", ".btn-editar-publico-casino, .btn-ver-publico-casino", f
     
     $("#uploadsPublicoCasinoContainer").empty();
     $("#uploadsPublicoCasinoWrap").hide();
-    $("#fileNamePublicoCasino").val("No se ha seleccionado ningún archivo");
+    $("#fileNamePublicoCasino").val("");
     var $new = $('<input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">');
     $("#uploadPublicoCasino").remove();
     $("#btnPickPublicoCasino").closest(".input-group").append($new);
@@ -24655,21 +19430,8 @@ function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
           .attr("data-placement", "bottom")
           .attr("title", "MODIFICAR PÚBLICO CASINO");
           
-        let btnVer = $("<button>").addClass("btn btn-info btn-sm btn-ver-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-search-plus"))
-          .attr("data-toggle", "tooltip")
-          .attr("data-placement", "bottom")
-          .attr("title", "VER PÚBLICO CASINO");
-          
         let btnValidar = obtenerIconoValidacion(r.valido, 'publico_casino', r.id_registroPublicoCasino);
         
-        let btnArchivos = $();
-        if (r.tiene_archivos) {
-            btnArchivos = $("<button>").addClass("btn btn-info btn-sm mr-1 btn-archivos-publico-casino").val(r.id_registroPublicoCasino).append($("<i>").addClass("fa fa-fw fa-file"))
-              .attr("data-toggle", "tooltip")
-              .attr("data-placement", "bottom")
-              .attr("title", "VER ARCHIVOS ASOCIADOS");
-        }
-
         let parts = r.fecha_mes.split("-");
         let year = parts[0];
         let month = parts[1];
@@ -24681,7 +19443,6 @@ function cargarPublicoCasino({ page = 1, perPage = 10, casino, desde, hasta }) {
         
         fila.append($("<td>").addClass("col-xs-3").text(r.dias_completados + " / " + daysInMonth));
         let tdAcc = $("<td>").addClass("col-xs-3 d-flex flex-wrap");
-        if (r.tiene_archivos) tdAcc;
         tdAcc.append(btnEditar).append(btnValidar);
         fila.append(tdAcc);
         $("#cuerpoTablaPublicoCasino").append(fila);
@@ -24745,7 +19506,7 @@ function renderUploadsPublicoCasino() {
     }
   });
   $("#uploadsPublicoCasinoWrap").css("display", total ? "" : "none");
-  $("#fileNamePublicoCasino").val(total ? total + " archivo(s) seleccionado(s)" : "No se ha seleccionado ningún archivo");
+  $("#fileNamePublicoCasino").val(total ? total + " archivo(s) seleccionado(s)" : "");
 }
 
 $(document).on("click", "#uploadsPublicoCasinoTable .btn-danger", function () {
@@ -24764,8 +19525,6 @@ $(document).on("click", "#uploadsPublicoCasinoTable .btn-danger", function () {
 });
 
 function cargarArchivosPublicoCasinoLista(id, target) {
-  var $m = $("#modalArchivosAsociados");
-  $m.data("PublicoCasinoId", id);
   var $list = $(targetArchivosDoc("PublicoCasino", target)).empty().append('<div class="list-group-item">Cargando...</div>');
   $.getJSON("/documentosContables/archivosPublicoCasino/" + id).done(function (res) {
     var files = Array.isArray(res) ? res : res.data || res.archivos || res.items || [];
@@ -24788,14 +19547,6 @@ function cargarArchivosPublicoCasinoLista(id, target) {
     $list.empty().append('<div class="list-group-item text-danger">Error al cargar archivos.</div>');
   });
 }
-
-$(document).on("click", ".btn-archivos-publico-casino", function(e) {
-  e.preventDefault();
-  const id = $(this).data("id") || $(this).val();
-  $("#tituloArchivos").text("Archivos de Público Casino");
-  cargarArchivosPublicoCasinoLista(id);
-  $("#modalArchivosAsociados").modal("show");
-});
 
 $(document).on("click", ".btn-del-archivo-publico-casino", function () {
   const id = $(this).data("id");
@@ -24910,8 +19661,8 @@ $("#btn-descargarPublicoCasinoCsv").on("click", function (e) {
    "ver archivos" (abría #modalArchivosAsociados). Ahora todo se hace desde el botón de editar:
    el modal de carga muestra los datos y, debajo del botón de subir archivos, la lista de los
    archivos ya cargados. Si el documento está validado, el modal se abre en modo solo lectura.
-   Los botones viejos quedaron comentados en los armadores de fila ("[ver/archivos removidos]") y
-   #modalArchivosAsociados / los modales modalVer* quedaron sin uso (se dejaron por si hay que volver).
+   Los botones viejos, sus handlers y los modales que abrían (#modalArchivosAsociados y los
+   modalVer*) ya se eliminaron; quedan en el historial de git.
    =================================================================================== */
 
 // Contenedor donde renderizar la lista de archivos. Si viene target explícito gana (lo usa el modal
@@ -25276,4 +20027,202 @@ $(document).on("click", ".btn-quitar-director", function () {
 $(document).on("click", "[class*='btn-del-archivo-']", function () {
   var id = $(this).closest(".list-group").attr("id");
   $("#modalEliminarArchivo").data("contenedor", id ? "#" + id : null);
+});
+
+/* ============ ORDEN POR COLUMNAS DE FECHA (documentos contables) ============
+   Los <th data-orden="columna"> de cada tabla de listado alternan
+   ascendente -> descendente -> sin orden. Cada pestaña recuerda su propio
+   criterio, y el prefilter lo agrega a los listados /documentosContables/ultimas*.
+   ------------------------------------------------------------------------- */
+var ordenFechaDocs = {}; // { pant_iva: { col: "fecha_iva", dir: "asc" }, ... }
+
+function pantallaVisibleDocs() {
+  return $('[id^="pant_"]').not("[hidden]").first().attr("id") || null;
+}
+
+function limpiarOrdenDocs() {
+  var tabs = Object.keys(ordenFechaDocs);
+  ordenFechaDocs = {};
+  tabs.forEach(pintarIconosOrdenDocs);
+}
+
+function pintarIconosOrdenDocs(tab) {
+  var est = ordenFechaDocs[tab];
+  $("#" + tab)
+    .find("th[data-orden]")
+    .each(function () {
+      var $th = $(this);
+      var $i = $th.find("i.fa");
+      $th.removeClass("activa");
+      $i.attr("class", "fa fa-sort");
+      if (est && String($th.attr("data-orden")) === est.col) {
+        $th.addClass("activa");
+        $i.attr("class", est.dir === "asc" ? "fa fa-sort-up" : "fa fa-sort-down");
+      }
+    });
+}
+
+$(document).on("click", '[id^="pant_"] th[data-orden]', function () {
+  var tab = $(this).closest('[id^="pant_"]').attr("id");
+  if (!tab) return;
+  var col = String($(this).attr("data-orden"));
+  var est = ordenFechaDocs[tab];
+
+  if (est && est.col === col) {
+    if (est.dir === "asc") est.dir = "desc";
+    else delete ordenFechaDocs[tab]; // tercer clic: vuelve al orden por defecto
+  } else {
+    ordenFechaDocs[tab] = { col: col, dir: "asc" };
+  }
+
+  pintarIconosOrdenDocs(tab);
+  if (typeof buscarPestana === "function") buscarPestana("#" + tab);
+});
+
+$.ajaxPrefilter(function (options) {
+  // Algunos listados usan la URL relativa (sin "/" inicial), por eso no se exige la barra.
+  if (!options.url || options.url.indexOf("documentosContables/ultimas") === -1) return;
+  var tab = pantallaVisibleDocs();
+  var est = tab ? ordenFechaDocs[tab] : null;
+  if (!est) return;
+  options.url +=
+    (options.url.indexOf("?") === -1 ? "?" : "&") +
+    "orden_col=" + encodeURIComponent(est.col) +
+    "&orden_dir=" + est.dir;
+});
+
+// Los avisos de las descargas apuntaban a los filtros por pestaña, que ya no existen: el mensaje
+// no se veía en ningún lado y el botón parecía no hacer nada. Ahora van al modal de aviso, igual
+// que el resto de las validaciones del módulo.
+function avisoDescargaDoc(mensaje) {
+  $("#texto-aviso-validacion").text(mensaje);
+  $("#modalAvisoValidacion").modal("show");
+}
+
+/* ==================== ARRASTRAR ARCHIVOS (todos los documentos) ====================
+   Los 33 selectores del módulo tienen la misma forma: un .input-group con el botón
+   "Examinar…", un display readonly y un input[type=file] oculto. Al soltar archivos se
+   cargan en ese input y se dispara su "change", así que sigue corriendo la lógica de
+   acumulación / render / envío que ya existe para cada documento. Mismo truco que en
+   public/js/Autoexclusion/index.js, pero genérico.
+   ---------------------------------------------------------------------------------- */
+function zonaArchivosDoc($el) {
+  var $zona = $el.closest(".input-group");
+  if (!$zona.length) return null;
+  // Solo las que realmente tienen un selector de archivos (.input-group también la usan
+  // los datepickers y otros campos del módulo).
+  if (!$zona.find('input[type=file]').length) return null;
+  // Documento validado: los botones de subir están ocultos, tampoco se acepta soltar.
+  if ($zona.find("[data-ro-doc-hide]").length) return null;
+  return $zona;
+}
+
+$(document).on("dragenter dragover", ".input-group", function (e) {
+  var $zona = zonaArchivosDoc($(this));
+  if (!$zona) return;
+  e.preventDefault();
+  e.stopPropagation();
+  $zona.addClass("zona-drop-activa");
+});
+
+$(document).on("dragleave drop", ".input-group", function (e) {
+  var $zona = zonaArchivosDoc($(this));
+  if (!$zona) return;
+  $zona.removeClass("zona-drop-activa");
+});
+
+$(document).on("drop", ".input-group", function (e) {
+  var $zona = zonaArchivosDoc($(this));
+  if (!$zona) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  var dt = e.originalEvent && e.originalEvent.dataTransfer;
+  if (!dt || !dt.files || !dt.files.length) return;
+
+  // El input vivo es el último sin archivar: al elegir archivos el anterior se guarda en
+  // el contenedor con la clase "archived" y se crea uno nuevo en su lugar.
+  var $input = $zona.find('input[type=file]').not(".archived").last();
+  if (!$input.length) return;
+
+  var lote = new DataTransfer();
+  for (var i = 0; i < dt.files.length; i++) lote.items.add(dt.files[i]);
+  if (!lote.files.length) return;
+
+  $input[0].files = lote.files;
+  $input.trigger("change");
+});
+
+// Sin esto, soltar un archivo fuera de una zona hace que el navegador lo abra y se pierda
+// todo lo que había cargado en el modal.
+$(document).on("dragover drop", function (e) {
+  if ($(e.target).closest(".input-group").find('input[type=file]').length) return;
+  e.preventDefault();
+});
+
+/* ==================== HISTORIAL DEL DOCUMENTO ====================
+   Quién tocó cada documento y cuándo (no qué cambió). El botón lo agrega
+   obtenerIconoValidacion(), que es por donde pasan las 28 tablas del módulo.
+   ----------------------------------------------------------------- */
+$(document).on("click", ".btn-historial-doc", function () {
+  var tipo = $(this).attr("data-tipo");
+  var id = $(this).attr("data-id");
+  var $cont = $("#contenidoHistorialDoc")
+    .empty()
+    .append('<div class="list-group-item">Cargando…</div>');
+
+  $("#modalHistorialDoc").modal("show");
+
+  $.getJSON("/documentosContables/historialDocumento/" + tipo + "/" + id)
+    .done(function (res) {
+      $cont.empty();
+      var movs = (res && res.movimientos) || [];
+
+      if (!movs.length) {
+        // Los documentos cargados antes de que existiera el historial no tienen movimientos:
+        // se muestra el último toque, que la propia tabla del documento ya guardaba.
+        if (res && res.previo) {
+          $cont.append(
+            $('<div class="list-group-item">').html(
+              "<b>Última modificación</b><br>" +
+                $("<span>").text(res.previo.usuario).html() +
+                " — " +
+                res.previo.fecha +
+                '<br><small class="text-muted">Los movimientos anteriores no quedaron registrados.</small>'
+            )
+          );
+        } else {
+          $cont.append(
+            '<div class="list-group-item">Sin movimientos registrados.</div>'
+          );
+        }
+        return;
+      }
+
+      movs.forEach(function (m) {
+        var detalle = m.detalle
+          ? '<br><small class="text-muted">' +
+            $("<span>").text(m.detalle).html() +
+            "</small>"
+          : "";
+        $cont.append(
+          $('<div class="list-group-item">').html(
+            "<b>" +
+              $("<span>").text(m.accion).html() +
+              "</b><br>" +
+              $("<span>").text(m.usuario).html() +
+              " — " +
+              m.fecha +
+              detalle
+          )
+        );
+      });
+    })
+    .fail(function () {
+      $cont
+        .empty()
+        .append(
+          '<div class="list-group-item text-danger">No se pudo cargar el historial.</div>'
+        );
+    });
 });

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroRegistrosContables extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroRegistrosContables';
     protected $primaryKey = 'id_registroRegistrosContables';
     public $timestamps = false;
@@ -20,6 +22,8 @@ class RegistroRegistrosContables extends Model
         'mp_usd',
         'bingo',
         'jol',
+        'apuestas_deportivas',
+        'apuestas_deportivas_usd',
         'total',
         'total_usd',
         'archivo',

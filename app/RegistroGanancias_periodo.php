@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroGanancias_periodo extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroGanancias_periodo';
     protected $primaryKey = 'id_registroGanancias_periodo';
     public $timestamps = false;

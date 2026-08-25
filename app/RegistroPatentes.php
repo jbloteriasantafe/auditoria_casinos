@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroPatentes extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroPatentes';
     protected $primaryKey = 'id_registroPatentes';
     public $timestamps = false;

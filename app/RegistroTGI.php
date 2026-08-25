@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroTGI extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroTGI';
     protected $primaryKey = 'id_registrotgi';
     public $timestamps = false;

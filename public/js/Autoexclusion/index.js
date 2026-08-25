@@ -269,7 +269,18 @@ $('#btn-importar-masivo').click(function(e){
   $('#selectCasinoImportacion').val('');
   $('#archivoImportacion').val('');
   $('#archivoImportacionText').val('');
+  //Todavía no se importó nada: cerrar el modal es cancelar.
+  resetearBotonCerrarImportacion();
 });
+
+function resetearBotonCerrarImportacion(){
+    $('#btn-cerrar-importar').removeClass('btn-successAceptar').addClass('btn-default').text('CANCELAR');
+}
+
+function marcarBotonCerrarComoFinalizar(){
+    //btn-successAceptar es el estilo de acción principal de los modales (borde teal).
+    $('#btn-cerrar-importar').removeClass('btn-default').addClass('btn-successAceptar').text('FINALIZAR');
+}
 
 
 
@@ -316,7 +327,13 @@ $('#btn-importar').click(function(e){
         success: function(data){
             $('#loadingImportacion').hide();
             $('#btn-importar').prop('disabled', false);
-            
+
+            //El controlador responde 200 con {error:...} si la importación se cayó entera (rollback).
+            if(data.error || !data.resumen){
+                mostrarErrorImportacion(data.error || 'Respuesta inesperada del servidor.');
+                return;
+            }
+
             // Clean previous lists
             $('#detalleNuevas ul').empty();
             $('#detallePrevias ul').empty();
@@ -343,14 +360,17 @@ $('#btn-importar').click(function(e){
             
             $('#mensajeExitoImportacion').show();
 
-            if(data.errores > 0 && data.detalle_errores.length > 0){
+            if(data.errores > 0 && data.detalle_errores && data.detalle_errores.length > 0){
                  $('#mensajeErrorImportacion').find('p').text("Algunos registros tuvieron errores:");
                  data.detalle_errores.forEach(err => {
                      $('#listaErroresImportacion').append($('<li>').text(err));
                  });
                  $('#mensajeErrorImportacion').show();
             }
-             $('[data-js-buscar]').trigger('click');
+
+            //Ya se importó: cerrar el modal a partir de acá es finalizar, no cancelar.
+            marcarBotonCerrarComoFinalizar();
+            $('[data-js-buscar]').trigger('click');
         },
         error: function(data){
              $('#loadingImportacion').hide();

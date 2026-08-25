@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroPozosAcumuladosLinkeados extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroPozosAcumuladosLinkeados';
     protected $primaryKey = 'id_registroPozosAcumuladosLinkeados';
     public $timestamps = false;

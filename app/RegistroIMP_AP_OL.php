@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroIMP_AP_OL extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroIMP_AP_OL';
     protected $primaryKey = 'id_registroIMP_AP_OL';
     public $timestamps = false;

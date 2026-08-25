@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroPromoTickets extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroPromoTickets';
     protected $primaryKey = 'id_registroPromoTickets';
     public $timestamps = false;

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroEstadoContable extends Model
 {
+    use RegistraHistorialDocumento;
+
   protected $connection = 'mysql';
   protected $table = 'registroEstadoContable';
   protected $primaryKey = 'id_registroEstadoContable';

@@ -18,6 +18,19 @@
   <link rel="stylesheet" href="css/lista-datos.css">
 
   <style>
+    /* Seguros: la celda de estado de un seguro vencido se resalta en amarillo. */
+    .seguro-vencido {
+      background-color: #ffe680 !important;
+      font-weight: bold;
+    }
+    /* Se pueden arrastrar archivos sobre el selector de cualquier documento: mientras se
+       arrastra por encima, la zona se resalta. */
+    .input-group.zona-drop-activa .form-control,
+    .input-group.zona-drop-activa .btn {
+      outline: 2px dashed #00695c;
+      outline-offset: -2px;
+      background-color: #e0f2f1;
+    }
     /* Documento validado: el modal se abre en solo lectura, así que no se puede eliminar archivos.
        Va por CSS porque la lista de archivos se carga por AJAX (después de bloquear el modal). */
     .doc-solo-lectura .lista-archivos-doc [class*="btn-del-archivo-"] {
@@ -230,8 +243,8 @@
             <table id="tablaResultadosIVA" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" style="text-align: left !important;" value="fecha_iva" estado="">MES <i class="fa fa-sort"></i></th>
-                  <th class="col-xs-3" style="text-align: left !important;" value="fecha_pres_iva" estado="">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" style="text-align: left !important;" value="fecha_iva" estado="" data-orden="fecha_iva" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" value="fecha_pres_iva" estado="" data-orden="fecha_presentacion" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" value="casino.nombre" estado="">CASINO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" value="iva.saldo" estado="">SALDO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;">ACCIÓN</th>
@@ -275,7 +288,7 @@
             <table id="tablaResultadosEstadoContable" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" value="fecha_EstadoContable" estado="">FECHA <i class="fa"></i></th>
+                  <th class="col-xs-4" value="fecha_EstadoContable" estado="" data-orden="fecha_EstadoContable" style="cursor:pointer;">FECHA <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" value="casino.nombre" estado="">CASINO <i class="fa"></i></th>
                   <th class="col-xs-4">ACCIÓN</th>
                 </tr>
@@ -554,7 +567,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                       <i class="fa fa-folder-open"></i> Examinar…
                                     </button>
                                   </span>
-                                  <input type="text" id="fileNameEstadoContable" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                  <input type="text" id="fileNameEstadoContable" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                   <input type="file" id="uploadEstadoContable" name="uploadEstadoContable[]" multiple style="display:none;">
                                 </div>
 
@@ -592,215 +605,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             </div>
       </div>
 
-    <div class="modal fade" id="modalVerEstadoContable" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-         <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #6dc7be;">
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <h3 class="modal-title" style="background-color: #6dc7be;">| EL ESTADO CONTABLE</h3>
-            </div>
-            <div class="modal-body modalCuerpo">
-              <div class="row">
-                <div class="col-md-6">
-                  <h5>CASINO</h5>
-                  <input type="text" class="form-control" id="v_casinoEstadoContable" readonly>
-                </div>
-                <div class="col-md-6">
-                  <h5>FECHA</h5>
-                  <input type='text' class="form-control" id="v_fechaEstadoContable" readonly/>
-                </div>
-              </div>
-              
-              <br>
-              <h4 style="color:#000;">DATOS DEL REPORTE</h4>
-              <table class="table-ec">
-                <thead>
-                  <tr>
-                    <th colspan="2" style="border:none;"></th>
-                    <th class="ec-anio-actual" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; width:25%;">202X</th>
-                    <th class="ec-anio-anterior" style="font-size: 1.1em; border: 2px dashed #000; border-bottom: none; border-left: none; width:25%;">202X Reexpresado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Estado de Situacion Patrimonial -->
-                  <tr>
-                    <td rowspan="7" style="text-align: center; font-weight: bold; width: 15%;">Estado de<br>Situacion<br>Patrimonial</td>
-                    <td style="width: 35%;">Activo Corriente:</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_corriente" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_corriente_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Activo No Corriente:</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_nocorriente" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_activo_nocorriente_reexpresado" readonly></td>
-                  </tr>
-                  <tr class="total-row">
-                    <td>Total Activo:</td>
-                    <td class="bg-tot-activo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_total_activo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                    <td class="bg-tot-activo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_total_activo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                  </tr>
-                  <tr>
-                    <td>Pasivo Corriente:</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_corriente" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_corriente_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Pasivo No Corriente:</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_nocorriente" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_pasivo_nocorriente_reexpresado" readonly></td>
-                  </tr>
-                  <tr class="total-row">
-                    <td>Total Pasivo:</td>
-                    <td class="bg-tot-pasivo" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_total_pasivo" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                    <td class="bg-tot-pasivo" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_total_pasivo_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                  </tr>
-                  <tr class="total-row">
-                    <td>Patrimonio Neto:</td>
-                    <td class="bg-patrimonio" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_patrimonio_neto" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                    <td class="bg-patrimonio" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_patrimonio_neto_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                  </tr>
-                  <!-- Estado de Resultado -->
-                  <tr>
-                    <td rowspan="9" style="text-align: center; font-weight: bold;">Estado de<br>Resultado</td>
-                    <td>Ingresos</td>
-                    <td style="border-left: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="v_ingresos" readonly></td>
-                    <td style="border-right: 2px dashed #000; border-top: 2px dashed #000;"><input type="text" class="form-control" id="v_ingresos_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Costos</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_costos" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_costos_reexpresado" readonly></td>
-                  </tr>
-                  <tr class="total-row">
-                    <td>Ganancia Bruta</td>
-                    <td class="bg-gb" style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_bruta" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                    <td class="bg-gb" style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_bruta_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                  </tr>
-                  <tr>
-                    <td>Gastos comercialización</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_comercio" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_comercio_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Gastos Administración</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_adm" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_gastos_adm_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>RECPAM</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_recpam" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_recpam_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Otros</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_otros" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_otros_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Impuesto a las ganancias</td>
-                    <td style="border-left: 2px dashed #000;"><input type="text" class="form-control" id="v_imp_ganancias" readonly></td>
-                    <td style="border-right: 2px dashed #000;"><input type="text" class="form-control" id="v_imp_ganancias_reexpresado" readonly></td>
-                  </tr>
-                  <tr class="total-row">
-                    <td>Ganancia del Ejercicio:</td>
-                    <td class="bg-ge" style="border-left: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_ejercicio" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                    <td class="bg-gere" style="border-right: 2px dashed #000; border-bottom: 2px dashed #000;"><input type="text" class="form-control" id="v_ganancia_ejercicio_reexpresado" readonly style="background-color: transparent; border: none; font-weight: bold; color: #000;"></td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <br>
-              <h4 style="color:#000; text-transform: uppercase;">Variaciones Porcentuales</h4>
-              <table class="table-vp">
-                <thead>
-                  <tr>
-                    <th colspan="2" style="background-color: #f28b82; color: #000;">VARIACIONES PORCENTUALES</th>
-                    <th class="ec-anio-actual" style="width: 15%; background-color: #fff;">202X</th>
-                    <th class="ec-anio-anterior" style="width: 15%; background-color: #fff;">202X Aj.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="cat-header">Ratio de liquidez</td>
-                    <td class="desc-col">Indice de liquidez corriente (solvencia) act corriente/pasivo corriente (margen positivo entre 1,5 y 2)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_liquidez_corr" readonly></td>
-                    <td><input type="text" id="v_vp_liquidez_corr_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td class="cat-header">Ratio de solvencia</td>
-                    <td class="desc-col">Indice de solvencia (activo/pasivo) - (mayor a 1)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_solvencia" readonly></td>
-                    <td><input type="text" id="v_vp_solvencia_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td rowspan="4" class="cat-header">Ratio de Endeudamiento</td>
-                    <td class="desc-col">Indice de endeudamiento (Pasivo/PN) - (aprox, 0,5)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_endeudamiento" readonly></td>
-                    <td><input type="text" id="v_vp_endeudamiento_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td class="desc-col">Relación porcentual entre Activo/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_activo_pn" readonly></td>
-                    <td><input type="text" id="v_vp_activo_pn_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td class="desc-col">Relación porcentual entre Resultados/Patrimonio Neto&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_resultado_pn" readonly></td>
-                    <td><input type="text" id="v_vp_resultado_pn_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td class="desc-col">Relacion porcentual entre Resultados/Pasivo&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_resultado_pasivo" readonly></td>
-                    <td><input type="text" id="v_vp_resultado_pasivo_reexpresado" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td rowspan="3" class="cat-header">Ratios de Rentabilidad</td>
-                    <td class="desc-col">Margen de Utilidad (Ut./Ventas)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_margen_utilidad" readonly></td>
-                    <td><input type="text" id="v_vp_margen_utilidad_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="desc-col">ROE (Rentabilidad sobre patrimonio) - (Ut./PN)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_roe" readonly></td>
-                    <td><input type="text" id="v_vp_roe_reexpresado" readonly></td>
-                  </tr>
-                  <tr>
-                    <td class="desc-col">ROA (Rentabilidad sobre activos) - (Ut./A)&nbsp;<i class="fa fa-exclamation-triangle" style="color: #f6c23e;" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="test"></i></td>
-                    <td><input type="text" id="v_vp_roa" readonly></td>
-                    <td><input type="text" id="v_vp_roa_reexpresado" readonly></td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <br>
-              <table class="table-va">
-                <tbody>
-                  <tr>
-                    <td>Variacion anual del Activo</td>
-                    <td><input type="text" id="v_va_activo" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Variacion anual del Pasivo</td>
-                    <td><input type="text" id="v_va_pasivo" readonly></td>
-                  </tr>
-                  <tr>
-                    <td>Variacion anual del Patrimonio Neto</td>
-                    <td><input type="text" id="v_va_patrimonio" readonly style="color: red;"></td>
-                  </tr>
-                  <tr>
-                    <td>Variacion anual del Resultado</td>
-                    <td><input type="text" id="v_va_resultado" readonly style="color: red;"></td>
-                  </tr>
-                </tbody>
-              </table>
-
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
-            </div>
-          </div>
-        </div>
-    </div>
+    
 
 
     <!-- Modal Eliminar ESTADO CONTABLE-->
@@ -907,8 +712,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosiibb" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_iibb" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_presentacion" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -951,8 +756,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosDREI" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_drei" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_presentacion" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1000,7 +805,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosTGI" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="" data-orden="fecha_tgi" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1039,8 +844,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosIMP_AP_OL" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_imp_ap_ol" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_presentacion" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">QNA</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1079,8 +884,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosIMP_AP_MTM" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_imp_ap_mtm" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_presentacion" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">QNA</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1120,8 +925,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosDeudaEstado" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">FECHA DE CONSULTA</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_DeudaEstado" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="fecha_consulta" style="cursor:pointer;">FECHA DE CONSULTA <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">INCUMPLIMIENTO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1161,7 +966,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPagosMayoresMesas" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="" data-orden="fecha_PagosMayoresMesas" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-5" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1200,7 +1005,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosReporteYLavado" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="fecha_ReporteYLavado" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">REPORTE SISTEMATICO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">REPORTE DE OPERACIONES</th>
@@ -1242,7 +1047,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosRegistrosContables" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
+                  <th class="col-xs-2" estado="" data-orden="fecha_RegistrosContables" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" estado="">CASINO</th>
                   <th class="col-xs-3" estado="">TOTAL PESOS</th>
                   <th class="col-xs-3" estado="">TOTAL DÓLARES</th>
@@ -1283,7 +1088,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosAportesPatronales" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-5" estado="">MES</th>
+                  <th class="col-xs-5" estado="" data-orden="fecha_AportesPatronales" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-5" estado="">CASINO</th>
                   <th class="col-xs-2" estado="">ACCIÓN</th>
                 </tr>
@@ -1322,7 +1127,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPromoTickets" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_PromoTickets" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CANTIDAD</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">IMPORTE</th>
@@ -1363,7 +1168,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPozosAcumuladosLinkeados" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_PozosAcumuladosLinkeados" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">IMPORTE AL ULT. DIA DE CADA MES</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1402,8 +1207,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosContribEnteTuristico" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">FECHA PRESENTACIÓN</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_ContribEnteTuristico" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_pres" style="cursor:pointer;">FECHA PRESENTACIÓN <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">MONTO PAGADO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1442,7 +1247,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosRRHH" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_RRHH" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">TOTAL PERSONAL</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">PORCENTAJE VIVIENDO EN SANTA FE</th>
@@ -1485,7 +1290,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosGanancias" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" estado="">PERÍODO</th>
+                  <th class="col-xs-3" estado="" data-orden="periodo_fiscal" style="cursor:pointer;">PERÍODO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" estado="">ANTICIPO</th>
 
                   <th class="col-xs-3" estado="">CASINO</th>
@@ -1522,7 +1327,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosGanancias_periodo" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" style="text-align: left !important;" estado="">PERÍODO</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="" data-orden="periodo_fiscal" style="cursor:pointer;">PERÍODO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1558,7 +1363,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosJackpotsPagados" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_JackpotsPagados" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">IMPORTE</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1598,7 +1403,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPremiosPagados" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" estado="">MES</th>
+                  <th class="col-xs-2" estado="" data-orden="fecha_PremiosPagados" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" estado="">CASINO</th>
                   <th class="col-xs-3" estado="">CANTIDAD</th>
                   <th class="col-xs-3" estado="">IMPORTE</th>
@@ -1639,7 +1444,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPremiosMTM" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-5" style="text-align: left !important;">MES</th>
+                  <th class="col-xs-5" style="text-align: left !important;" data-orden="fecha" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-5" style="text-align: left !important;">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;">ACCIÓN</th>
                 </tr>
@@ -1682,7 +1487,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosAutDirectores" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-4" style="text-align: left !important;" estado="" data-orden="fecha_AutDirectores" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-4" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1729,7 +1534,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPublicoCasino" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-3" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-3" style="text-align: left !important;" estado="" data-orden="fecha_mes" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">DÍAS COMPLETADOS</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1760,7 +1565,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <button class="btn" type="button" id="Seguros_nuevo">NUEVO PAGO DE SEGURO</button>
+            <button class="btn" type="button" id="Seguros_nuevo">NUEVA PÓLIZA DE SEGURO</button>
             <button class="btn" type="button" id="Seguros_nuevo_tipo">NUEVO TIPO DE SEGURO</button>
             <button class="btn" type="button" id="Seguros_tipo_gestionar">GESTIONAR TIPOS DE SEGURO</button>
 
@@ -1772,8 +1577,8 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosSeguros" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">PERIODO DESDE</th>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">PERIODO HASTA</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="periodo_inicio" style="cursor:pointer;">PERIODO DESDE <i class="fa fa-sort"></i></th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="periodo_fin" style="cursor:pointer;">PERIODO HASTA <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">TIPO DE SEGURO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">CASINO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ESTADO</th>
@@ -1814,9 +1619,9 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosDerechoAcceso" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">MES</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="fecha_DerechoAcceso" style="cursor:pointer;">MES <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">SEMANA</th>
-                  <th class="col-xs-2" style="text-align: left !important;" estado="">FECHA VENC.</th>
+                  <th class="col-xs-2" style="text-align: left !important;" estado="" data-orden="fecha_vencimiento" style="cursor:pointer;">FECHA VENC. <i class="fa fa-sort"></i></th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">MONTO</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">OBSERVACIONES</th>
                   <th class="col-xs-2" style="text-align: left !important;" estado="">ACCIÓN</th>
@@ -1860,7 +1665,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosPatentes" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-6" estado="">PERÍODO</th>
+                  <th class="col-xs-6" estado="" data-orden="fecha_Patentes" style="cursor:pointer;">PERÍODO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" estado="">CASINO</th>
                   <th class="col-xs-2" estado="">ACCIÓN</th>
                 </tr>
@@ -1903,7 +1708,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <table id="tablaResultadosImpInmobiliario" class="table table-fixed">
               <thead>
                 <tr>
-                  <th class="col-xs-4" estado="">PERÍODO</th>
+                  <th class="col-xs-4" estado="" data-orden="fecha_ImpInmobiliario" style="cursor:pointer;">PERÍODO <i class="fa fa-sort"></i></th>
                   <th class="col-xs-4" estado="">CASINO</th>
                   <th class="col-xs-3" style="text-align: left !important;" estado="">ACCIÓN</th>
                 </tr>
@@ -1936,22 +1741,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER ARCHIVOS ASOCIADOS AL REGISTRO -->
 
-<div class="modal fade" id="modalArchivosAsociados" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" style="width:70%">
-    <div class="modal-content">
-      <div class="modal-header" style="background:#6dc7be">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <h4 class="modal-title" id="tituloArchivos">Archivos</h4>
-      </div>
-      <div class="modal-body">
-        <div id="listaArchivos" class="list-group"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
  <!-- MODAL  ELIMINAR ARCHIVO -->
 
@@ -2055,7 +1845,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNameIva" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNameIva" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadIva" name="uploadIva[]" multiple style="display:none;">
               </div>
 
@@ -2155,51 +1945,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER IVA -->
-<div class="modal fade" id="modalVerIva" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width:50%">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #00695c;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarVerIva" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIva" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IVA</h3>
-      </div>
-
-      <div id="colapsadoVerIva" class="collapse in">
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-4">
-              <h5>MES</h5>
-              <input type="text" class="form-control" id="ver_fecha_iva" readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>FECHA DE PRESENTACIÓN</h5>
-              <input type="text" class="form-control" id="ver_fecha_pres_iva" readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>CASINO</h5>
-              <input type="text" class="form-control" id="ver_casino_iva" readonly>
-            </div>
-          </div>
-          <br/>
-          <div class="row">
-            <div class="col-md-6">
-              <h5>SALDO A FAVOR ARCA/CONTRIBUYENTE</h5>
-              <input type="text" class="form-control" id="ver_saldo_iva" readonly>
-            </div>
-            <div class="col-md-6">
-              <h5>OBSERVACIONES</h5>
-              <textarea class="form-control" id="ver_obs_iva" readonly></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-        </div>
-      </div>
-    </div> <!-- modal content -->
-  </div> <!-- modal dialog -->
-</div> <!-- modal fade -->
+ <!-- modal fade -->
 
 <!-- MODAL CARGAR IIBB -->
 <div class="modal fade" id="modalCargariibb" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -2310,7 +2056,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNameiibb" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNameiibb" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadiibb" name="uploadiibb[]" multiple style="display:none;">
               </div>
 
@@ -2378,91 +2124,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER IIBB-->
-<div class="modal fade" id="modalVeriibb" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-       <div class="modal-dialog" style="width:71%">
-          <div class="modal-content">
-            <div class="modal-header modalNuevo" style="background-color: #00695c;">
-              <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-              <button id="btn-minimizarVeriibb" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVeriibb" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-              <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IIBB</h3>
-             </div>
 
-             <div  id="colapsadoVeriibb" class="collapse in">
-               <div class="modal-body">
-                <div class="row">
-                  <div class="col-md-4">
-                    <h5>Fecha IIBB</h5>
-                    <input type="text" class="form-control" id="ver_fecha_iibb" readonly>
-                  </div>
-                  <div class="col-md-4">
-                    <h5>Presentación DDJJ/Fecha de pago</h5>
-                    <input type="text" class="form-control" id="ver_fecha_pres_iibb" readonly>
-                  </div>
-                  <div class="col-md-4">
-                    <h5>Casino</h5>
-                    <input type="text" class="form-control" id="ver_casino_iibb" readonly>
-                  </div>
-                </div>
-              </br>
-
-              <div class="row">
-                <div class="col-md-4">
-                  <h4>Actividad/Observaciones</h4>
-                </div>
-                <div class="col-md-3">
-                  <h4>Montos</h4>
-                </div>
-                <div class="col-md-3">
-                  <h4>Alicuotas (%)</h4>
-                </div>
-                <div class="col-md-2">
-                  <h4>Impuesto Total</h4>
-                </div>
-              </div>
-              <div id="contenedor-bases-ver-iibb"></div>
-              <div class="row">
-                <div class="col-md-4">
-                    <h5>Impuesto total determinado</h5>
-                    <input type="text" class="form-control" id="ver_impuestoTotal_iibb" readonly>
-                  </div>
-            </div>
-            </br>
-                <div class="row">
-                  <div class="col-md-8">
-                    <h4>Deducciones</h4>
-                    <div id="contenedor-deducciones-ver-iibb"></div>
-                  </div>
-                </div>
-              </br>
-                <div class="row">
-                  
-                  <div class="col-md-4">
-                    <h5>Diferencia mínimo</h5>
-                    <input type="text" class="form-control" id="ver_diferencia_iibb" readonly>
-                  </div>
-                </div>
-              </br>
-                <div class="row">
-                  <div class="col-md-6">
-                    <h5>Saldo a favor API/Contribuyente</h5>
-                    <input type="text" class="form-control" id="ver_saldo_iibb" readonly>
-                  </div>
-                  <div class="col-md-6">
-                    <h5>Observaciones</h5>
-                    <textarea class="form-control" id="ver_obs_iibb" readonly></textarea>
-                  </div>
-                </div>
-              </div>
-
-               <div class="modal-footer">
-
-                 <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-               </div>
-             </div> <!-- modal content -->
-           </div> <!-- modal dialog -->
-         </div> <!-- modal fade -->
- </div>
 
 <!-- MODAL CARGAR DREI -->
 <div class="modal fade" id="modalCargarDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -2772,7 +2434,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNameDREI" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNameDREI" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadDREI" name="uploadDREI[]" multiple style="display:none;">
             </div>
 
@@ -2814,339 +2476,13 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER DREI CSF-->
-<div class="modal fade" id="modalVerCSFDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" style="width:71%">
-         <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #00695c;">
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarVerDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
-            </div>
 
-            <div  id="colapsadoVerDREI" class="collapse in">
-              <div class="modal-body">
-               <div class="row">
-                 <div class="col-md-4">
-                   <h5>Fecha DREI</h5>
-                   <input type="text" class="form-control" id="ver_fecha_csfDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Presentación DDJJ/Fecha de pago</h5>
-                   <input type="text" class="form-control" id="ver_fecha_pres_csfDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Casino</h5>
-                   <input type="text" class="form-control" id="ver_casino_csfDREI" readonly>
-                 </div>
-               </div>
-             </br>
-               <div class="row">
-                 <div class="col-md-6">
-                   <h4>Comercio</h4>
-                 </div>
-               </div>
-               <div class="row">
-                 <div class="col-md-4">
-                   <h5>Base imponible</h5>
-                   <input type="text" class="form-control" id="ver_com_base_csfDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Alicuota (%)</h5>
-                   <input type="text" class="form-control" id="ver_com_ali_csfDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Subtotal impuesto determinado</h5>
-                   <input type="text" class="form-control" id="ver_com_imp_csfDREI" readonly>
-                 </div>
-               </div>
-             </br>
-             <div class="row">
-               <div class="col-md-6">
-                 <h4>Gastronomía</h4>
-               </div>
-             </div>
-             <div class="row">
-               <div class="col-md-4">
-                 <h5>Base imponible</h5>
-                 <input type="text" class="form-control" id="ver_gas_base_csfDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Alicuota (%)</h5>
-                 <input type="text" class="form-control" id="ver_gas_ali_csfDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Impuesto determinado</h5>
-                 <input type="text" class="form-control" id="ver_gas_imp_csfDREI" readonly>
-               </div>
-             </div>
-             </br>
-             <div class="row">
-               <div class="col-md-6">
-                 <h4>Explotación casinos y bingos</h4>
-               </div>
-             </div>
-             <div class="row">
-               <div class="col-md-4">
-                 <h5>Base imponible</h5>
-                 <input type="text" class="form-control" id="ver_expl_base_csfDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Alicuota (%)</h5>
-                 <input type="text" class="form-control" id="ver_expl_ali_csfDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Impuesto determinado</h5>
-                 <input type="text" class="form-control" id="ver_expl_imp_csfDREI" readonly>
-             </div>
-            </div>
-          </br>
-          <div class="row">
-            <div class="col-md-6">
-              <h4>Apuestas y juegos de azar por plataformas</h4>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">
-              <h5>Base imponible</h5>
-              <input type="text" class="form-control" id="ver_apyju_base_csfDREI" readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>Alicuota (%)</h5>
-              <input type="text" class="form-control" id="ver_apyju_ali_csfDREI" readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>Impuesto determinado</h5>
-              <input type="text" class="form-control" id="ver_apyju_imp_csfDREI" readonly>
-          </div>
-         </div>
-       </br>
-         <div class="row">
-           <div class="col-md-4">
-             <h5>Adicional de Bromatología</h5>
-             <input type="text" class="form-control" id="ver_bromatologia_csfDREI" readonly>
-           </div>
-           <div class="col-md-4">
-             <h5>Deducciones</h5>
-             <input type="text" class="form-control" id="ver_deducciones_csfDREI" readonly>
-           </div>
-           <div class="col-md-4">
-             <h5>Total impuesto determinado</h5>
-             <input type="text" class="form-control" id="ver_total_imp_csfDREI" readonly>
-           </div>
-         </div>
-       </br>
-         <div class="row">
-           <div class="col-md-4">
-             <h5>Intereses</h5>
-             <input type="text" class="form-control" id="ver_intereses_csfDREI" readonly>
-           </div>
-           <!--<div class="col-md-4">
-             <h5>Saldo a favor</h5>
-             <input type="text" class="form-control" id="ver_saldo_csfDREI" readonly>
-           </div>
-            -->
-         </div>
-       </br>
-         <div id="ver-bases-extra-csf-drei" style="display:none;">
-           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
-           <div id="ver-bases-extra-csf-drei-body"></div>
-         </div>
-       </br>
-         <div class="row">
-           <div class="col-md-5">
-             <h5>Observaciones</h5>
-             <textarea class="form-control" id="ver_obs_csfDREI" readonly></textarea>
-           </div>
-
-         </div>
-
-         </div>
-
-              <div class="modal-footer">
-
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-              </div>
-            </div> <!-- modal content -->
-          </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL VER DREI MEL -->
-<div class="modal fade" id="modalVerMELDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" style="width:71%">
-         <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #00695c;">
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarVermelDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVermelDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
-            </div>
 
-            <div  id="colapsadoVermelDREI" class="collapse in">
-              <div class="modal-body">
-               <div class="row">
-                 <div class="col-md-4">
-                   <h5>Fecha DREI</h5>
-                   <input type="text" class="form-control" id="ver_fecha_melDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Presentación DDJJ/Fecha de pago</h5>
-                   <input type="text" class="form-control" id="ver_fecha_pres_melDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Casino</h5>
-                   <input type="text" class="form-control" id="ver_casino_melDREI" readonly>
-                 </div>
-               </div>
-             </br>
-
-              <div class="row">
-                <div class="col-md-4">
-                  <h5>Monto Pagado</h5>
-                  <input type="text" class="form-control" id="ver_monto_melDREI" readonly>
-                </div>
-              </div>
-
-               <div class="row">
-                 <div class="col-md-6">
-                   <h4>Base Imponible Juegos</h4>
-                 </div>
-               </div>
-               <div class="row">
-                 <div class="col-md-4">
-                   <h5>Base imponible</h5>
-                   <input type="text" class="form-control" id="ver_com_base_melDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Alicuota (%)</h5>
-                   <input type="text" class="form-control" id="ver_com_ali_melDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Impuesto Determinado</h5>
-                   <input type="text" class="form-control" id="ver_com_imp_melDREI" readonly>
-                 </div>
-               </div>
-             </br>
-             <div class="row">
-               <div class="col-md-6">
-                 <h4>Base Imponible Otras Actividades</h4>
-               </div>
-             </div>
-             <div class="row">
-               <div class="col-md-4">
-                 <h5>Base imponible</h5>
-                 <input type="text" class="form-control" id="ver_gas_base_melDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Alicuota (%)</h5>
-                 <input type="text" class="form-control" id="ver_gas_ali_melDREI" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Impuesto Determinado</h5>
-                 <input type="text" class="form-control" id="ver_gas_imp_melDREI" readonly>
-               </div>
-             </div>
-
-
-       </br>
-         <div id="ver-bases-extra-mel-drei" style="display:none;">
-           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
-           <div id="ver-bases-extra-mel-drei-body"></div>
-         </div>
-       </br>
-         <div class="row">
-           <div class="col-md-4">
-             <h5> Total Impuesto Determinado</h5>
-             <input type="text" class="form-control" id="ver_total_imp_det_melDREI" readonly>
-           </div>
-           <div class="col-md-4">
-             <h5>Saldo</h5>
-             <input type="text" class="form-control" id="ver_saldo_melDREI" readonly>
-           </div>
-           <div class="col-md-4">
-             <h5>Observaciones</h5>
-             <textarea class="form-control" id="ver_obs_melDREI" readonly></textarea>
-           </div>
-         </div>
-
-         </div>
-
-              <div class="modal-footer">
-
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-              </div>
-            </div> <!-- modal content -->
-          </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL VER DREI RO -->
-<div class="modal fade" id="modalVerRODREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" style="width:71%">
-         <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #00695c;">
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarVerroDREI" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerroDREI" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO DREI</h3>
-            </div>
 
-            <div  id="colapsadoVerroDREI" class="collapse in">
-              <div class="modal-body">
-               <div class="row">
-                 <div class="col-md-4">
-                   <h5>Fecha DREI</h5>
-                   <input type="text" class="form-control" id="ver_fecha_roDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Presentación DDJJ/Fecha de pago</h5>
-                   <input type="text" class="form-control" id="ver_fecha_pres_roDREI" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Casino</h5>
-                   <input type="text" class="form-control" id="ver_casino_roDREI" readonly>
-                 </div>
-               </div>
-             </br>
-
-              <div class="row">
-                <div class="col-md-6">
-                  <h5>Monto Pagado Total</h5>
-                  <input type="text" class="form-control" id="ver_monto_roDREI" readonly>
-                </div>
-                <div class="col-md-6">
-                  <h5>Saldo a favor municipal/Contribuyente</h5>
-                  <input type="text" class="form-control" id="ver_saldo_roDREI" readonly>
-                </div>
-              </div>
-
-
-   </br>
-         <div id="ver-bases-extra-ro-drei" style="display:none;">
-           <div class="row"><div class="col-md-12"><h4>Otras bases</h4></div></div>
-           <div id="ver-bases-extra-ro-drei-body"></div>
-         </div>
-   </br>
-         <div class="row">
-
-
-           <div class="col-md-4">
-             <h5>Observaciones</h5>
-             <textarea class="form-control" id="ver_obs_roDREI" readonly></textarea>
-           </div>
-         </div>
-
-         </div>
-
-              <div class="modal-footer">
-
-                <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-              </div>
-            </div> <!-- modal content -->
-          </div> <!-- modal dialog -->
-        </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL ELIMINAR DREI -->
 <div class="modal fade" id="modalEliminarDREI" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -3410,7 +2746,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNameTGI" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNameTGI" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadTGI" name="uploadTGI[]" multiple style="display:none;">
               </div>
 
@@ -3481,53 +2817,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER TGI CSF -->
 
-<div class="modal fade" id="modalVerTGICSF" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog" style="width:95%">
-           <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #00695c;">
-               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-               <button id="btn-minimizarVerTGICSF" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerTGICSF" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="bac kground-color: #6dc7be;">| REGISTRO TGI</h3>
-              </div>
-
-              <div id="colapsadoVerTGICSF" class="collapse in">
-                <div class="modal-body">
-                  <div class="row">
-                    <div class="col-md-4">
-                      <h5>MES</h5>
-                      <input type="text" class="form-control" id="ver_fecha_TGI" readonly>
-                    </div>
-                    <div class="col-md-4">
-                      <h5>Casino</h5>
-                      <input type="text" class="form-control" id="ver_casino_TGI" readonly>
-                    </div>
-                    <div class="col-md-4" id="wrap_ver_cuotas_TGI" style="display:none;">
-                      <h5>Cuota</h5>
-                      <input type="text" class="form-control" id="ver_cuotas_TGI" readonly>
-                    </div>
-                  </div>
-
-                  <br/>
-
-                  <div class="row">
-                    <div class="col-md-12">
-                      <h4>Pagos por Partida</h4>
-                      <div id="ver_pagosTGIContainer"></div>
-                    </div>
-                  </div>
-
-
-                </div>
-              </div>
-
-                <div class="modal-footer">
-
-                  <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                </div>
-              </div> <!-- modal content -->
-            </div> <!-- modal dialog -->
-          </div> <!-- modal fade -->
+ <!-- modal fade -->
   </div>
 
 <!-- MODAL CARGAR IMPUESTO A APUESTAS ONLINE IMP AP OL -->
@@ -3632,7 +2922,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <i class="fa fa-folder-open"></i> Examinar…
                                   </button>
                                 </span>
-                                <input type="text" id="fileNameIMP_AP_OL" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                <input type="text" id="fileNameIMP_AP_OL" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                 <input type="file" id="uploadIMP_AP_OL" name="uploadIMP_AP_OL[]" multiple style="display:none;">
                               </div>
 
@@ -3702,79 +2992,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER IMPUESTO A APUESTAS ONLINE -->
 
-<div class="modal fade" id="modalVerIMP_AP_OL" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog" style="width:71%">
-           <div class="modal-content">
-             <div class="modal-header modalNuevo" style="background-color: #00695c;">
-               <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-               <button id="btn-minimizarVerIMP_AP_OL" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIMP_AP_OL" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-               <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
-              </div>
 
-              <div  id="colapsadoVerIMP_AP_OL" class="collapse in">
-                <div class="modal-body">
-                 <div class="row">
-                   <div class="col-md-4">
-                     <h5>MES</h5>
-                     <input type="text" class="form-control" id="ver_fecha_IMP_AP_OL" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>Presentación DDJJ/Fecha de pago</h5>
-                     <input type="text" class="form-control" id="ver_fecha_pres_IMP_AP_OL" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>Casino</h5>
-                     <input type="text" class="form-control" id="ver_casino_IMP_AP_OL" readonly>
-                   </div>
-                 </div>
-               </br>
-                 <div class="row">
-                   <div class="col-md-4">
-                     <h5>QNA</h5>
-                     <input type="text" class="form-control" id="ver_qna_IMP_AP_OL" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>FECHA DE PAGO</h5>
-                     <input type="text" class="form-control" id="ver_fecha_pago_IMP_AP_OL" readonly>
-                   </div>
-
-                 </div>
-               </br>
-                 <div class="row">
-                   <div class="col-md-4">
-                     <h5>MONTO PAGADO</h5>
-                     <input type="text" class="form-control" id="ver_monto_pagado_IMP_AP_OL" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>MONTO APUESTAS</h5>
-                     <input type="text" class="form-control" id="ver_monto_apuestas_IMP_AP_OL" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>ALICUOTA (%)</h5>
-                     <input type="text" class="form-control" id="ver_alicuota_IMP_AP_OL" readonly>
-                   </div>
-                 </div>
-               </br>
-                 <div class="row">
-                   <div class="col-md-4">
-                     <h5>IMPUESTO DETERMINADO</h5>
-                     <input type="text" class="form-control" id="ver_impuesto_determinado_IMP_AP_OL" readonly>
-                   </div>
-
-                 </div>
-
-
-               </div>
-
-                <div class="modal-footer">
-
-                  <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                </div>
-              </div> <!-- modal content -->
-            </div> <!-- modal dialog -->
-          </div> <!-- modal fade -->
-  </div>
 
 <!-- MODAL CARGAR IMPUESTO A APUESTAS MTM IMP AP MTM -->
 
@@ -3884,7 +3102,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                           <i class="fa fa-folder-open"></i> Examinar…
                         </button>
                       </span>
-                      <input type="text" id="fileNameIMP_AP_MTM" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                      <input type="text" id="fileNameIMP_AP_MTM" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                       <input type="file" id="uploadIMP_AP_MTM" name="uploadIMP_AP_MTM[]" multiple style="display:none;">
                     </div>
 
@@ -3954,83 +3172,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER IMPUESTO A APUESTAS MTM -->
 
-<div class="modal fade" id="modalVerIMP_AP_MTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:71%">
-             <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarVerIMP_AP_MTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerIMP_AP_MTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO A APUESTAS ONLINE</h3>
-                </div>
 
-                <div  id="colapsadoVerIMP_AP_MTM" class="collapse in">
-                  <div class="modal-body">
-                   <div class="row">
-                     <div class="col-md-4">
-                       <h5>MES</h5>
-                       <input type="text" class="form-control" id="ver_fecha_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Presentación DDJJ/Fecha de pago</h5>
-                       <input type="text" class="form-control" id="ver_fecha_pres_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Casino</h5>
-                       <input type="text" class="form-control" id="ver_casino_IMP_AP_MTM" readonly>
-                     </div>
-                   </div>
-                 </br>
-                   <div class="row">
-                     <div class="col-md-4">
-                       <h5>QNA</h5>
-                       <input type="text" class="form-control" id="ver_qna_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>FECHA DE PAGO</h5>
-                       <input type="text" class="form-control" id="ver_fecha_pago_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Cantidad de MTM</h5>
-                       <input type="text" class="form-control" id="ver_cant_mtm_IMP_AP_MTM" readonly>
-                     </div>
-
-                   </div>
-                 </br>
-                   <div class="row">
-                     <div class="col-md-4">
-                       <h5>MONTO PAGADO</h5>
-                       <input type="text" class="form-control" id="ver_monto_pagado_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>MONTO APUESTAS</h5>
-                       <input type="text" class="form-control" id="ver_monto_apuestas_IMP_AP_MTM" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>ALICUOTA (%)</h5>
-                       <input type="text" class="form-control" id="ver_alicuota_IMP_AP_MTM" readonly>
-                     </div>
-                   </div>
-                 </br>
-                   <div class="row">
-                     <div class="col-md-4">
-                       <h5>IMPUESTO DETERMINADO</h5>
-                       <input type="text" class="form-control" id="ver_impuesto_determinado_IMP_AP_MTM" readonly>
-                     </div>
-
-                   </div>
-
-
-                 </div>
-
-                  <div class="modal-footer">
-
-                    <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                  </div>
-                </div> <!-- modal content -->
-              </div> <!-- modal dialog -->
-            </div> <!-- modal fade -->
-  </div>
 
 <!-- MODAL CARGAR DEUDA ESTADO -->
 
@@ -4114,7 +3256,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                           <i class="fa fa-folder-open"></i> Examinar…
                         </button>
                       </span>
-                      <input type="text" id="fileNameDeudaEstado" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                      <input type="text" id="fileNameDeudaEstado" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                       <input type="file" id="uploadDeudaEstado" name="uploadDeudaEstado[]" multiple style="display:none;">
                     </div>
 
@@ -4185,37 +3327,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER DEUDA ESTADO -->
 
-<div class="modal fade" id="modalVerDeudaEstado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog" style="width:71%">
-             <div class="modal-content">
-               <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                 <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                 <button id="btn-minimizarVerDeudaEstado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDeudaEstado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                 <h3 class="modal-title" style="background-color: #00695c;">| INCUMPLIMIENTO A LA DEUDA CONSOLIDADA CON EL ESTADO</h3>
-                </div>
 
-                <div  id="colapsadoVerDeudaEstado" class="collapse in">
-                  <div class="modal-body">
-                   <div class="row">
-
-                     <div class="col-md-12">
-                       <h4>Incumplimiento:</h4>
-                       <textarea id="ver_incumplimiento_DeudaEstado" class="form-control" readonly rows="10"></textarea>
-                     </div>
-                   </div>
-
-
-                 </div>
-
-                  <div class="modal-footer">
-
-                    <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                  </div>
-                </div> <!-- modal content -->
-              </div> <!-- modal dialog -->
-            </div> <!-- modal fade -->
-  </div>
 
 <!-- MODAL CARGAR PAGOS MAYORES MESAS DE PAÑO -->
 
@@ -4287,7 +3399,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNamePagosMayoresMesas" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNamePagosMayoresMesas" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadPagosMayoresMesas" name="uploadPagosMayoresMesas[]" multiple style="display:none;">
             </div>
 
@@ -4357,55 +3469,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER PAGOS MAYORES MESAS DE PAÑO -->
 
-<div class="modal fade" id="modalVerPagosMayoresMesas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerPagosMayoresMesas" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPagosMayoresMesas" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PAGO MAYOR DE MESA DE PAÑO</h3>
-                  </div>
 
-                  <div  id="colapsadoVerPagosMayoresMesas" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_PagosMayoresMesas" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_PagosMayoresMesas" readonly>
-                       </div>
-                     </div>
-                   </br>
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>Cantidad de pagos</h5>
-                         <textarea class="form-control" id="ver_cant_pagos_PagosMayoresMesas" readonly></textarea>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Importe en pesos</h5>
-                         <input type="text" class="form-control" id="ver_importe_pesos_PagosMayoresMesas" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Importe en dolares</h5>
-                         <input type="text" class="form-control" id="ver_importe_usd_PagosMayoresMesas" readonly>
-                       </div>
-
-                     </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR REPORTE DE OPERACIONES Y LAVADO DE ACTIVOS -->
 
@@ -4474,7 +3538,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNameReporteYLavado" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNameReporteYLavado" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadReporteYLavado" name="uploadReporteYLavado[]" multiple style="display:none;">
             </div>
 
@@ -4544,49 +3608,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER OPERACIONES Y LAVADO DE ACTIVOS no se usa-->
 
-<div class="modal fade" id="modalVerReporteYLavado" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerReporteYLavado" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerReporteYLavado" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REPORTE DE LAVADO</h3>
-                  </div>
-
-                  <div  id="colapsadoVerReporteYLavado" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_ReporteYLavado" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_ReporteYLavado" readonly>
-                       </div>
-                     </div>
-                   <br>
-                     <div class="row">
-                       <div class="col-md-6">
-                         <h5>Reporte Sistemático (Monto)</h5>
-                         <input type="text" class="form-control" id="ver_reporte_sistem_ReporteYLavado" readonly>
-                       </div>
-                       <div class="col-md-6">
-                         <h5>Reporte de Operaciones (Monto)</h5>
-                         <input type="text" class="form-control" id="ver_reporte_oper_ReporteYLavado" readonly>
-                       </div>
-
-                     </div>
-
-                   </div> <!-- /modal-body -->
-
-                    <div class="modal-footer">
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-                    </div>
-                  </div> <!-- /colapsado -->
-                 </div> <!-- modal content -->
-               </div> <!-- modal dialog -->
-</div> <!-- modal fade -->
+ <!-- modal fade -->
 
 <!-- MODAL CARGAR REGISTROS CONTABLES -->
 
@@ -4721,7 +3743,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNameRegistrosContables" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNameRegistrosContables" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadRegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
               </div>
 
@@ -4791,117 +3813,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER REGISTRO CONTABLE -->
 
-<div class="modal fade" id="modalVerRegistrosContables" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerRegistrosContables" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerRegistrosContables" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO CONTABLE</h3>
-                  </div>
 
-                  <div  id="colapsadoVerRegistrosContables" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_RegistrosContables" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_RegistrosContables" readonly>
-                       </div>
-                     </div>
-                   </br>
-                   <div class="row">
-                     <div class="col-md-10">
-                       <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MTM</h4>
-                     </div>
-                   </div>
-                   <div class="row">
-                     <div class="col-md-5" >
-                       <h5>En pesos</h5>
-                       <input type="text" class="form-control" id="ver_mtm_RegistrosContables" readonly >
-
-                     </div>
-                     <div class="col-md-5">
-                       <h5>En Dólares</h5>
-                       <input type="text" class="form-control" id="ver_mtm_usd_RegistrosContables" readonly>
-                     </div>
-                 </div>
-   </br>
-                 <div class="row">
-                   <div class="col-md-10">
-                     <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">MP</h4>
-                   </div>
-                 </div>
-                 <div class="row">
-                   <div class="col-md-5" >
-                     <h5>En pesos</h5>
-                     <input type="text" class="form-control" id="ver_mp_RegistrosContables" readonly>
-
-                   </div>
-                   <div class="col-md-5">
-                     <h5>En Dólares</h5>
-                     <input type="text" class="form-control" id="ver_mp_usd_RegistrosContables" readonly>
-                   </div>
-               </div>
-   </br>
-               <div class="row">
-                 <div class="col-md-10">
-                   <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Bingo</h4>
-                 </div>
-               </div>
-               <div class="row">
-                 <div class="col-md-5" >
-                   <h5>En pesos</h5>
-                   <input type="text" class="form-control" id="ver_bingo_RegistrosContables" readonly>
-
-                 </div>
-             </div>
-           </br>
-             <div class="row">
-               <div class="col-md-10">
-                 <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Juego OnLine</h4>
-               </div>
-             </div>
-             <div class="row">
-               <div class="col-md-5" >
-                 <h5>En pesos</h5>
-                 <input type="text" class="form-control" id="ver_jol_RegistrosContables" readonly>
-
-               </div>
-           </div>
-         </br>
-         <div class="row">
-           <div class="col-md-10">
-             <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Totales</h4>
-           </div>
-         </div>
-         <div class="row">
-           <div class="col-md-5" >
-             <h5>En Pesos</h5>
-             <input type="text" class="form-control" id="ver_total_RegistrosContables" readonly>
-
-           </div>
-           <div class="col-md-5" >
-             <h5>En Dólares</h5>
-             <input type="text" class="form-control" id="ver_total_usd_RegistrosContables" readonly>
-
-           </div>
-       </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR APORTES PATRONALES -->
 
@@ -4992,7 +3904,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <i class="fa fa-folder-open"></i> Examinar…
               </button>
             </span>
-            <input type="text" id="fileNameAportesPatronales" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+            <input type="text" id="fileNameAportesPatronales" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
             <input type="file" id="uploadAportesPatronales" name="uploadAportesPatronales[]" multiple style="display:none;">
           </div>
 
@@ -5062,67 +3974,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER APORTE PATRONAL -->
 
-<div class="modal fade" id="modalVerAportesPatronales" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerAportesPatronales" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerAportesPatronales" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerAportesPatronales" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_AportesPatronales" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_AportesPatronales" readonly>
-                       </div>
-                       <div class="col-md-5">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_AportesPatronalesPres" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>FECHA DE PAGO</h5>
-                             <input type='text' class="form-control" id="ver_fecha_pago_AportesPatronales" readonly/>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Cantidad de Empleados</h5>
-                         <input type="text" class="form-control" id="ver_cant_empleados_AportesPatronales" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Monto Pagado</h5>
-                         <input type="text" class="form-control" id="ver_monto_pagado_AportesPatronales" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_AportesPatronales" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR PROMO TICKETS -->
 
@@ -5190,7 +4042,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNamePromoTickets" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNamePromoTickets" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadPromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
             </div>
 
@@ -5260,64 +4112,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER PROMO TICKETS -->
 
-<div class="modal fade" id="modalVerPromoTickets" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerPromoTickets" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPromoTickets" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerPromoTickets" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_PromoTickets" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_PromoTickets" readonly>
-                       </div>
-                       <div class="col-md-5">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_PromoTicketsPres" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Cantidad de Empleados</h5>
-                         <input type="text" class="form-control" id="ver_cant_empleados_PromoTickets" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Monto Pagado</h5>
-                         <input type="text" class="form-control" id="ver_monto_pagado_PromoTickets" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_PromoTickets" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR POZO ACUMULADO LINKEADO E INDIVIDUAL -->
 
@@ -5385,7 +4180,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <i class="fa fa-folder-open"></i> Examinar…
               </button>
             </span>
-            <input type="text" id="fileNamePozosAcumuladosLinkeados" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+            <input type="text" id="fileNamePozosAcumuladosLinkeados" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
             <input type="file" id="uploadPozosAcumuladosLinkeados" name="uploadPozosAcumuladosLinkeados[]" multiple style="display:none;">
           </div>
 
@@ -5455,67 +4250,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER POZOS ACUMULADOS LINKEADOS-->
 
-<div class="modal fade" id="modalVerPozosAcumuladosLinkeados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerPozosAcumuladosLinkeados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPozosAcumuladosLinkeados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerPozosAcumuladosLinkeados" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_PozosAcumuladosLinkeados" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_PozosAcumuladosLinkeados" readonly>
-                       </div>
-                       <div class="col-md-5">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_PozosAcumuladosLinkeadosPres" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>FECHA DE PAGO</h5>
-                             <input type='text' class="form-control" id="ver_fecha_pago_PozosAcumuladosLinkeados" readonly/>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Cantidad de Empleados</h5>
-                         <input type="text" class="form-control" id="ver_cant_empleados_PozosAcumuladosLinkeados" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Monto Pagado</h5>
-                         <input type="text" class="form-control" id="ver_monto_pagado_PozosAcumuladosLinkeados" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_PozosAcumuladosLinkeados" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR CONTRIBUCION ENTE TURISTICO -->
 
@@ -5617,7 +4352,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <i class="fa fa-folder-open"></i> Examinar…
               </button>
             </span>
-            <input type="text" id="fileNameContribEnteTuristico" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+            <input type="text" id="fileNameContribEnteTuristico" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
             <input type="file" id="uploadContribEnteTuristico" name="uploadContribEnteTuristico[]" multiple style="display:none;">
           </div>
 
@@ -5687,80 +4422,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER CONTRIBUCION ENTE TURISTICO -->
 
-<div class="modal fade" id="modalVerContribEnteTuristico" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerContribEnteTuristico" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerContribEnteTuristico" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO CONTRIBUCIÓN ENTE TURISTICO</h3>
-                  </div>
 
-                  <div  id="colapsadoVerContribEnteTuristico" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_ContribEnteTuristico" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_ContribEnteTuristico" readonly>
-                       </div>
-
-                     </div>
-                     <br/>
-
-                     <div class="row">
-                       <div class="col-md-6">
-                         <h5>FECHA DE VENCIMIENTO</h5>
-                             <input type='text' class="form-control" id="ver_fecha_venc_ContribEnteTuristico" readonly/>
-                       </div>
-                       <div class="col-md-6">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA Y PAGO</h5>
-                         <input type='text' class="form-control" id="ver_fecha_pres_ContribEnteTuristicoPres" readonly/>
-                       </div>
-                   </div>
-
-                 </br>
-
-                   <div class="row">
-                     <div class="col-md-4">
-                       <h5>Base Imponible</h5>
-                       <input type="text" class="form-control" id="ver_base_imponible_ContribEnteTuristico" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Alicuota (%)</h5>
-                       <input type="text" class="form-control" id="ver_alicuota_ContribEnteTuristico" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Impuesto Determinado</h5>
-                       <input type="text" class="form-control" id="ver_impuesto_determinado_ContribEnteTuristico" readonly>
-                   </div>
-                 </div>
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_ContribEnteTuristico" readonly rows="3"></textarea>
-                     </div>
-                     <div class="col-md-6">
-                       <h5>Monto Pagado</h5>
-                       <input type="text" class="form-control" id="ver_monto_pagado_ContribEnteTuristico" readonly>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-            </div>
-</div>
 
 <!-- MODAL CARGAR RRHH -->
 
@@ -5969,7 +4631,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
               <i class="fa fa-folder-open"></i> Examinar…
             </button>
           </span>
-          <input type="text" id="fileNameRRHH" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+          <input type="text" id="fileNameRRHH" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
           <input type="file" id="uploadRRHH" name="uploadRRHH[]" multiple style="display:none;">
         </div>
 
@@ -6070,175 +4732,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER  RRHH -->
 
-<div class="modal fade" id="modalVerRRHH" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerRRHH" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerRRHH" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerRRHH" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_RRHH" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_RRHH" readonly>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Personal al Inicio</h5>
-                         <input type="text" class="form-control" name="personal_inicio_RRHH" id="ver_personal_inicio_RRHH" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Personal al Final</h5>
-                         <input type="text" class="form-control" name="personal_final_RRHH" id="ver_personal_final_RRHH" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-
-                     <div class="col-md-4">
-                       <h5>Altas del mes</h5>
-                       <input type="text" class="form-control" name="altas_RRHH" id="ver_altas_RRHH" readonly>
-                     </div>
-                     <div class="col-md-4">
-                       <h5>Bajas del mes</h5>
-                       <input type="text" class="form-control" name="bajas_RRHH" id="ver_bajas_RRHH" readonly>
-                     </div>
-                 </div>
-               </br>
-                 <div class="row">
-
-                   <div class="col-md-4">
-                     <h5>Personal según la nómina</h5>
-                     <input type="text" class="form-control" name="personal_nomina_RRHH" id="ver_personal_nomina_RRHH" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>Diferencia</h5>
-                     <input type="text" class="form-control" name="diferencia_RRHH" id="ver_diferencia_RRHH" readonly>
-                   </div>
-               </div>
-             </br>
-               <div class="row">
-
-                 <div class="col-md-4">
-                   <h5>Tercerizados</h5>
-                   <input type="text" class="form-control" name="tercerizados_RRHH" id="ver_tercerizados_RRHH" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Total</h5>
-                   <input type="text" class="form-control" name="total_personal_RRHH" id="ver_total_personal_RRHH" readonly>
-                 </div>
-                 <div class="col-md-4">
-                   <h5>Ofertado/Adjudicado</h5>
-                   <input type="text" class="form-control" name="ofertado_adjudicado_RRHH" id="ver_ofertado_adjudicado_RRHH" readonly>
-                 </div>
-             </div>
-             </br>
-             <div class="row">
-
-               <div class="col-md-4">
-                 <h5>Cantidad de personal Ludico</h5>
-                 <input type="text" class="form-control" name="ludicos_RRHH" id="ver_ludicos_RRHH" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Cantidad de personal no ludico</h5>
-                 <input type="text" class="form-control" name="no_ludicos_RRHH" id="ver_no_ludicos_RRHH" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Total de personal</h5>
-                 <input type="text" class="form-control" name="total_ludicos_RRHH" id="ver_total_ludicos_RRHH" readonly>
-               </div>
-           </div>
-           </br>
-           <div class="row">
-
-             <div class="col-md-4">
-               <h5>Porcentaje de personal Ludico</h5>
-               <input type="text" class="form-control" name="porcentaje_ludicos_RRHH" id="ver_porcentaje_ludicos_RRHH" readonly>
-             </div>
-             <div class="col-md-4">
-               <h5>Porcentaje de personal no ludico</h5>
-               <input type="text" class="form-control" name="porcentaje_no_ludicos_RRHH" id="ver_porcentaje_no_ludicos_RRHH" readonly>
-             </div>
-             <div class="col-md-4">
-               <h5>Porcentaje total de personal</h5>
-               <input type="text" class="form-control" name="total_porcentaje_ludicos_RRHH" id="ver_total_porcentaje_ludicos_RRHH" readonly>
-             </div>
-         </div>
-         </br>
-
-          <div class="row">
-            <div class="col-md-4">
-              <h5>Cantidad de personal ludico viviendo en santa fe</h5>
-              <input type="text" class="form-control" name="ver_ludicos_viviendo_RRHH" id="ver_ludicos_viviendo_RRHH" readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>Cantidad de personal no ludico viviendo en santa fe</h5>
-              <input type="text" class="form-control" name="ver_no_ludicos_viviendo_RRHH" id="ver_no_ludicos_viviendo_RRHH"  readonly>
-            </div>
-            <div class="col-md-4">
-              <h5>TOTAL de personal viviendo en santa fe</h5>
-              <input type="text" class="form-control" name="ver_total_viviendo_RRHH" id="ver_total_viviendo_RRHH" readonly>
-            </div>
-          </div>
-        </br>
-             <div class="row">
-
-               <div class="col-md-4">
-                 <h5>Porcentaje de personal Ludico domiciliado en Santa FE</h5>
-                 <input type="text" class="form-control" name="porcentaje_ludicos_sf_RRHH" id="ver_porcentaje_ludicos_sf_RRHH" readonly>
-               </div>
-               <div class="col-md-4">
-                 <h5>Porcentaje de personal no ludico domiciliado en Santa FE</h5>
-                 <input type="text" class="form-control" name="porcentaje_no_ludicos_sf_RRHH" id="ver_porcentaje_no_ludicos_sf_RRHH" readonly>
-               </div>
-               <div class="col-md-4">
-                 <!-- emoji invisible para que el total este alineado con los otros input-->
-                 <h5>Porcentaje Total de personal viviendo en Santa Fe</h5>
-
-                 <input type="text" class="form-control" name="ver_porcentaje_total_sf_RRHH" id="ver_porcentaje_total_sf_RRHH" readonly>
-               </div>
-             </div>
-       </br>
-               <div class="row">
-
-                 <div class="col-md-4">
-                   <h5>Diferencia entre nómina y DDJJ por tipo de personal</h5>
-                   <input type="text" class="form-control" name="dif_nomina_RRHH" id="ver_dif_nomina_RRHH" readonly>
-                 </div>
-
-               </div>
-
-               <div class="row">
-                 <div class="col-md-12">
-                   <h5>Observaciones</h5>
-                   <textarea class="form-control" id="ver_obs_RRHH" rows="3" readonly></textarea>
-                 </div>
-               </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR ANTICIPO GANANCIAS -->
 
@@ -6338,7 +4832,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                         <i class="fa fa-folder-open"></i> Examinar…
                       </button>
                     </span>
-                    <input type="text" id="fileNameGanancias" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                    <input type="text" id="fileNameGanancias" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                     <input type="file" id="uploadGanancias" name="uploadGanancias[]" multiple style="display:none;">
                   </div>
 
@@ -6408,83 +4902,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER ANTICIPO GANANCIAS -->
 
-<div class="modal fade" id="modalVerGanancias" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerGanancias" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerGanancias" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO GANANCIAS</h3>
-                  </div>
 
-                  <div  id="colapsadoVerGanancias" class="collapse in">
-                    <div class="modal-body">
-
-
-                     <div class="row">
-                       <div class="col-md-4" >
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_Ganancias" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Período al que pertenece</h5>
-                           <input name="fecha_GananciasPres" type='text' class="form-control" id="ver_fecha_GananciasPres" readonly/>
-                       </div>
-                     </div>
-                   </br>
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>Número de Anticipo</h5>
-                         <input type="text" class="form-control" name="nro_anticipo_Ganancias" readonly id="ver_nro_anticipo_Ganancias" >
-
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Anticipo</h5>
-                         <input type="text" class="form-control" name="anticipo_Ganancias" readonly id="ver_anticipo_Ganancias" >
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Abonado</h5>
-                         <input type="text" class="form-control" name="abonado_Ganancias" readonly id="ver_abonado_Ganancias" >
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Computa contra impuestos</h5>
-                         <input type="text" class="form-control" name="computa_Ganancias" readonly id="ver_computa_Ganancias" >
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Diferencia</h5>
-                         <input type="text" class="form-control" name="diferencia_Ganancias" readonly id="ver_diferencia_Ganancias" >
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>FECHA DE PAGO</h5>
-                       <input name="fecha_pago_Ganancias" type='text' class="form-control" id="ver_fecha_pago_Ganancias" readonly/>
-
-                   </div>
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" maxlength="4000" name="obs_Ganancias" id="ver_obs_Ganancias" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR PERIODO GANANCIAS -->
 
@@ -6568,7 +4986,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNameGanancias_periodo" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNameGanancias_periodo" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadGanancias_periodo" name="uploadGanancias_periodo[]" multiple style="display:none;">
               </div>
 
@@ -6639,66 +5057,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER PERÍODO GANANCIAS -->
 
-<div class="modal fade" id="modalVerGanancias_periodo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerGanancias_periodo" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerGanancias_periodo" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PERÍODO FISCAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerGanancias_periodo" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-6">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_Ganancias_periodo" readonly>
-                       </div>
-
-                       <div class="col-md-6">
-                         <h5>Período al que pertenece</h5>
-                           <input name="fecha_GananciasPres" type='text' class="form-control" id="ver_periodo_Ganancias_periodo" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-                       <div class="col-md-6">
-                         <h5>Impuesto a pagar/saldo a favor</h5>
-                             <input type='text' class="form-control" id="ver_saldo_Ganancias_periodo" readonly/>
-                       </div>
-                       <div class="col-md-6">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_pres_Ganancias_periodo" readonly/>
-                       </div>
-
-                   </div>
-
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Forma de Pago</h5>
-                       <textarea class="form-control" id="ver_forma_pago_Ganancias_periodo" readonly rows="3"></textarea>
-                     </div>
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_Ganancias_periodo" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR Jackpots Cargados -->
 
@@ -6762,7 +5121,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNameJackpotsPagados" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNameJackpotsPagados" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadJackpotsPagados" name="uploadJackpotsPagados[]" multiple style="display:none;">
             </div>
 
@@ -6833,64 +5192,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER Jackpots Pagados -->
 
-<div class="modal fade" id="modalVerJackpotsPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerJackpotsPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerJackpotsPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerJackpotsPagados" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_JackpotsPagados" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_JackpotsPagados" readonly>
-                       </div>
-                       <div class="col-md-5">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_JackpotsPagadosPres" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Cantidad de Empleados</h5>
-                         <input type="text" class="form-control" id="ver_cant_empleados_JackpotsPagados" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Monto Pagado</h5>
-                         <input type="text" class="form-control" id="ver_monto_pagado_JackpotsPagados" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_JackpotsPagados" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR PREMIOS PAGADOS -->
 
@@ -6958,7 +5260,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNamePremiosPagados" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNamePremiosPagados" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadPremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
             </div>
 
@@ -7028,64 +5330,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER PREMIO PAGADO -->
 
-<div class="modal fade" id="modalVerPremiosPagados" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerPremiosPagados" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPremiosPagados" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO APORTE PATRONAL</h3>
-                  </div>
 
-                  <div  id="colapsadoVerPremiosPagados" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_PremiosPagados" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_PremiosPagados" readonly>
-                       </div>
-                       <div class="col-md-5">
-                         <h5>FECHA DE PRESENTACIÓN DE LA DECLARACIÓN JURADA</h5>
-                         <input type='text' class="form-control" id="ver_fecha_PremiosPagadosPres" readonly/>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Cantidad de Empleados</h5>
-                         <input type="text" class="form-control" id="ver_cant_empleados_PremiosPagados" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Monto Pagado</h5>
-                         <input type="text" class="form-control" id="ver_monto_pagado_PremiosPagados" readonly>
-                       </div>
-                   </div>
-
-                   </br>
-                   <div class="row">
-                     <div class="col-md-6">
-                       <h5>Observaciones</h5>
-                       <textarea class="form-control" id="ver_obs_PremiosPagados" readonly rows="3"></textarea>
-                     </div>
-                   </div>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR PREMIOS MTM -->
 
@@ -7160,7 +5405,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7186,8 +5431,9 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <h4 style="margin: 0; color: #333;">PROMO TICKETS</h4>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6"><h5>Cantidad</h5><input type="text" class="form-control" name="PromoTickets[cantidad]" id="cant_PromoTickets_Unified"></div>
-                                    <div class="col-md-6"><h5>Importe</h5><input type="text" class="form-control" name="PromoTickets[importe]" id="importe_PromoTickets_Unified"></div>
+                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PromoTickets[cantidad]" id="cant_PromoTickets_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PromoTickets[importe]" id="importe_PromoTickets_Unified"></div>
+                                    <div class="col-md-4"><h5>Importe Dólares</h5><input type="text" class="form-control" name="PromoTickets[importe_usd]" id="importe_usd_PromoTickets_Unified"></div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-11">
@@ -7198,7 +5444,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_PromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7235,7 +5481,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_Pozos" name="uploadPozos[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7273,7 +5519,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_Jackpots" name="uploadJackpots[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7312,7 +5558,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_PremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7351,7 +5597,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_PagosMesas" name="uploadPagosMesas[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7385,6 +5631,12 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                 <div class="row">
                                     <div class="col-md-3"><h5>Bingo</h5><input type="text" class="form-control" name="RegistrosContables[bingo]" id="bingo_RegistrosContables_Unified"></div>
                                     <div class="col-md-3"><h5>Juego OnLine</h5><input type="text" class="form-control" name="RegistrosContables[juego_online]" id="jol_RegistrosContables_Unified"></div>
+                                    {{-- Apuestas deportivas: solo las llevan Santa Fe y Rosario. El JS muestra/oculta
+                                         estas dos columnas segun el casino elegido (ver casinosConApuestasDeportivas). --}}
+                                    <div class="col-md-3 campo-apuestas-deportivas"><h5>Apuestas Deportivas Pesos</h5><input type="text" class="form-control" name="RegistrosContables[apuestas_deportivas]" id="apuestas_RegistrosContables_Unified"></div>
+                                    <div class="col-md-3 campo-apuestas-deportivas"><h5>Apuestas Deportivas Dólares</h5><input type="text" class="form-control" name="RegistrosContables[apuestas_deportivas_usd]" id="apuestas_usd_RegistrosContables_Unified"></div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-3"><h5>Total</h5><input type="text" class="form-control" name="RegistrosContables[total]" id="total_RegistrosContables_Unified"></div>
                                     <div class="col-md-3"><h5>Total USD</h5><input type="text" class="form-control" name="RegistrosContables[total_usd]" id="total_usd_RegistrosContables_Unified"></div>
                                 </div>
@@ -7397,7 +5649,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                                     <i class="fa fa-folder-open"></i> Examinar…
                                                 </button>
                                             </span>
-                                            <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="No se ha seleccionado ningún archivo" readonly>
+                                            <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                                             <input type="file" class="inputUnified" id="upload_RegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
                                         </div>
                                         <!-- archivos ya cargados (inline) -->
@@ -7417,11 +5669,19 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                 <br/>
                             </div>
 
+                            {{-- Observaciones de TODO el registro (mes + casino), no de una seccion:
+                                 va fuera de las .prize-section para que no se oculte segun el casino. --}}
+                            <div class="row" style="margin-top:15px; padding-top:12px; border-top:2px solid #ccc;">
+                                <div class="col-md-12">
+                                    <h5>Observaciones del registro</h5>
+                                    <textarea class="form-control" maxlength="4000" rows="3" name="observaciones_Unificado" id="obs_Unificado"></textarea>
+                                </div>
+                            </div>
+
                         </div> <!-- /modal-body -->
                     </div> <!-- /unified_sections -->
                 </div> <!-- /colapsado -->
                 <div class="modal-footer">
-                    <button id="btnVerArchivosUnificado" type="button" class="btn btn-info" style="display:none;">VER ARCHIVOS</button>
                     <button id="guardarRegistroPremiosMTM_Unificado" type="button" class="btn btn-successAceptar">GENERAR</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">SALIR</button>
                 </div>
@@ -7432,23 +5692,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER ARCHIVOS UNIFICADO -->
-<div class="modal fade" id="modalVerArchivosUnified" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog" style="width: 60%;">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #00695c; color: white;">
-                <button type="button" class="close" data-dismiss="modal" style="color:white;"><i class="fa fa-times"></i></button>
-                <h3 class="modal-title">| ARCHIVOS RESPALDATORIOS</h3>
-            </div>
-            <div class="modal-body">
-                <div id="contentVerArchivosUnified"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- MODAL ELIMINAR PREMIOS MTM -->
 
 <div class="modal fade" id="modalEliminarPremiosMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -7479,92 +5722,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER PREMIOS MTM -->
 
-<div class="modal fade" id="modalVerPremiosMTM" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerPremiosMTM" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPremiosMTM" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO PREMIO MTM</h3>
-                  </div>
 
-                  <div  id="colapsadoVerPremiosMTM" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_PremiosMTM" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_PremiosMTM" readonly>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Cancel Credits</h5>
-                         <input type="text" class="form-control" id="ver_cancel_PremiosMTM" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Cancel Credits USD</h5>
-                         <input type="text" class="form-control" id="ver_cancel_usd_PremiosMTM" readonly>
-                       </div>
-                   </div>
-                   <br/>
-
-                     <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Jackpots</h5>
-                         <input type="text" class="form-control" id="ver_jackpots_PremiosMTM" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Jackpots USD</h5>
-                         <input type="text" class="form-control" id="ver_jackpots_usd_PremiosMTM" readonly>
-                       </div>
-                 </div>
-                 <br/>
-
-                   <div class="row">
-
-                       <div class="col-md-4">
-                         <h5>Progresivos</h5>
-                         <input type="text" class="form-control" id="ver_progre_PremiosMTM" readonly>
-                       </div>
-                       <div class="col-md-4">
-                         <h5>Progresivos USD</h5>
-                         <input type="text" class="form-control" id="ver_progre_usd_PremiosMTM" readonly>
-                       </div>
-                     </div>
-                     <br/>
-
-                 <div class="row">
-
-                   <div class="col-md-4">
-                     <h5>Total</h5>
-                     <input type="text" class="form-control" id="ver_total_PremiosMTM" readonly>
-                   </div>
-                   <div class="col-md-4">
-                     <h5>Total USD</h5>
-                     <input type="text" class="form-control" id="ver_total_usd_PremiosMTM" readonly>
-                   </div>
-               </div>
-
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR AUT DIRECTORES - DIRECTOR -->
 
@@ -7845,7 +6003,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNameAutDirectores" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNameAutDirectores" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadAutDirectores" name="uploadAutDirectores[]" multiple style="display:none;">
             </div>
 
@@ -7887,59 +6045,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER AUT DIRECTORES - AUTORIZACIÓN -->
 
-<div class="modal fade" id="modalVerAutDirectores_autorizacion" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarVerAutDirectores_autorizacion" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerAutDirectores_autorizacion" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO AUT. DIRECTORES</h3>
-                  </div>
 
-                  <div  id="colapsadoVerAutDirectores_autorizacion" class="collapse in">
-                    <div class="modal-body">
-                     <div class="row">
-                       <div class="col-md-4">
-                         <h5>MES</h5>
-                         <input type="text" class="form-control" id="ver_fecha_AutDirectores" readonly>
-                       </div>
-                       <div class="col-md-3">
-                         <h5>Casino</h5>
-                         <input type="text" class="form-control" id="ver_casino_AutDirectores" readonly>
-                       </div>
-                     </div>
-                     <br/>
-
-                     <div class="row">
-                        <div class="col-md-12">
-                          <div class="table-responsive">
-                            <table class="table table-sm" id="tabla-detalle-AutDirectores">
-                              <thead>
-                                <tr>
-                                  <th>Director</th>
-                                  <th>CUIT</th>
-                                  <th class="text-center">Autoriza</th>
-                                  <th>Observación</th>
-                                </tr>
-                              </thead>
-                              <tbody id="detalle-AutDirectores-body"></tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                   <br/>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR SEGUROS - TIPO -->
 
@@ -8093,7 +6199,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                    <div class="modal-header modalNuevo" style="background-color: #00695c;">
                      <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
                      <button id="btn-minimizarCrearSeguros" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrearSeguros" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVO REGISTRO DE PAGO DE SEGUROS</h3>
+                     <h3 class="modal-title" style="background-color: #00695c;">| NUEVA PÓLIZA DE SEGURO</h3>
                     </div>
 
                     <div  id="colapsadoCrearSeguros" class="collapse in">
@@ -8155,21 +6261,10 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   </div>
               </div>
 
-            </br>
-            <div class="row">
-              <div class="col-md-4">
-                <h5>CUENTA PAGA / PAGO TOTAL</h5>
-                <input type="text" class="form-control" id="cta_paga_Seguros" name="cta_paga_Seguros">
-              </div>
-              <div class="col-md-4">
-                <h5>Art. CP 9201</h5>
-                <input type="text" class="form-control" id="art_Seguros" name="art_Seguros">
-              </div>
-              <div class="col-md-4">
-                <h5>Requerimento Anual</h5>
-                <input type="text" class="form-control" id="requerimento_Seguros" name="requerimento_Seguros">
-              </div>
-          </div>
+            {{-- Se quitaron "CUENTA PAGA / PAGO TOTAL" (cta_paga_Seguros), "Art. CP 9201"
+                 (art_Seguros) y "Requerimento Anual" (requerimento_Seguros): ya no se usan.
+                 Las columnas art, cta_paga_total y requerimento_anual siguen en la base con
+                 los datos históricos. --}}
 
               </br>
               <div class="row">
@@ -8204,7 +6299,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                   <i class="fa fa-folder-open"></i> Examinar…
                 </button>
               </span>
-              <input type="text" id="fileNameSeguros" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+              <input type="text" id="fileNameSeguros" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
               <input type="file" id="uploadSeguros" name="uploadSeguros[]" multiple style="display:none;">
             </div>
 
@@ -8272,98 +6367,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER SEGURO -->
 
-<div class="modal fade" id="modalVerSeguros" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog" style="width:71%">
-               <div class="modal-content">
-                 <div class="modal-header modalNuevo" style="background-color: #00695c;">
-                   <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                   <button id="btn-minimizarSeguros" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerSeguros" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-                   <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO SEGUROS</h3>
-                  </div>
 
-                  <div  id="colapsadoVerSeguros" class="collapse in">
-                    <div class="modal-body">
-                      <div class="row">
-                        <div class="col-md-6">
-                          <h5>PERIODO DE VIGENCIA DESDE</h5>
-                              <input type='text' class="form-control" id="ver_fecha_SegurosDes" readonly/>
-                        </div>
-                        <div class="col-md-6">
-                          <h5>HASTA</h5>
-                              <input type='text' class="form-control" id="ver_fecha_SegurosHas" readonly/>
-                        </div>
-                      </div>
-
-                      <div class="row">
-                        <div class="col-md-6" >
-                          <h5>Casino</h5>
-                          <input type="text" class="form-control"  id="ver_casino_Seguros" readonly>
-
-                        </div>
-                        <div class="col-md-6" >
-                          <h5>Tipo de seguro</h5>
-                          <input type="text" class="form-control" id="ver_tipo_Seguros" readonly>
-                        </div>
-                      </div>
-                      <br/>
-
-                      <div class="row">
-                        <div class="col-md-4">
-                          <h5>Compañia</h5>
-                          <input type="text" class="form-control" id="ver_compañia_Seguros" readonly>
-                        </div>
-                        <div class="col-md-4">
-                          <h5>Número de póliza</h5>
-                          <input type="text" class="form-control" id="ver_poliza_Seguros" readonly>
-                        </div>
-                        <div class="col-md-4">
-                          <h5>Monto Asegurado</h5>
-                          <input type="text" class="form-control" id="ver_monto_Seguros" readonly>
-                        </div>
-                    </div>
-
-                  </br>
-                  <div class="row">
-                    <div class="col-md-4">
-                      <h5>CUENTA PAGA / PAGO TOTAL</h5>
-                      <input type="text" class="form-control" id="ver_cta_paga_Seguros" readonly>
-                    </div>
-                    <div class="col-md-4">
-                      <h5>Art. CP 9201</h5>
-                      <input type="text" class="form-control" id="ver_art_Seguros" readonly>
-                    </div>
-                    <div class="col-md-4">
-                      <h5>Requerimento Anual</h5>
-                      <input type="text" class="form-control" id="ver_requerimento_Seguros" readonly>
-                    </div>
-                </div>
-
-                    </br>
-                    <div class="row">
-                        <div class="col-md-6">
-                          <h5>Observaciones</h5>
-                          <textarea class="form-control" maxlength="4000" id="ver_obs_Seguros" readonly rows="3"></textarea>
-                        </div>
-                      <div class="col-md-6" >
-                        <h5>Estado</h5>
-                        <input type="text" class="form-control" id="ver_estado_Seguros" readonly>
-                      </div>
-
-
-                    </div>
-                   <br/>
-
-                   </div>
-
-                    <div class="modal-footer">
-
-                      <button type="button" id ="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-
-                    </div>
-                  </div> <!-- modal content -->
-                </div> <!-- modal dialog -->
-              </div> <!-- modal fade -->
-</div>
 
 <!-- MODAL CARGAR DERECHO DE ACCESO -->
 
@@ -8452,7 +6456,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <i class="fa fa-folder-open"></i> Examinar…
               </button>
             </span>
-            <input type="text" id="fileNameDerechoAcceso" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+            <input type="text" id="fileNameDerechoAcceso" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
             <input type="file" id="uploadDerechoAcceso" name="uploadDerechoAcceso[]" multiple style="display:none;">
           </div>
 
@@ -8521,30 +6525,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 
 <!-- MODAL VER OBSERVACION DERECHO DE ACCESO-->
 
-<div class="modal fade" id="modalVerDerechoAcceso" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" style="width:50%">
-         <div class="modal-content">
-           <div class="modal-header modalNuevo" style="background-color: #00695c;">
-             <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-             <button id="btn-minimizarVerDerechoAcceso" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerDerechoAcceso" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-             <h3 class="modal-title" style="background-color: #00695c;">| OBSERVACIÓN DEL DERECHO DE ACCESO</h3>
-            </div>
-
-            <div  id="colapsadoVerDerechoAcceso" class="collapse in">
-
-              <div class="modal-body">
-                <p id="obsDerechoAcceso"></p>
-              </div>
-
-              <div class="modal-footer">
-                <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-              </div>
-
-            </div> <!-- colapsado -->
-
-          </div> <!-- modal content -->
-    </div> <!-- modal dialog -->
-  </div> <!-- modal fade -->
+ <!-- modal fade -->
 
 <!-- MODAL CARGAR PATENTES - ELEMENTO PATENTABLE -->
 
@@ -8770,7 +6751,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                       <i class="fa fa-folder-open"></i> Examinar…
                     </button>
                   </span>
-                  <input type="text" id="fileNamePatentes" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                  <input type="text" id="fileNamePatentes" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                   <input type="file" id="uploadPatentes" name="uploadPatentes[]" multiple style="display:none;">
                 </div>
 
@@ -8838,50 +6819,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER PATENTES -->
-<div class="modal fade" id="modalVerPatentes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width:95%">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color:#6dc7be;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarPatentes" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerPatentes" style="position:relative; right:20px; top:5px">
-          <i class="fa fa-minus"></i>
-        </button>
-        <h3 class="modal-title" style="background-color:#6dc7be;">| REGISTRO PATENTES</h3>
-      </div>
 
-      <div id="colapsadoVerPatentes" class="collapse in">
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-4">
-              <h5>Periodo</h5>
-              <input type="text" class="form-control" id="ver_fecha_Patentes" readonly/>
-            </div>
-            <div class="col-md-4">
-              <h5>Casino</h5>
-              <input type="text" class="form-control" id="ver_casino_Patentes" readonly>
-            </div>
-          </div>
-
-          <br/>
-
-          <div class="row">
-            <div class="col-md-12">
-              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Patente</h4>
-              <div id="ver_pagosPatentesContainer"></div>
-            </div>
-          </div>
-
-          <br/>
-
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL CARGAR IMPUESTO INMOBILIARIO - PARTIDA -->
 
@@ -9113,7 +7051,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                       <i class="fa fa-folder-open"></i> Examinar…
                     </button>
                   </span>
-                  <input type="text" id="fileNameImpInmobiliario" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                  <input type="text" id="fileNameImpInmobiliario" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                   <input type="file" id="uploadImpInmobiliario" name="uploadImpInmobiliario[]" multiple style="display:none;">
                 </div>
 
@@ -9181,45 +7119,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
 </div>
 
 <!-- MODAL VER IMPUESTO INMOBILIARIO -->
-<div class="modal fade" id="modalVerImpInmobiliario" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width:95%">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #00695c;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarImpInmobiliario" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoVerImpInmobiliario" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" style="background-color: #00695c;">| REGISTRO IMPUESTO INMOBILIARIO</h3>
-      </div>
 
-      <div id="colapsadoVerImpInmobiliario" class="collapse in">
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-4">
-              <h5>Periodo</h5>
-              <input type="text" class="form-control" id="ver_fecha_ImpInmobiliario" readonly/>
-            </div>
-            <div class="col-md-4">
-              <h5>Casino</h5>
-              <input type="text" class="form-control" id="ver_casino_ImpInmobiliario" readonly>
-            </div>
-          </div>
-
-          <br/>
-
-          <div class="row">
-            <div class="col-md-12">
-              <h4 style="background: #eee; padding: 10px; border-left: 5px solid #ccc; margin-bottom: 10px; color: #333;">Pagos por Partida</h4>
-              <div id="ver_pagosImpInmobiliarioContainer"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" id="salir" class="btn btn-default btn-salir" data-js-salir data-dismiss="modal">SALIR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -9277,6 +7177,24 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
             <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
           </div>
       </div>
+    </div>
+</div>
+
+<!-- MODAL HISTORIAL DEL DOCUMENTO -->
+<div class="modal fade" id="modalHistorialDoc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #00695c; color: white;">
+                <button type="button" class="close" data-dismiss="modal" style="color:white;"><i class="fa fa-times"></i></button>
+                <h3 class="modal-title">| HISTORIAL DEL DOCUMENTO</h3>
+            </div>
+            <div class="modal-body">
+                <div id="contenidoHistorialDoc" class="list-group" style="margin-bottom:0;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">CERRAR</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -9374,7 +7292,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                     <i class="fa fa-folder-open"></i> Examinar…
                   </button>
                 </span>
-                <input type="text" id="fileNamePublicoCasino" class="form-control" placeholder="No se ha seleccionado ningún archivo" readonly>
+                <input type="text" id="fileNamePublicoCasino" class="form-control" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
                 <input type="file" id="uploadPublicoCasino" name="uploadPublicoCasino[]" multiple style="display:none;">
                 <div id="uploadsPublicoCasinoContainer"></div>
                 <!-- archivos ya cargados del registro (inline, debajo de subir archivos) -->

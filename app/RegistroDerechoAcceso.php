@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistroDerechoAcceso extends Model
 {
+    use RegistraHistorialDocumento;
+
     protected $table = 'registroDerechoAcceso';
     protected $primaryKey = 'id_registroDerechoAcceso';
     public $timestamps = false;
