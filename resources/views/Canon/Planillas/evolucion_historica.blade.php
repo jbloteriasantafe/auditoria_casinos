@@ -52,14 +52,19 @@ table th {
     </tr>
     
     <tr>
-      <th class="año_mes" style="border-right: 1px solid black;">Meses</th>
+      <th rowspan="2" class="año_mes" style="border-right: 1px solid black;">Meses</th>
       @foreach($abbr_casinos as $_cas)
-      <th class="devengado {{$_cas}}">Devengado</th>
-      <th class="variacion_mensual_devengado {{$_cas}} texto_pequeño">Var. Devengado</th>
-      <th class="canon {{$_cas}}">Canon</th>
-      <th class="variacion_mensual_canon {{$_cas}} texto_pequeño">Var. Canon</th>
-      <th class="diferencia {{$_cas}}">Diferencia</th>
-      <th class="variacion_sobre_devengado {{$_cas}} texto_pequeño" style="border-right: 1px solid black;">Var. Dif. sobre Canon</th>
+      <th rowspan="2"  class="devengado {{$_cas}}">Devengado</th>
+      <th rowspan="2"  class="variacion_mensual_devengado {{$_cas}} texto_pequeño">Var. Devengado</th>
+      <th rowspan="2"  class="canon {{$_cas}}">Canon</th>
+      <th rowspan="2"  class="variacion_mensual_canon {{$_cas}} texto_pequeño">Var. Canon</th>
+      <th colspan="2"  class="diferencia {{$_cas}}">Diferencia</th>
+      @endforeach
+    </tr>
+    <tr>
+      @foreach($abbr_casinos as $_cas)
+      <th class="{{$_cas}}">$</th>
+      <th class="{{$_cas}}">%</th>
       @endforeach
     </tr>
   </thead>
