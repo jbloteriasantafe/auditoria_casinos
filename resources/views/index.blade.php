@@ -22,7 +22,7 @@ $mensaje = $mensaje ?? null;
     <!-- Ionicons -->
     <link rel="stylesheet" href="/css/ionicons.min.css">
     <!-- Theme style -->
-    <link href="css/indexCss.css" rel="stylesheet"> <!-- VER -->
+    <link href="css/indexCss.css?v=2" rel="stylesheet"> <!-- VER -->
     <!-- iCheck -->
     <link href="css/blue.css" rel="stylesheet"> <!-- VER -->
     <!-- Fuentes -->

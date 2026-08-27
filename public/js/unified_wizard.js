@@ -1306,7 +1306,7 @@ $(document).ready(function () {
 
     // Build filter popup content based on filter type
     function buildFilterPopup(filterType) {
-        var html = '<div class="header-filter-popup" data-filter-type="' + filterType + '" style="position:absolute; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); padding:14px; min-width:220px; font-size:12px;">';
+        var html = '<div class="header-filter-popup" data-filter-type="' + filterType + '" style="position:fixed; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); padding:14px; min-width:220px; font-size:12px;">';
         html += '<div style="font-weight:700; color:#334155; margin-bottom:10px; font-size:13px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">';
 
         if (filterType === 'casino') {
@@ -1409,15 +1409,45 @@ $(document).ready(function () {
 
         var popup = $(buildFilterPopup(filterType));
 
-        // Position below the header
+        // Posición FIJA al viewport, anclada al header: así el popup sigue pegado al ícono
+        // aunque se scrollee la página (no se despega ni se va para abajo).
         $('body').append(popup);
-        var offset = th.offset();
-        popup.css({
-            top: offset.top + th.outerHeight() + 2,
-            left: Math.min(offset.left, $(window).width() - popup.outerWidth() - 20)
-        });
+        popup.data('anchorTh', th);
+        posicionarPopupFiltro(popup, th);
+        engancharScrollFiltro();
 
         th.find('.th-filter-icon').css('color', '#764ba2');
+    }
+
+    // Posiciona el popup (position:fixed) justo debajo del header, en coordenadas de viewport.
+    function posicionarPopupFiltro(popup, th) {
+        if (!popup || !popup.length || !th || !th.length) return;
+        var rect = th[0].getBoundingClientRect();
+        var popW = popup.outerWidth();
+        var left = Math.min(rect.left, $(window).width() - popW - 20);
+        if (left < 8) left = 8;
+        popup.css({ top: rect.bottom + 2, left: left });
+    }
+
+    // Mientras el popup está abierto, lo mantenemos pegado a su header al scrollear/redimensionar.
+    // Si el header sale del viewport, se cierra. Capture=true para captar el scroll de cualquier
+    // panel interno, no solo el de la ventana.
+    function onScrollReposicionarFiltro() {
+        var popup = $('.header-filter-popup');
+        if (!popup.length) { desengancharScrollFiltro(); return; }
+        var th = popup.data('anchorTh');
+        if (!th || !th.length || !document.body.contains(th[0])) { popup.remove(); desengancharScrollFiltro(); return; }
+        var rect = th[0].getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > $(window).height()) { popup.remove(); desengancharScrollFiltro(); return; }
+        posicionarPopupFiltro(popup, th);
+    }
+    function engancharScrollFiltro() {
+        document.addEventListener('scroll', onScrollReposicionarFiltro, true);
+        window.addEventListener('resize', onScrollReposicionarFiltro);
+    }
+    function desengancharScrollFiltro() {
+        document.removeEventListener('scroll', onScrollReposicionarFiltro, true);
+        window.removeEventListener('resize', onScrollReposicionarFiltro);
     }
 
     // Click filter icon on sortable+filterable headers
@@ -1436,6 +1466,7 @@ $(document).ready(function () {
     $(document).on('click', function (e) {
         if (!$(e.target).closest('.header-filter-popup, .th-filterable').length) {
             $('.header-filter-popup').remove();
+            desengancharScrollFiltro();
         }
     });
 
@@ -1472,6 +1503,7 @@ $(document).ready(function () {
         ajaxLoadTable();
         updateActiveFilters();
         popup.remove();
+        desengancharScrollFiltro();
     });
 
     // Clear single filter
@@ -1610,6 +1642,44 @@ $(document).ready(function () {
     // Expose for external use (avoid location.reload)
     window.refreshTable = function () { ajaxLoadTable(); };
 
+    // --- Persistencia de filtros entre recargas (F5) ---
+    // Los filtros viven en gridState (memoria); al refrescar, el server re-renderiza la
+    // tabla sin filtrar. Guardamos gridState en localStorage (por usuario) y lo
+    // restauramos al cargar, re-aplicando por AJAX si había filtros/orden/página activos.
+    var GRID_STATE_KEY = 'notas_unif_grid_state_' + (window.CURRENT_USER_ID || 'anon');
+    function persistirGridState() {
+        try { localStorage.setItem(GRID_STATE_KEY, JSON.stringify(gridState)); } catch (e) {}
+    }
+    function hayFiltrosActivos(s) {
+        if (!s) return false;
+        var arrays = ['id_casino', 'id_plataforma', 'casinoKeys', 'rama', 'estado', 'categorias_mkt', 'eventos_fisc'];
+        for (var i = 0; i < arrays.length; i++) {
+            if (Array.isArray(s[arrays[i]]) && s[arrays[i]].length) return true;
+        }
+        if (s.q) return true;
+        if (s.fecha_inicio_desde || s.fecha_inicio_hasta || s.fecha_fin_desde || s.fecha_fin_hasta) return true;
+        if (s.fecha_desde || s.fecha_hasta) return true;
+        if (s.quick_filter) return true;
+        if (s.ver_todo) return true;
+        if (s.page && s.page != 1) return true;
+        if ((s.sort_by && s.sort_by !== 'id') || (s.order && s.order !== 'desc')) return true;
+        return false;
+    }
+    (function restaurarGridState() {
+        var raw;
+        try { raw = localStorage.getItem(GRID_STATE_KEY); } catch (e) { return; }
+        if (!raw) return;
+        var saved;
+        try { saved = JSON.parse(raw); } catch (e) { return; }
+        if (!saved || typeof saved !== 'object') return;
+        $.extend(gridState, saved);
+        $('#inpBusqueda').val(gridState.q || '');
+        // Solo re-consultamos si había algo activo, para no disparar un AJAX extra en la carga normal.
+        if (hayFiltrosActivos(gridState)) {
+            ajaxLoadTable();
+        }
+    })();
+
     // Highlight de texto buscado solo en columnas: Nro Nota (4), Título (6), Nro Aprob (9)
     function highlightSearch(term) {
         var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1656,6 +1726,7 @@ $(document).ready(function () {
 
     // Core Load Function
     function ajaxLoadTable() {
+        persistirGridState();
         $('#divTablaNotas').css('opacity', '0.5');
 
         $.get('/notas-unificadas', gridState, function (res) {

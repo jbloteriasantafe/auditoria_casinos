@@ -7,9 +7,10 @@ html, body {
 .imgIndex {
   /* Velo degradado hacia la derecha: mantiene visible el logo/título de la
      imagen (a la izquierda) y da contraste para que la tarjeta resalte. */
+  /* Fondo anterior (se deja disponible): url(../img/img_principal_reemplazo.jpg) */
   background-image:
     linear-gradient(105deg, rgba(30, 22, 54, 0) 40%, rgba(30, 22, 54, 0.55) 100%),
-    url(../img/img_principal_reemplazo.jpg);
+    url(../img/fondo-login-2026-08-27.jpg);
   background-repeat: no-repeat;
   background-position: left center;
   background-attachment: fixed;
