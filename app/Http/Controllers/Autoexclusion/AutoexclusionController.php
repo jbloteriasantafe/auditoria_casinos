@@ -1180,14 +1180,11 @@ class AutoexclusionController extends Controller
                  }
                  
                  // --- REPORT CLASSIFICATION LOGIC ---
-                 // Before inserting, check history to classify
+                 // Se clasifica ACÁ, antes del insert: después el DNI ya existe y todo daría "previa".
+                 // El alta a la lista se hace recién si el insert sale bien (más abajo), así una fila
+                 // que falla aparece solo en la lista de errores y no infla los contadores.
                  $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
-                 
-                 if (!$existing_ae) {
-                     $lista_nuevas[] = $persona_desc;
-                 } else {
-                     $lista_previas[] = $persona_desc;
-                 }
+                 $es_nueva = is_null($existing_ae);
 
 
                  // --- Gender Logic ---
@@ -1275,6 +1272,9 @@ class AutoexclusionController extends Controller
                  try {
                     $this->crearAutoexcluidoInterno($datos_ae, $estado_ae, $user);
                     $cant_procesados++;
+                    //Recién acá se sabe que entró de verdad.
+                    if($es_nueva) $lista_nuevas[]  = $persona_desc;
+                    else          $lista_previas[] = $persona_desc;
                  } catch (\Exception $e) {
                      $cant_errores++;
                      $errores_detalle[] = "DNI $dni: " . $e->getMessage();

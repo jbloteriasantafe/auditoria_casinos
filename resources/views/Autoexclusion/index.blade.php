@@ -88,9 +88,11 @@ input[required], select[required]{
   overflow-y: auto;
 }
 .bloque-verde   { border-color:#2e7d32; background:#e8f5e9; color:#1b5e20; }
+.bloque-azul    { border-color:#0288d1; background:#e1f5fe; color:#01579b; }
 .bloque-amarillo{ border-color:#f9a825; background:#fff8e1; color:#8a6100; }
 .bloque-rojo    { border-color:#c62828; background:#ffebee; color:#b71c1c; }
 .bloque-verde .badge   { background-color:#2e7d32; }
+.bloque-azul .badge    { background-color:#0288d1; }
 .bloque-amarillo .badge{ background-color:#f9a825; }
 .bloque-rojo .badge    { background-color:#c62828; }
 </style>
@@ -1265,21 +1267,21 @@ input[required], select[required]{
                     <p style="font-weight: bold; font-size: 16px;">Importación finalizada.</p>
                     <!-- VERDE: entraron y son personas nuevas -->
                     <div id="detalleNuevas" class="bloque-resultado bloque-verde" hidden>
-                        <h5>✅ Nuevas autoexclusiones (<span class="badge">0</span>)</h5>
+                        <h5>Nuevas autoexclusiones (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
-                    <!-- AMARILLO: entraron, pero la persona ya tenía una AE previa -->
-                    <div id="detallePrevias" class="bloque-resultado bloque-amarillo" hidden>
-                        <h5>⚠️ Con autoexclusión previa (<span class="badge">0</span>)</h5>
+                    <!-- AZUL: entraron, pero la persona ya tenía una AE previa -->
+                    <div id="detallePrevias" class="bloque-resultado bloque-azul" hidden>
+                        <h5>Con autoexclusión previa (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
-                    <!-- ROJO: no ingresaron -->
-                    <div id="detalleVigentes" class="bloque-resultado bloque-rojo" hidden>
-                        <h5>🚫 NO ingresaron: ya tienen autoexclusión vigente (<span class="badge">0</span>)</h5>
+                    <!-- AMARILLO: no ingresaron (el rojo queda reservado para errores) -->
+                    <div id="detalleVigentes" class="bloque-resultado bloque-amarillo" hidden>
+                        <h5>NO ingresaron: ya tienen autoexclusión vigente (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
-                    <div id="detalleRepetidas" class="bloque-resultado bloque-rojo" hidden>
-                        <h5>📅 NO ingresaron: fecha repetida (<span class="badge">0</span>)</h5>
+                    <div id="detalleRepetidas" class="bloque-resultado bloque-amarillo" hidden>
+                        <h5>NO ingresaron: fecha repetida (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
                 </div>
@@ -1365,7 +1367,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?8" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?9" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

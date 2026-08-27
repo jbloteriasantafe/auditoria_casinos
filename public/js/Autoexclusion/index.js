@@ -128,7 +128,8 @@ function generarFilaTabla(molde,ae) {
     }
     ul.append(li);
   }
-  if(ae.id_nombre_estado != 4){//Si no esta finalizado por AE no dejo subir la solicitud de fin.
+  //Estados que habilitan la constancia de finalización: 4 (Fin. por AE) y 5 (Vencido).
+  if(ae.id_nombre_estado != 4 && ae.id_nombre_estado != 5){
     ul.find('a[data-tipo="solicitud_revocacion"]').parent().remove();
   }
   fila.find('#btnSubirArchivos').attr('data-content',ul[0].outerHTML);
