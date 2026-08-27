@@ -5431,7 +5431,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <h4 style="margin: 0; color: #333;">PROMO TICKETS</h4>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PromoTickets[cantidad]" id="cant_PromoTickets_Unified"></div>
+                                    <div class="col-md-4" style="display:none"><h5>Cantidad</h5><input type="text" class="form-control" name="PromoTickets[cantidad]" id="cant_PromoTickets_Unified"></div>
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PromoTickets[importe]" id="importe_PromoTickets_Unified"></div>
                                     <div class="col-md-4"><h5>Importe Dólares</h5><input type="text" class="form-control" name="PromoTickets[importe_usd]" id="importe_usd_PromoTickets_Unified"></div>
                                 </div>
@@ -5545,7 +5545,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <h4 style="margin: 0; color: #333;">PREMIOS MAYORES MTM</h4>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PremiosPagados[cantidad]" id="cant_PremiosPagados_Unified"></div>
+                                    <div class="col-md-4" style="display:none"><h5>Cantidad</h5><input type="text" class="form-control" name="PremiosPagados[cantidad]" id="cant_PremiosPagados_Unified"></div>
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PremiosPagados[importe]" id="importe_PremiosPagados_Unified"></div>
                                     <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PremiosPagados[importe_usd]" id="importe_usd_PremiosPagados_Unified"></div>
                                 </div>
@@ -5584,7 +5584,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <h4 style="margin: 0; color: #333;">PREMIOS MAYORES MESAS DE PAÑO</h4>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4"><h5>Cantidad</h5><input type="text" class="form-control" name="PagosMesas[cantidad]" id="cant_PagosMesas_Unified"></div>
+                                    <div class="col-md-4" style="display:none"><h5>Cantidad</h5><input type="text" class="form-control" name="PagosMesas[cantidad]" id="cant_PagosMesas_Unified"></div>
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PagosMesas[importe]" id="importe_PagosMesas_Unified"></div>
                                     <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PagosMesas[importe_usd]" id="importe_usd_PagosMesas_Unified"></div>
                                 </div>

@@ -14926,7 +14926,7 @@ function initPagoRowImpInmobiliario(idx) {
 
 (function injectPickerFixesImp() {
   if (document.getElementById("dtp-fixes-imp-css")) return;
-  aplicarNumerico('#modalCargarSeguros input[type="text"]');
+  // aplicarNumerico('#modalCargarSeguros input[type="text"]'); // quitado: solo el Monto lleva parser y ya lo instala instalarNumeroFlexibleAR("#monto_Seguros"); compañía/póliza son texto libre
   aplicarNumerico('#modalCargarDerechoAcceso input[type="text"]');
   aplicarNumerico('#modalCargarPatentes input[type="text"]');
   aplicarNumerico('#modalCargarImpInmobiliario input[type="text"]');
