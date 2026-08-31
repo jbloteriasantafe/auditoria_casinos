@@ -5,14 +5,17 @@ html, body {
 }
 
 .imgIndex {
-  /* Velo degradado hacia la derecha: mantiene visible el logo/título de la
-     imagen (a la izquierda) y da contraste para que la tarjeta resalte. */
-  /* Fondo anterior (se deja disponible): url(../img/img_principal_reemplazo.jpg) */
-  background-image:
-    linear-gradient(105deg, rgba(30, 22, 54, 0) 40%, rgba(30, 22, 54, 0.55) 100%),
-    url(../img/fondo-login-2026-08-27.jpg);
+  /* Imagen oscura: panel plateado con el logo + título a la izquierda y el
+     lado derecho en negro. La tarjeta blanca resalta sola, sin velo. */
+  /* Fondos anteriores (se dejan disponibles):
+       url(../img/fondo-login-2026-08-27.jpg)
+       url(../img/img_principal_reemplazo.jpg) */
+  background-image: url(../img/fondo-login-2026-08-31.jpg);
+  background-color: #0a0a0a;
   background-repeat: no-repeat;
-  background-position: left center;
+  /* Se sube un poco la imagen (logo alineado con la tarjeta de login).
+     El offset en px es consistente aunque cambie el recorte vertical. */
+  background-position: left calc(50% - 75px);
   background-attachment: fixed;
   background-size: cover;
 
@@ -118,9 +121,11 @@ html, body {
    para que el formulario quede legible sin importar el recorte de la imagen. */
 @media (max-width: 991px) {
   .imgIndex {
+    /* Centrado sobre la zona negra + oscurecido neutro por si asoma el panel
+       plateado detrás de la tarjeta. */
     background-position: center center;
     background-image:
-      linear-gradient(180deg, rgba(30, 22, 54, 0.35) 0%, rgba(30, 22, 54, 0.60) 100%),
-      url(../img/img_principal_reemplazo.jpg);
+      linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.45) 100%),
+      url(../img/fondo-login-2026-08-31.jpg);
   }
 }
