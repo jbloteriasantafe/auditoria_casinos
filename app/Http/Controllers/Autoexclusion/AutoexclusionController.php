@@ -862,6 +862,7 @@ class AutoexclusionController extends Controller
         WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
         ELSE ane.descripcion
     END as estado,
+    ae.resolucion,
     ad.nro_dni,ad.nombres,ad.apellido,ad.fecha_nacimiento,
     s.codigo as sexo,
     ad.telefono, ad.correo, ad.nombre_provincia, ad.nombre_localidad, ad.codigo_postal, ad.domicilio, ad.nro_domicilio")
@@ -917,7 +918,7 @@ class AutoexclusionController extends Controller
       $timestamp    = $timestamp->format('Y-m-d\TH:i:s.uP');
       //@ATENCION!
       //Cada vez que realizen un cambio a lo guardado, incrementar este número
-      $version = 1;
+      $version = 2;
       
       DB::table('ae_bd_descargas')->insert([
         'data' => json_encode(compact(
