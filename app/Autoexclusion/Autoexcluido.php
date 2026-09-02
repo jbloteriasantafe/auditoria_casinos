@@ -40,11 +40,15 @@ class Autoexcluido extends Model
   }
 
   public function getEsPrimerAeAttribute(){
-    $ae = Autoexcluido::where('nro_dni','=',$this->nro_dni)->orderBy('id_autoexcluido','asc')->first();
-    return $ae->id_autoexcluido == $this->id_autoexcluido;
+    $primer_ae = Autoexcluido::where('nro_dni','=',$this->nro_dni)
+    ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
+    ->orderBy('fecha_ae','asc')
+    ->first();
+    //Si no hay autoexclusión, la que estamos actualmente es la primera
+    return $primer_ae === null || ($primer_ae->id_autoexcluido == $this->id_autoexcluido);
   }
 
-  /*
+  /* Res 983
             +----------+
             ¦ Pdte Val ¦
             +----------+
@@ -75,6 +79,33 @@ class Autoexcluido extends Model
                                    +-------------------------------------+
   */
 
+                            
+   /* Res Nueva
+            +----------+
+            ¦ Pdte Val ¦
+            +----------+
+                 ¦validado        En cualquier momento, si HOY > fecha_cierre_ae
+     #######+----------+####################################          ¦
+     #           ¦                                         #          ¦
+     #           ¦Primer AE?  fecha_cierre_ae = +180 dias  #          ¦
+     #  +----no--o--si-------------------+                 #          ¦  
+     #  ¦                                ¦                 #          ¦
+     #  ¦                                ¦                 #          ¦
+     #  ¦fecha_cierre_ae = +365 dias     ¦                 #          ¦
+     #  ¦                                ¦                 #          ¦
+     #  ¦                    +-------+   ¦                 #          ¦
+     #  +--------------------¦Vigente¦---+                 #          ¦
+     #                       +-------+                     #          ¦
+     #                                                     #          ¦
+     #######################################################          ¦
+                             +-------+                                ¦
+                             ¦Vencido¦                                ¦
+                             +-------+                                ¦
+                                 ¦                                    ¦
+                                 +------------------------------------+
+
+  */
+
   //Las transiciones automaticas se manejan en AutoexclusionController::actualizarVencidosRenovados
   //Aca solo se obtiene a que estado "se puede" pasar
   //La validación y la finalización son por pedido del administrador en ambos casos (desde el frontend)
@@ -83,40 +114,105 @@ class Autoexcluido extends Model
   //fecha_ae < fecha_renovacion (5 meses mas) < fecha_vencimiento (1 mes mas) < fecha_cierre_ae (6 meses mas)
   //AE repetido
   //fecha_ae < fecha_cierre_ae (12 meses mas)
+
+  static private $nombres_estado_descripcion = null;
+  static private $nombres_estado_id = null;
   public function getEstadoTransicionableAttribute(){
-    $estado = $this->estado;
-    //Si esta vencido no puede cambiar
-    if($estado->id_nombre_estado == 5) return 5;//Vencido
+      $hoy = date('Y-m-d');
+      self::$nombres_estado_descripcion = self::$nombres_estado_descripcion ?? NombreEstadoAutoexclusion::all()->keyBy('descripcion');
+      self::$nombres_estado_id = self::$nombres_estado_id ?? self::$nombres_estado_descripcion->values()->keyBy('id_nombre_estado');
+      $estado = $this->estado;
+      $resolucion = $estado->resolucion;
+      $nombre_estado = self::$nombres_estado_id[$estado->id_nombre_estado]->descripcion;
 
-    //A los estados res983 los trato como si fueran pendiente o vigente.
-    $pdte_val = ($estado->id_nombre_estado == 3 || $estado->id_nombre_estado == 6);
-    //Validar
-    if($pdte_val) return 1;//Vigente
+      if($resolucion == '983'){
+          //Si esta vencido solo puede pasar a vencido
+          if($nombre_estado == 'Vencido'){
+              return self::$nombres_estado_descripcion['Vencido']->id_nombre_estado;
+          }
+          //Si esta pendiente de validación solo puede pasar a vigente
+          if($nombre_estado == 'Pendiente de val.' || $nombre_estado == 'RES.983 - Pendiente'){
+              return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+          }
+          //Si la fecha supero el vencimiento, puede pasar a vencido
+          if($hoy > $estado->fecha_cierre_ae){
+              return self::$nombres_estado_descripcion['Vencido']->id_nombre_estado;
+          }
 
-    $factual = date('Y-m-d');
-    //Si la fecha paso la de cierre, esta vencido
-    if($factual > $estado->fecha_cierre_ae) return 5;
-
-    $primero = $this->es_primer_ae;
-    if(!$primero){
-      //@HACK: Si esta renovado lo paso a vigente por mala migracion
-      if($estado->id_nombre_estado == 2 || $estado->id_nombre_estado == 7) return 1;
-      return $estado->id_nombre_estado;
-    }
-
-    $vigente  = ($estado->id_nombre_estado == 1 || $estado->id_nombre_estado == 7);
-    if($vigente){
-      //Si esta vigente y paso la fecha del vencimiento permito renovar
-      if($factual > $estado->fecha_vencimiento) return 2;//Renovado
-      //Si esta vigente y paso la fecha de renovacion pero no la de vencimiento, permito finalizar
-      if($factual > $estado->fecha_renovacion)  return 4;//Fin por AE
-    }
-
-    //Si esta finalizado por AE y paso la fecha de vencimiento, esta vencido
-    if($estado->id_nombre_estado == 4 && $factual > $estado->fecha_vencimiento) return 5;//Vencido
-
-    //No deberia llegar aca pero lo dejo en el que estaba supongo...
-    return $estado->id_nombre_estado;
+          if($this->es_primer_ae){
+              if($nombre_estado == 'Vigente' || $nombre_estado == 'RES.983 - Verificado'){
+                  //Se le paso la fecha para finalizar, para a renovado
+                  if($hoy > $estado->fecha_vencimiento){
+                      return self::$nombres_estado_descripcion['Renovado']->id_nombre_estado;
+                  }
+                  //Si llego a la fecha donde se la habilita para finalizar
+                  if($hoy > $estado->fecha_renovacion){
+                      return self::$nombres_estado_descripcion['Fin. por AE']->id_nombre_estado;
+                  }
+                  //Es menor a ambas, es decir que solo sigue vigente
+                  return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+              }
+              else if($nombre_estado == 'Fin. por AE'){
+                  //Si estado Finalizado y para el vencimiento de finalización, se vence la AE
+                  if($hoy > $estado->fecha_vencimiento){
+                      return self::$nombres_estado_descripcion['Vencido']->id_nombre_estado;
+                  }
+                  //Si es menor, sigue finalizado (Vigente pero con vencimiento temprano)
+                  else{
+                      return self::$nombres_estado_descripcion['Fin. por AE']->id_nombre_estado;
+                  }
+              }
+              else if($nombre_estado == 'Renovado'){
+                  //No es necesario manejarlo porque se vence con $hoy > $ae->estado_fecha_vencimiento
+                  //Mantengo el mismo estado hasta que se venza
+                  //Algoritmicamente "Renovado" es lo mismo que "Vigente" solo indica que paso por la fecha intermedia nates
+                  return self::$nombres_estado_descripcion['Renovado']->id_nombre_estado;
+              }
+              else{
+                  //No debería llegar aca, lo mantengo como esta
+                  error_log(__FILE__.":".__LINE__." Error al modificar el estado AE {$this->id_autoexcluido} R{$resolucion} Estado {$nombre_estado} DNI {$this->nro_dni} Fecha {$estado->fecha_ae}. No se encontro transicion");
+                  return self::$nombres_estado_descripcion[$nombre_estado]->id_nombre_estado;
+              }
+          }
+          else{
+              if($nombre_estado == 'Vigente' || $nombre_estado == 'RES.983 - Verificado'){
+                  return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+              }
+              //Si llego aca es porque alguien lo modifico manualmente... pasa a vigente!! que es el estado real que tiene
+              else if($nombre_estado == 'Fin. por AE'){
+                  return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+              }
+              //Si llego aca es porque alguien lo modifico manualmente... pasa a vigente!! que es el estado real que tiene
+              else if($nombre_estado == 'Renovado'){
+                  return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+              }
+              else{
+                  //No debería llegar aca, lo mantengo como esta
+                  error_log(__FILE__.":".__LINE__." Error al modificar el estado AE {$this->id_autoexcluido} R{$resolucion} Estado {$nombre_estado} DNI {$this->nro_dni} Fecha {$estado->fecha_ae}. No se encontro transicion");
+                  return self::$nombres_estado_descripcion[$nombre_estado]->id_nombre_estado;
+              }
+          }
+      }
+      else if($resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+          //En la nueva resolución la primer AE es directamente mas corta y las fechas
+          //se setean correctamente, asi que puedo verificar contra la fecha final nomas
+          if($nombre_estado == 'Vencido'){
+              return self::$nombres_estado_descripcion['Vencido']->id_nombre_estado;
+          }
+          //Si esta pendiente de validación solo puede pasar a vigente
+          if($nombre_estado == 'Pendiente de val.' || $nombre_estado == 'RES.983 - Pendiente'){
+              return self::$nombres_estado_descripcion['Vigente']->id_nombre_estado;
+          }
+          //Si la fecha supero el vencimiento, puede pasar a vencido
+          if($hoy > $estado->fecha_cierre_ae){
+              return self::$nombres_estado_descripcion['Vencido']->id_nombre_estado;
+          }
+          return self::$nombres_estado_descripcion[$nombre_estado]->id_nombre_estado;
+      }
+      else{
+          error_log(__FILE__.":".__LINE__." Resolucion no implementada: AE {$this->id_autoexcluido} R{$resolucion} Estado {$nombre_estado} DNI {$this->nro_dni} Fecha {$estado->fecha_ae}");
+          return self::$nombres_estado_descripcion[$nombre_estado]->id_nombre_estado;
+      }
   }
 
   public function contacto(){
