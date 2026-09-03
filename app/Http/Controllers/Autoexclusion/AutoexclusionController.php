@@ -798,6 +798,16 @@ class AutoexclusionController extends Controller
       $actualizados = 0;
       $hoy = date('Y-m-d');
       return DB::transaction(function() use ($hoy,$actualizados){
+        //@SPEED: actualizo los vencidos (que son la mayoria) preventivamente ya que no cambian estado una vez vencidos
+        AE\EstadoAE::whereNull('deleted_at')
+        ->where(function($q) use ($hoy){
+            return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',$hoy);
+        })
+        ->where('id_nombre_estado',5)//Vencido
+        ->update([
+            'ultima_actualizacion_estado' => $hoy
+        ]);
+
         do{
             $actualizados = 0;
             $estados = AE\EstadoAE::whereNull('deleted_at')
