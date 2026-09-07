@@ -133,6 +133,7 @@ class InformesAEController extends Controller
                      ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento,
                      ae_estado.fecha_revocacion_ae,ae_estado.fecha_cierre_ae,ae_estado.id_nombre_estado,
                      ae_estado.id_casino,ae_estado.id_plataforma,ae_nombre_estado.descripcion as estado,
+                     ae_estado.resolucion
                      IFNULL(casino.nombre,plataforma.nombre) as casino_plataforma')
         ->join('ae_estado' , 'ae_datos.id_autoexcluido' , '=', 'ae_estado.id_autoexcluido')
         ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')

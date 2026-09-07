@@ -52,7 +52,7 @@ class AutoexclusionController extends Controller
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
       
-      $estados_elegibles;
+      $estados_elegibles = [];
       if($usuario->es_superusuario){
         $estados_elegibles = AE\NombreEstadoAutoexclusion::where('deprecado',0)->get();
       }
@@ -162,7 +162,7 @@ class AutoexclusionController extends Controller
             $nulos = $request->papel_destruido == 'SI'? '0' : '1';
             $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
             $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
-            $break;
+            break;
         }
       }
     }
@@ -183,9 +183,9 @@ class AutoexclusionController extends Controller
                    ae_estado.papel_destruido_id_usuario,
                    IF(ae_estado.papel_destruido_id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.papel_destruido_id_usuario)) as papel_destruido_nombre_usuario,
                    ae_estado.papel_destruido_datetime,
-                   
+                   ae_estado.resolucion,
                    ae_nombre_estado.descripcion as desc_estado,
-                   IFNULL(IFNULL(casino.nombre,plataforma.nombre),plat_deportiva.nombre) as casino_plataforma,
+                   COALESCE(casino.nombre,plataforma.nombre,plat_deportiva.nombre,ae_estado.id_casino,ae_estado.id_plataforma) as casino_plataforma,
                    ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
                    ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
       ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
@@ -273,8 +273,15 @@ class AutoexclusionController extends Controller
       $data = $validator->getData();
       $estado = $data['ae_estado']['id_nombre_estado'];
       $id_ae = $data['ae_datos']['id_autoexcluido'] ?? null;
-      $id_casino = $data['ae_estado']['id_casino'];
-      $id_plataforma = $data['ae_estado']['id_plataforma'];
+      $id_casino = $data['ae_estado']['id_casino'] ?? null;
+      $id_plataforma = $data['ae_estado']['id_plataforma'] ?? null;
+
+      if(is_null($id_plataforma) && is_null($id_casino)){
+        $validator->errors()->add('ae_estado.id_casino','Seleccione un casino');
+        $validator->errors()->add('ae_estado.id_plataforma','Seleccione una plataforma');
+        return;
+      }
+
       $estado_bd = $id_ae !== null? 
         DB::table('ae_estado')->where('id_autoexcluido',$id_ae)->first() 
       : null;
@@ -296,7 +303,6 @@ class AutoexclusionController extends Controller
       if(!($puede_agregar_modificar)){
         return $validator->errors()->add('permisos','No puede realizar esta acción');
       }
-      
       if(!is_null($id_plataforma) && !$this->existePlataforma($id_plataforma)){
         $validator->errors()->add('ae_estado.id_plataforma','La plataforma seleccionada no existe');
       }
@@ -399,15 +405,45 @@ class AutoexclusionController extends Controller
     return ['nuevo' => $esNuevo];
   }
 
-  public function generarFechas($fecha_ae){//Usado en APIAEController
+  public function generarFechas($fecha_ae,$resolucion,$primer_ae){//Usado en APIAEController
     $date_ae = date_create_from_format('Y-m-d',$fecha_ae);
     $ret = new \stdClass();
     // @BUG? (definir bien los limites): Si quiero ser compatible
     // con el el frontend tengo que ponerle 1 dia menos
-    $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
-    $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
-    $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+    if($resolucion == '983'){
+      $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
+      $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
+      $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+    }
+    else if ($resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+      $ret->fecha_renovacion    = null;
+      $ret->fecha_vencimiento   = null;
+      if($primer_ae){
+        $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
+      }else{
+        $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+      }
+    }
+    else{
+      throw new \Exception("Resolucion $resolucion sin implementar");
+    }
     return $ret;
+  }
+
+  public function generarEstado($fecha_ae,$dni){//Usado en front
+    $ae = AE\Autoexcluido::where('nro_dni',$dni)
+    ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
+    ->where('ae_estado.fecha_ae','<=',$fecha_ae)
+    ->orderBy('ae_estado.fecha_ae','desc')
+    ->first();
+    $resolucion = $this->resolucion_por_fecha($fecha_ae);
+    $primer_ae = $ae === null || $ae->es_primer_ae;
+    $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae);
+    return [
+      'resolucion' => $resolucion,
+      'fechas' => $fechas,
+      'primer_ae' => $primer_ae
+    ];
   }
 
   public function setearEstado($ae,$ae_estado){//Usado en APIAEController
@@ -417,34 +453,44 @@ class AutoexclusionController extends Controller
       $estado->id_autoexcluido = $ae->id_autoexcluido;
     }
 
-    //@IMPORTANTE: que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
-    if($ae_estado['id_nombre_estado'] == 4){//Fin por AE
-      if(!empty($estado->fecha_revocacion_ae)){//Si ya tenia una fecha_revocacion_ae, le dejo esa
-        $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
-      }
-      else if(empty($ae_estado['fecha_revocacion_ae'])){//Le pongo la de hoy si no me mando una  
-        $ae_estado['fecha_revocacion_ae'] = date('Y-m-d');
-      }
-    }
-    //Si lo modificaron a vencido o estaba vencido y lo corrigieron (ej el apellido, la dirección, etc), mantenerle la fecha de revocacion
-    //@IMPORTANTE: Si se le quiere sacar la fecha_revocacion_ae a un vencido, ponerlo primero en vigente u otro estado
-    else if($ae_estado['id_nombre_estado'] == 5){//Vencido
-      $ae_estado['fecha_revocacion_ae'] = $estado->fecha_revocacion_ae;
-    }
-    //En cualquier otro caso, se le limpia la fecha de revocación
-    else{
-      $ae_estado['fecha_revocacion_ae'] = null;
-    }
-
-    foreach($ae_estado as $key => $val){//Traspasa todos los valores enviados al objeto
-      $estado->{$key} = $val;
-    }
-
-    $fs = $this->generarFechas($estado->fecha_ae);
-    $estado->fecha_renovacion  = $fs->fecha_renovacion;
+    $estado->id_nombre_estado = $ae_estado['id_nombre_estado'];
+    $estado->fecha_ae = $ae_estado['fecha_ae'];
+    $estado->resolucion = $this->resolucion_por_fecha($estado->fecha_ae);
+    $estado->id_casino = $ae_estado['id_casino'] ?? null;
+    $estado->id_plataforma = $ae_estado['id_plataforma'] ?? null;
+    $fs = $this->generarFechas($estado->fecha_ae,$estado->resolucion,$ae->es_primer_ae);
     $estado->fecha_vencimiento = $fs->fecha_vencimiento;
+    $estado->fecha_renovacion  = $fs->fecha_renovacion;
     $estado->fecha_cierre_ae   = $fs->fecha_cierre_ae;
-    $estado->ultima_actualizacion_estado = null;
+    $estado->fecha_revocacion_ae = null;
+    $estado->ultima_actualizacion_estado = '1970-01-01';
+
+    if($estado->resolucion == '983'){
+      //@IMPORTANTE: que cuando se finalize este seteado en algo la fecha de revocacion, para en un futuro saber si finalizo
+      if($estado->id_nombre_estado == 4){//Fin por AE
+        if(!empty($ae_estado['fecha_revocacion_ae'])){
+          $estado->fecha_revocacion_ae = $ae_estado['fecha_revocacion_ae'];
+        }
+        else if(!empty($estado->fecha_revocacion_ae)){//Si ya tenia una fecha_revocacion_ae, le dejo esa
+          //Lo mantengo
+        }
+        else if(empty($ae_estado['fecha_revocacion_ae'])){//Le pongo la de hoy si no me mando una  
+          $estado->fecha_revocacion_ae = date('Y-m-d');
+        }
+        else{
+          $estado->fecha_revocacion_ae = null;
+        }
+      }
+      //Si lo modificaron a vencido o estaba vencido y lo corrigieron (ej el apellido, la dirección, etc), mantenerle la fecha de revocacion
+      else if($estado->id_nombre_estado == 5){//Vencido
+        //Lo mantengo lo que tenia
+      }
+      //En cualquier otro caso, se le limpia la fecha de revocación
+      else{
+        $estado->fecha_revocacion_ae = null;
+      }
+    }
+
     $estado->save();
   }
 
@@ -542,8 +588,17 @@ class AutoexclusionController extends Controller
     return ['codigo' => 200];
   }
 
-  public function existeAutoexcluido($dni){//Usado en APIAEController
-    $aes = AE\Autoexcluido::where('nro_dni',$dni)->get();
+  public function resolucion_por_fecha($fecha){
+    return $fecha > env('FECHA_FIN_R983')? env('NOMBRE_NUEVA_RESOLUCION') : '983'; 
+  }
+
+  public function existeAutoexcluido($dni,$date = null){//Usado en APIAEController
+    $date = $date ?? date('Y-m-d');
+    $aes = AE\Autoexcluido::where('nro_dni',$dni)
+    ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
+    ->where('ae_estado.fecha_ae','<=',$date)
+    ->get();
+
     $todos_vencidos = true;
     foreach($aes as $ae){
       $e = $ae->estado;
@@ -551,18 +606,20 @@ class AutoexclusionController extends Controller
       $todos_vencidos = $vencido && $todos_vencidos;
       if(!$todos_vencidos) break;
     }
+
+    $resolucion = $this->resolucion_por_fecha($date);
     //Si estan todos los anteriores finalizados (o no hay), dejo crear uno nuevo.
     if($todos_vencidos){
       //Si ya estuvo AE retorno -1 sino 0
-      if(count($aes) > 0) return -1;
-      else return 0;
+      if(count($aes) > 0) return ['resolucion' => $resolucion,'id' => -1];
+      else return ['resolucion' => $resolucion,'id' => 0];
     }
 
     //Si llegue aca es porque hay uno en vigencia, lo devuelvo para mostrarlo
     $ae = AE\Autoexcluido::where('nro_dni',$dni)
     ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
     ->orderBy('ae_estado.fecha_ae','desc')->first();
-    return $ae->id_autoexcluido;
+    return ['resolucion' => $ae->resolucion,'id' => $ae->id_autoexcluido];
   }
 
   public function buscarAutoexcluido ($id) {
@@ -724,7 +781,7 @@ class AutoexclusionController extends Controller
     if(is_null($ae)) return $this->errorOut(['id_autoexcluido' => 'AE inexistente']);
     
     $estado = $ae->estado;
-
+    
     $usuario_valido = $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
     if(!$usuario_valido
       || (!is_null($estado->id_casino) && !$usuario->usuarioTieneCasino($estado->id_casino))
@@ -733,6 +790,7 @@ class AutoexclusionController extends Controller
       return $this->errorOut(['rol' => 'No puede realizar esa acción']);
     }
 
+    
     if($ae->estado_transicionable != $id_estado){
       return $this->errorOut(['id_autoexcluido' => 'No puede cambiar a ese estado']);
     }
@@ -740,54 +798,70 @@ class AutoexclusionController extends Controller
     if($estado->id_nombre_estado == $id_estado){
       return $this->errorOut(['id_autoexcluido' => 'Ya se encuentra en ese estado']);
     }
-
-    if($id_estado == 4){//Si es fin por AE guardo la fecha que lo pidio revocar.
-      $estado->fecha_revocacion_ae = date('Y-m-d');
+    
+    if($id_estado == 4){//Fin. por AE
+      if($estado->resolucion == '983'){
+        $estado->fecha_revocacion_ae = date('Y-m-d');//Si es fin por AE guardo la fecha que lo pidio revocar.
+      }
+      else if($estado->resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+        return $this->errorOut(['id_autoexcluido' => 'No puede cambiar a ese estado bajo esta resolución']);
+      }
+      else{
+        return $this->errorOut(['id_autoexcluido' => 'Resolución desconocida, no puede cambiar a ese estado']);
+      }
     }
+
     $estado->id_nombre_estado = $id_estado;
-    $estado->ultima_actualizacion_estado = null;
+    $estado->ultima_actualizacion_estado = '1970-01-01';//Para forzar que se actualice en el proximo cron
     $estado->save();
     return 1;
   }
 
-  //Esta funcion se fija sobre todos los AE los que estan para cambiar a vencido/renovado y lo hace
-  //Hay que insertarla antes de cada busqueda para obtener lo mas actualizado.
-  public function actualizarVencidosRenovados(){//Usado en APIAE,GaleriaImagenes e InformesAE
-    //solo es necesaria 1 actualizacion por dia, se filtran todos los que no fueron actualizados hoy
-    DB::transaction(function (){
-      $vigentes = AE\EstadoAE::whereIn('id_nombre_estado',[1,7])->where(function($q){
-        return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',DB::raw('CURRENT_DATE()'));
-      })->get();
-      foreach($vigentes as $v){//Vigentes que pasan a renovados por 1er AE o que vencieron
-        $ae = $v->ae;
-        $nuevo_estado = $ae->estado_transicionable;
-        $v->ultima_actualizacion_estado = date('Y-m-d');
-        //Aca en principio podria asignarlo derecho pero por las dudas chequeo de vuelta, por si esta mal el codigo de getEstadoTransicionable
-        if($nuevo_estado == 2){//Renovado
-          $v->id_nombre_estado = 2;
+  public function actualizarVencidosRenovados(){
+      //solo es necesaria 1 actualizacion por dia, se filtran todos los que no fueron actualizados hoy
+  
+      //Se loopea mientras haya transiciones
+      //Esto ocurre porque (por ejemplo) un AE puede pasar a renovado y luego a vencido (si el sistema estuvo OFFLINE por mucho tiempo)
+      $actualizados = 0;
+      $hoy = date('Y-m-d');
+      return DB::transaction(function() use ($hoy,$actualizados){
+        //@SPEED: actualizo los vencidos (que son la mayoria) preventivamente ya que no cambian estado una vez vencidos
+        AE\EstadoAE::whereNull('deleted_at')
+        ->where(function($q) use ($hoy){
+            return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',$hoy);
+        })
+        ->where('id_nombre_estado',5)//Vencido
+        ->update([
+            'ultima_actualizacion_estado' => $hoy
+        ]);
+
+        do{
+            $actualizados = 0;
+            $estados = AE\EstadoAE::whereNull('deleted_at')
+            ->where(function($q) use ($hoy){
+                return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',$hoy);
+            })
+            ->take(1000)
+            ->get();
+
+            $actualizados = $estados->count();
+            foreach($estados as $e){
+                $ae = $e->ae;
+                $nuevo_estado = $ae->estado_transicionable;
+                //Renovado o Vencido
+                if(($nuevo_estado == 2 || $nuevo_estado == 5) && $nuevo_estado != $e->id_nombre_estado){
+                  $e->id_nombre_estado = $nuevo_estado;
+                  $e->ultima_actualizacion_estado = '1970-01-01';
+                }
+                else{
+                  $e->ultima_actualizacion_estado = $hoy;
+                }
+                $e->no_logear_update = true;//Esta flag se chequea en el observer para evitar cargarlo en la tabla de logs
+                $e->save();
+            }
         }
-        if($nuevo_estado == 5){//Vencido
-          $v->id_nombre_estado = 5;
-        }
-        $v->no_logear_update = true;//Esta flag se chequea en el observer para evitar cargarlo en la tabla de logs
-        $v->save();        
-      }
-    });
-    DB::transaction(function (){//Renovados que vencieron a los 12 meses o finalizados que vencieron a los 6 meses
-      $renovados_y_finalizados = AE\EstadoAE::whereIn('id_nombre_estado',[2,4])->where(function($q){
-        return $q->whereNull('ultima_actualizacion_estado')->orWhere('ultima_actualizacion_estado','<',DB::raw('CURRENT_DATE()'));
-      })->get();
-      foreach($renovados_y_finalizados as $e){
-        $ae = $e->ae;
-        $nuevo_estado = $ae->estado_transicionable;
-        $e->ultima_actualizacion_estado = date('Y-m-d');
-        if($nuevo_estado == 5){//Vencido
-          $e->id_nombre_estado = 5;
-        }
-        $e->no_logear_update = true;//Esta flag se chequea en el observer para evitar cargarlo en la tabla de logs
-        $e->save();
-      }
-    });
+        while($actualizados > 0);
+      });
   }
 
   public function eliminarAE($id_autoexcluido){
@@ -825,6 +899,7 @@ class AutoexclusionController extends Controller
         WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
         ELSE ane.descripcion
     END as estado,
+    ae.resolucion,
     ad.nro_dni,ad.nombres,ad.apellido,ad.fecha_nacimiento,
     s.codigo as sexo,
     ad.telefono, ad.correo, ad.nombre_provincia, ad.nombre_localidad, ad.codigo_postal, ad.domicilio, ad.nro_domicilio")
@@ -880,7 +955,7 @@ class AutoexclusionController extends Controller
       $timestamp    = $timestamp->format('Y-m-d\TH:i:s.uP');
       //@ATENCION!
       //Cada vez que realizen un cambio a lo guardado, incrementar este número
-      $version = 1;
+      $version = 2;
       
       DB::table('ae_bd_descargas')->insert([
         'data' => json_encode(compact(
@@ -1035,6 +1110,47 @@ class AutoexclusionController extends Controller
         
         $errores_detalle = [];
 
+        $F_CARBON_FECHA = function($fecha){
+          $ret = null;
+          static $formats = [
+              'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 
+              'Y-m-d H:i:s', 'Y-m-d',
+              'd-m-Y', 'd/m/y',
+              'd/m/Y h:i:s a', 'd/m/Y h:i a' // Support am/pm
+          ];
+          foreach ($formats as $fmt) {
+              try {
+                  $ret = \Carbon\Carbon::createFromFormat($fmt, $fecha);
+                  if ($ret) break;
+              } catch (\Exception $e) {}
+          }
+          return $ret;
+        };
+
+        $F_EXCEL_FECHA = function($fecha){
+          // Fallback: Excel serial date (celda "General" sin formato de fecha aplicado).
+          // Rango 10000-80000 cubre ~1927-2119, evita confundir DNIs o IDs pequeños.
+          $ret = null;
+          if (is_numeric($fecha) &&$fecha >= 10000 && $fecha <= 80000) {
+              try {
+                  $phpDate = \PHPExcel_Shared_Date::ExcelToPHPObject((float)$fecha);
+                  $ret = \Carbon\Carbon::instance($phpDate);
+              } catch (\Exception $e) {}
+          }
+          return $ret;
+        };
+
+        $F_PARSE_FECHA = function($fecha_raw) use ($F_CARBON_FECHA, $F_EXCEL_FECHA) {
+            $ret = null;
+            if ($fecha_raw) {
+                // Sanitize: convert 'a.m.' -> 'am' to match Carbon 'a' format
+                $fecha_clean = str_ireplace(['a.m.', 'p.m.', 'a. m.', 'p. m.'], ['am', 'pm', 'am', 'pm'], $fecha_raw);
+                $fecha_clean = trim($fecha_clean);
+                $ret = $F_CARBON_FECHA($fecha_clean) ?? $F_EXCEL_FECHA($fecha_clean) ?? null;
+            }
+            return $ret;
+        };
+
         try {
             DB::beginTransaction();
 
@@ -1155,62 +1271,35 @@ class AutoexclusionController extends Controller
                  throw new \Exception("No se encontro la columna DNI en el archivo. (Columnas encontradas: " . implode(',', $header) . ")");
             }
 
-            // Determine if using incremental date check (Optional, can be disabled)
-            $max_fecha_ae = null;
-            if ($id_plataforma) {
-                $max_fecha_ae = AE\EstadoAE::where('id_plataforma', $id_plataforma)->max('fecha_ae');
-            } else {
-                $max_fecha_ae = AE\EstadoAE::where('id_casino', $id_casino)->max('fecha_ae');
-            }
-            Log::info("ImportarMasivo: Target " . ($id_plataforma ? "Plat $id_plataforma" : "Cas $id_casino") . ", Delim '$delimiter', MaxF $max_fecha_ae");
+            Log::info("ImportarMasivo: Target " . ($id_plataforma ? "Plat $id_plataforma" : "Cas $id_casino") . ", Delim '$delimiter'");
 
              // 4. Loop Rows
+            $rowidx = 0;
             while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-                 if (count($row) < 2) continue; // Skip empty rows
-
-                 // Define Formats
-                 $formats = [
-                     'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 
-                     'Y-m-d H:i:s', 'Y-m-d',
-                     'd-m-Y', 'd/m/y',
-                     'd/m/Y h:i:s a', 'd/m/Y h:i a' // Support am/pm
-                 ];
+                 if (count($row) < 2) {
+                    $rowidx++;
+                    continue; // Skip empty rows
+                 }
 
                  $dni_raw = $row[$idx_dni] ?? null;
                  // Clean DNI: remove dots/spaces/letters
                  $dni = preg_replace('/[^0-9]/', '', $dni_raw); 
 
-                 if (!$dni) continue;
-
-                 // --- Date Logic ---
-                 $fecha_ae_raw = ($idx_fecha_ae !== null) ? ($row[$idx_fecha_ae] ?? null) : null;
-                 $fecha_ae = null;
-                 
-                 // Try parsing various date formats
-                 if ($fecha_ae_raw) {
-                     // Sanitize: convert 'a.m.' -> 'am' to match Carbon 'a' format
-                     $fecha_ae_clean = str_ireplace(['a.m.', 'p.m.', 'a. m.', 'p. m.'], ['am', 'pm', 'am', 'pm'], $fecha_ae_raw);
-                     $fecha_ae_clean = trim($fecha_ae_clean);
-
-                     foreach ($formats as $fmt) {
-                         try {
-                             $fecha_ae = \Carbon\Carbon::createFromFormat($fmt, $fecha_ae_clean);
-                             if ($fecha_ae) break;
-                         } catch (\Exception $e) {}
-                     }
-
-                     // Fallback: Excel serial date (celda "General" sin formato de fecha aplicado).
-                     // Rango 10000-80000 cubre ~1927-2119, evita confundir DNIs o IDs pequeños.
-                     if (!$fecha_ae && is_numeric($fecha_ae_clean)
-                         && $fecha_ae_clean >= 10000 && $fecha_ae_clean <= 80000) {
-                         try {
-                             $phpDate = \PHPExcel_Shared_Date::ExcelToPHPObject((float)$fecha_ae_clean);
-                             $fecha_ae = \Carbon\Carbon::instance($phpDate);
-                         } catch (\Exception $e) {}
-                     }
+                 if (!$dni) {
+                    $rowidx++;
+                    continue;
                  }
 
-                 $nro_fila = $cant_procesados + $cant_saltados + $cant_errores + 1;
+                 // --- Date Logic ---
+
+                 $fecha_ae = null;
+                 $fecha_ae_raw = null;
+                 if ($idx_fecha_ae !== null && array_key_exists($idx_fecha_ae,$row)) {
+                    $fecha_ae_raw = $row[$idx_fecha_ae];
+                    $fecha_ae = $F_PARSE_FECHA($fecha_ae_raw);
+                 }
+                 //El fallback a HOY se sacó: ahora la fila se rechaza (ver validaciones abajo).
+
                  $apellido_nombres = (($idx_apellido !== null) ? ($row[$idx_apellido] ?? '-') : '-') . ', ' . (($idx_nombre !== null) ? ($row[$idx_nombre] ?? '-') : '-');
 
                  // --- VALIDACIONES DE FECHA ---
@@ -1219,25 +1308,28 @@ class AutoexclusionController extends Controller
                  // Ahora la fila se rechaza y queda visible en el bloque de errores.
                  if (!$fecha_ae) {
                      $cant_errores++;
-                     $errores_detalle[] = "Fila $nro_fila - DNI $dni: fecha de autoexclusión ilegible ("
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: fecha de autoexclusión ilegible ("
                          . json_encode($fecha_ae_raw) . "). La fila no se cargó.";
+                     $rowidx++;
                      continue;
                  }
                  if ($fecha_ae->gt(\Carbon\Carbon::now()->endOfDay())) {
                      $cant_errores++;
-                     $errores_detalle[] = "Fila $nro_fila - DNI $dni: la fecha de autoexclusión ("
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: la fecha de autoexclusión ("
                          . $fecha_ae->format('d/m/Y') . ") es futura. La fila no se cargó.";
+                     $rowidx++;
                      continue;
                  }
                  if ($fecha_ae->year < self::ANIO_MINIMO_FECHA_AE) {
                      $cant_errores++;
-                     $errores_detalle[] = "Fila $nro_fila - DNI $dni: la fecha de autoexclusión ("
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: la fecha de autoexclusión ("
                          . $fecha_ae->format('d/m/Y') . ") es anterior a " . self::ANIO_MINIMO_FECHA_AE
                          . ". La fila no se cargó.";
+                     $rowidx++;
                      continue;
                  }
 
-                 $persona_desc = "Fila " . $nro_fila . ": DNI $dni - $apellido_nombres - Fecha AE: " . $fecha_ae->format('d/m/Y');
+                 $persona_desc = "Fila $rowidx: DNI $dni - $apellido_nombres - Fecha AE: " . $fecha_ae->format('d/m/Y');
 
                  // --- CONTROL DE DUPLICADOS ---
                  // Se saltea la fila si la persona YA ESTABA CUBIERTA cuando, según el archivo,
@@ -1247,44 +1339,53 @@ class AutoexclusionController extends Controller
                  $skip_record = false;
                  $skip_reason = '';
                  $skip_detalle = '';
-
                  $fecha_ae_str = $fecha_ae->format('Y-m-d');
-                 $existentes_ae = AE\Autoexcluido::where('nro_dni', $dni)->get();
 
-                 foreach($existentes_ae as $ae_hist) {
-                     $latest_state = AE\EstadoAE::where('id_autoexcluido', $ae_hist->id_autoexcluido)
-                                    ->orderBy('fecha_ae', 'desc')
-                                    ->first();
-                     if (!$latest_state) continue;
+                 // Buscar TODOS los registros del usuario por DNI
+                 $existentes_ae = AE\Autoexcluido::select('id_autoexcluido')->where('nro_dni', $dni)->get();
+                 $primer_ae = true;
+                 if ($existentes_ae->count() > 0) {
+                     foreach($existentes_ae as $ae_hist) {
+                         //Solo debería haber un ae_estado por autoexcluido, ademas al hacerlo por Model limpiamos los que estan deleteados
+                         $latest_state = AE\EstadoAE::where('id_autoexcluido', $ae_hist->id_autoexcluido)
+                         ->first();
 
-                     // 1) Estado activo: vigente, renovado, o pendiente de aprobación.
-                     //    1 Vigente, 2 Renovado, 7 RES.983 Verificado, 3 Pendiente de val., 6 RES.983 Pendiente.
-                     if (in_array($latest_state->id_nombre_estado, self::ESTADOS_AE_ACTIVOS)) {
-                         $skip_record = true;
-                         $skip_reason = 'vigente';
-                         break;
-                     }
+                         if ($latest_state) {
+                            //Si encontramos un AE anterior al que estamos importando, ya no lo marcamos como primer AE
+                            if($primer_ae && ($latest_state->fecha_ae < $fecha_ae_str)){
+                                $primer_ae = false;
+                            }
 
-                     // 2) Ventana de cobertura. El corte real depende de si el titular pidió
-                     //    terminarla anticipadamente: en ese caso vale la fecha de vencimiento,
-                     //    si no, la de cierre. fecha_revocacion_ae es el marcador durable de esa
-                     //    finalización (se estampa en cambiarEstadoAE y se preserva al vencer).
-                     $corte = is_null($latest_state->fecha_revocacion_ae)
-                            ? $latest_state->fecha_cierre_ae
-                            : $latest_state->fecha_vencimiento;
+                             // 1) Estado activo: vigente, renovado, o pendiente de aprobación.
+                             //    1 Vigente, 2 Renovado, 7 RES.983 Verificado, 3 Pendiente de val., 6 RES.983 Pendiente.
+                             if (in_array($latest_state->id_nombre_estado, self::ESTADOS_AE_ACTIVOS)) {
+                                 $skip_record = true;
+                                 $skip_reason = 'vigente';
+                                 break; // Con uno que coincida alcanza para saltearlo
+                             }
 
-                     if (!is_null($corte) && $fecha_ae_str <= $corte) {
-                         $skip_record = true;
-                         $skip_reason = 'cubierta';
-                         $skip_detalle = \Carbon\Carbon::parse($corte)->format('d/m/Y');
-                         break;
-                     }
+                             // 2) Ventana de cobertura. El corte real depende de si el titular pidió
+                             //    terminarla anticipadamente: en ese caso vale la fecha de vencimiento,
+                             //    si no, la de cierre. fecha_revocacion_ae es el marcador durable de esa
+                             //    finalización (se estampa en cambiarEstadoAE y se preserva al vencer).
+                             $corte = is_null($latest_state->fecha_revocacion_ae)
+                                    ? $latest_state->fecha_cierre_ae
+                                    : $latest_state->fecha_vencimiento;
 
-                     // 3) La misma fecha exacta ya cargada: el archivo repite un histórico.
-                     if ($latest_state->fecha_ae == $fecha_ae_str) {
-                         $skip_record = true;
-                         $skip_reason = 'repetido';
-                         break;
+                             if (!is_null($corte) && $fecha_ae_str <= $corte) {
+                                 $skip_record = true;
+                                 $skip_reason = 'cubierta';
+                                 $skip_detalle = \Carbon\Carbon::parse($corte)->format('d/m/Y');
+                                 break;
+                             }
+
+                             // 3) La misma fecha exacta ya cargada: el archivo repite un histórico.
+                             if ($latest_state->fecha_ae == $fecha_ae_str) {
+                                 $skip_record = true;
+                                 $skip_reason = 'repetido';
+                                 break;
+                             }
+                         }
                      }
                  }
 
@@ -1297,6 +1398,7 @@ class AutoexclusionController extends Controller
                      } elseif ($skip_reason == 'repetido'){
                          $lista_repetidas[] = $persona_desc . " (Salteada por fecha repetida)";
                      }
+                     $rowidx++;
                      continue;
                  }
                  
@@ -1304,9 +1406,7 @@ class AutoexclusionController extends Controller
                  // Se clasifica ACÁ, antes del insert: después el DNI ya existe y todo daría "previa".
                  // El alta a la lista se hace recién si el insert sale bien (más abajo), así una fila
                  // que falla aparece solo en la lista de errores y no infla los contadores.
-                 $existing_ae = AE\Autoexcluido::where('nro_dni', $dni)->first();
-                 $es_nueva = is_null($existing_ae);
-
+                 $es_nueva = $existentes_ae->count() == 0;
 
                  // --- Gender Logic ---
                  $sexo_raw = ($idx_sexo !== null) ? strtolower($row[$idx_sexo] ?? '') : '';
@@ -1324,24 +1424,9 @@ class AutoexclusionController extends Controller
                  $fecha_nac = null;
                  if ($idx_nacimiento !== null && !empty($row[$idx_nacimiento])) {
                      $nac_raw = $row[$idx_nacimiento];
-                     $nac_clean = str_ireplace(['a.m.', 'p.m.'], ['am', 'pm'], $nac_raw);
-                     $nac_clean = trim($nac_clean);
-                     foreach ($formats as $fmt) {
-                        try {
-                             $fecha_nac = \Carbon\Carbon::createFromFormat($fmt, $nac_clean)->format('Y-m-d');
-                             if($fecha_nac) break;
-                        } catch (\Exception $e) {}
-                     }
-
-                     // Fallback: serial Excel (mismo criterio que fecha_ae)
-                     if (!$fecha_nac && is_numeric($nac_clean)
-                         && $nac_clean >= 10000 && $nac_clean <= 80000) {
-                         try {
-                             $phpDate = \PHPExcel_Shared_Date::ExcelToPHPObject((float)$nac_clean);
-                             $fecha_nac = $phpDate->format('Y-m-d');
-                         } catch (\Exception $e) {}
-                     }
+                     $fecha_nac = $F_PARSE_FECHA($nac_raw);
                  }
+                 //@Sus debería tirar error o skipear
                  if(!$fecha_nac) $fecha_nac = '1900-01-01'; // Default backup
 
                  // --- Phone Logic ---
@@ -1376,30 +1461,39 @@ class AutoexclusionController extends Controller
                     'id_estado_civil' => 6, 
                     'id_autoexcluido' => null
                  ];
-                 
-                 $fecha_cierre_def = $fecha_ae->copy()->addYear(); // 1 year assumption for closure/expiration
-
-                 $estado_ae = [
-                    'id_nombre_estado' => $id_nombre_estado,
-                    'id_casino' => $id_casino,
-                    'id_plataforma' => $id_plataforma,
-                    'fecha_ae' => $fecha_ae->format('Y-m-d'),
-                    'fecha_renovacion' => null,     // User requested null
-                    'fecha_vencimiento' => null,   // User requested null
-                    'fecha_cierre_ae' => $fecha_cierre_def->format('Y-m-d'), 
-                 ];
 
                  // Insert
                  try {
-                    $this->crearAutoexcluidoInterno($datos_ae, $estado_ae, $user);
+                    {
+                      $estado_ae = [
+                          'id_nombre_estado' => $id_nombre_estado,
+                          'id_casino' => $id_casino,
+                          'id_plataforma' => $id_plataforma,
+                          'id_usuario' => $user->id_usuario,
+                          'fecha_ae' => $fecha_ae->format('Y-m-d')
+                      ];//Las demas fechas se calculan al setearEstado
+                      
+                      $ae_bd = new AE\Autoexcluido;
+                      foreach($datos_ae as $key => $val){
+                          $ae_bd->{$key} = $val;
+                      }
+                      $ae_bd->save();
+
+                      $contacto = new AE\ContactoAE;
+                      $contacto->id_autoexcluido = $ae_bd->id_autoexcluido;
+                      $contacto->save();
+                      $this->setearEstado($ae_bd, $estado_ae);
+                    }
+
                     $cant_procesados++;
                     //Recién acá se sabe que entró de verdad.
                     if($es_nueva) $lista_nuevas[]  = $persona_desc;
                     else          $lista_previas[] = $persona_desc;
                  } catch (\Exception $e) {
                      $cant_errores++;
-                     $errores_detalle[] = "DNI $dni: " . $e->getMessage();
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: " . $e->getMessage();
                  }
+                 $rowidx++;
             } // end while
 
             fclose($handle);
@@ -1441,22 +1535,6 @@ class AutoexclusionController extends Controller
                 'detalles_cubiertas' => $lista_cubiertas
             ]
         ], 200);
-    }
-
-    private function crearAutoexcluidoInterno($ae_datos, $ae_estado_data, $user) {
-        $ae = new AE\Autoexcluido;
-        foreach($ae_datos as $key => $val){
-            $ae->{$key} = $val;
-        }
-        $ae->save();
-
-        $contacto = new AE\ContactoAE;
-        $contacto->id_autoexcluido = $ae->id_autoexcluido;
-        $contacto->save();
-
-        $estado_data = $ae_estado_data;
-        $estado_data['id_usuario'] = $user->id_usuario;
-        $this->setearEstado($ae, $estado_data);
     }
 
   public function destruirPapel(Request $request){

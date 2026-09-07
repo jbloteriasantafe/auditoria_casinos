@@ -333,6 +333,7 @@ input[required], select[required]{
     <th>DNI</th>
     <th>APELLIDO</th>
     <th>NOMBRES</th>
+    <th class="smalltext">RES.</th>
     <th class="smalltext">ESTADO</th>
     <th class="smalltext" data-js-sortable="ae_estado.fecha_ae" data-js-state="desc">F. AE</th>
     <th class="smalltext">F. RENOV</th>
@@ -351,6 +352,7 @@ input[required], select[required]{
     <td class="dni"></td>
     <td class="apellido"></td>
     <td class="nombres"></td>
+    <td class="resolucion smalltext"></td>
     <td class="estado smalltext"></td>
     <td class="fecha_ae smalltext"></td>
     <td class="fecha_renovacion smalltext"></td>
@@ -580,18 +582,31 @@ input[required], select[required]{
                   </div>
                   <div class="page">
                     <div class="step3">
+                      <div class="col-lg-12">
+                        <div class="col-lg-6">
+                          <h5>Resolucion</h5>
+                          <input id="resolucion" type="text" class="form-control"  placeholder="" value="" required readonly>
+                        </div>
+                        <div class="col-lg-6">
+                          <h5>Primera Autoexclusión</h5>
+                          <select id="primer_ae" class="form-control" required readonly>
+                            <option value="1">SI</option>
+                            <option value="0">NO</option>
+                          </select>
+                        </div>
+                      </div>
                       <div class="col-lg-6">
                         <h5>CASINO</h5>
                         <select id="id_casino" class="form-control" required>
                           <option selected="" value="">- Seleccione un casino -</option>
                           @foreach($casinos_usuario as $casino)
-                          <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
+                          <option data-tipo="casino" value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
                           @endforeach
                           @foreach ($plataformas_usuario as $p)
-                          <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                          <option data-tipo="plataforma" id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                           @foreach ($plats_deportivas_alta as $p)
-                          <option id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
+                          <option data-tipo="plataforma_aadd"  id="-{{$p->id_plataforma}}" value="-{{$p->id_plataforma}}">{{$p->nombre}}</option>
                           @endforeach
                         </select>
                       </div>
@@ -982,6 +997,16 @@ input[required], select[required]{
                     <option id="{{$estado->id_nombre_estado}}" value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
                     @endforeach
                   </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
+                  <h5>RESOLUCIÓN</h5>
+                  <input id="infoResolucion" type="text" class="form-control" placeholder="" value="" required disabled>
+                </div>
+                <div class="col-lg-6">
+                  <h5>PRIMERA AUTOEXCLUSIÓN</h5>
+                  <input id="infoPrimerAE" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
               </div>
               <div class="row">
@@ -1377,6 +1402,8 @@ var noCopy=false;
 var noScreenshot=true;
 var autoBlur=true;
 var noSelect=false;
+const FECHA_FIN_R983 = "{!! env('FECHA_FIN_R983') !!}";
+const NOMBRE_NUEVA_RESOLUCION = "{!! env('NOMBRE_NUEVA_RESOLUCION') !!}";
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 

@@ -46,10 +46,12 @@ function generarFilaTabla(molde,ae) {
   fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
   fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
   fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
+  fila.find('.resolucion').text(ae.resolucion).attr('title',ae.resolucion);
   fila.find('.estado').text(ae.desc_estado).attr('title',ae.desc_estado);
 
   //Lo cambio a otro formato porque es mas corto que entra en pantalla mas chicas
   const convertir_fecha = function(fecha){
+    if(fecha === null) return '-';
     const yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
@@ -482,24 +484,47 @@ function cargarLocalidadesVinculo() {
 //función para actualizar fechas
 $("#fecha_autoexlusion").change(function () {
   const iso = function(f){
+    if(f === null) return '';
     const mes = f.getMonth()+1;
     const dia = f.getDate();
     return f.getFullYear() + (mes<10?'-0':'-') + mes + (dia<10?'-0':'-') + dia;
   }
-  const fecha_autoexclusion       = validarDTP($('#dtpFechaAutoexclusionEstado'));
+  const fecha_autoexclusion = validarDTP($('#dtpFechaAutoexclusionEstado'));
   if(fecha_autoexclusion == null){
     $("#fecha_renovacion,#fecha_vencimiento_periodo,#fecha_cierre_definitivo" ).val("");
     return;
   }
-  const fecha_renovacion          = new Date(fecha_autoexclusion.getTime());
-  const fecha_vencimiento_periodo = new Date(fecha_autoexclusion.getTime());
-  const fecha_cierre_definitivo   = new Date(fecha_autoexclusion.getTime());
-  fecha_renovacion.setDate(fecha_autoexclusion.getDate() + 150);
-  fecha_vencimiento_periodo.setDate(fecha_autoexclusion.getDate() + 180);
-  fecha_cierre_definitivo.setDate(fecha_autoexclusion.getDate() + 365);
-  $( "#fecha_renovacion" ).val(iso(fecha_renovacion));
-  $( "#fecha_vencimiento_periodo" ).val(iso(fecha_vencimiento_periodo));
-  $( "#fecha_cierre_definitivo" ).val(iso(fecha_cierre_definitivo));
+  $.ajax({
+    url: 'autoexclusion/generarEstado/' + iso(fecha_autoexclusion) + '/' + $('#nro_dni').val(),
+    type: 'GET',
+    success: function(data){
+      $('#resolucion').val(data?.resolucion ?? '');
+      $('#primer_ae').val((!!data?.primer_ae)? 1 : 0);
+      $("#fecha_renovacion" ).val(data?.fechas?.fecha_renovacion ?? '');
+      $("#fecha_vencimiento_periodo" ).val(data?.fechas?.fecha_vencimiento  ?? '');
+      $('#fecha_cierre_definitivo').val(data?.fechas?.fecha_cierre_ae ?? '');
+      if(data?.resolucion == NOMBRE_NUEVA_RESOLUCION){
+        $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+        $("#fecha_renovacion").parent().css("opacity", "0");
+      }
+      else if(data?.resolucion == '983' && (!!data?.primer_ae)){
+        if(!!data?.primer_ae){
+          $("#fecha_vencimiento_periodo").parent().css("opacity", "");
+          $("#fecha_renovacion").parent().css("opacity", "");
+        }
+        else{
+          $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+          $("#fecha_renovacion").parent().css("opacity", "0");
+        }
+      }
+      else{
+        throw 'Resolucion '+data?.resolucion+' sin implementar';
+      }
+    },
+    error: function(data){
+      mensajeError('Error al generarle el estado');
+    }
+  });
 });
 
 $("#btn-prev").on("click", function () {
@@ -678,9 +703,8 @@ function validarDNI() {
     async: false,
     type: "GET",
     success: function (data) {
-      console.log(typeof data);
-      if (typeof data == "string") {
-        if (data > 0) {
+      if ($("#modalAgregarAE").attr("modo") != "editar") {
+        if (data['id'] > 0) {
           //ID
           $("#modalAgregarAE").modal("hide");
           mensajeError("Autoexcluido ya cargado y en vigencia");
@@ -688,18 +712,43 @@ function validarDNI() {
           setTimeout(function () {
             mostrarAutoexcluido(data);
           }, 500);
-        } else if (data == "0") {
-          //AE nuevo, muestro las fechas de renovacion/vencimiento
-          $("#fecha_vencimiento_periodo").parent().css("opacity", "");
-          $("#fecha_renovacion").parent().css("opacity", "");
+        } else if (data['id']  == "0") {
+          //AE nuevo, muestro las fechas de renovacion/vencimiento si es 983
+          if(data['resolucion'] == NOMBRE_NUEVA_RESOLUCION){
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+            $("#fecha_renovacion").parent().css("opacity", "0");
+          }
+          else if(data['resolucion'] == '983'){
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "");
+            $("#fecha_renovacion").parent().css("opacity", "");
+          }
+          else{
+            throw 'Error: Resolución desconocida: ' + data['resolucion'];
+          }
+
           $("#id_estado").val($("#id_estado option:first").val());
-        } else if (data < 0) {
+          $('#resolucion').val(data['resolucion']);
+          $('#primer_ae').val(1);
+        } else if (data['id']  < 0) {
           //El AE es cargable pero ya tuvo uno, le escondo las fechas de renovacion/vencimiento
-          $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
-          $("#fecha_renovacion").parent().css("opacity", "0");
+          if(data['resolucion'] == NOMBRE_NUEVA_RESOLUCION){
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+            $("#fecha_renovacion").parent().css("opacity", "0");
+          }
+          else if(data['resolucion'] == '983'){
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+            $("#fecha_renovacion").parent().css("opacity", "0");
+          }
+          else{
+            throw 'Error: Resolución desconocida: ' + data['resolucion'];
+          }
+
           $("#id_estado").val($("#id_estado option:first").val());
+          $('#resolucion').val(data['resolucion']);
+          $('#primer_ae').val(0);
         }
-      } else if (typeof data == "object") {
+      }
+      else {
         $("#apellido").val(data.autoexcluido.apellido);
         $("#nombres").val(data.autoexcluido.nombres);
         $("#fecha_nacimiento").val(data.autoexcluido.fecha_nacimiento);
@@ -746,17 +795,33 @@ function validarDNI() {
             $("#id_estado").prop("disabled", false);
         }
 
-        $("#fecha_autoexlusion").val(data.estado.fecha_ae);
-        $("#fecha_vencimiento_periodo").val(data.estado.fecha_vencimiento);
-        $("#fecha_renovacion").val(data.estado.fecha_renovacion);
-        $("#fecha_cierre_definitivo").val(data.estado.fecha_cierre_ae);
+        $('#resolucion').val(data.estado.resolucion);
+        $('#primer_ae').val(data.es_primer_ae? 1 : 0);
 
-        if (data.es_primer_ae) {
-          $("#fecha_vencimiento_periodo").parent().css("opacity", "");
-          $("#fecha_renovacion").parent().css("opacity", "");
-        } else {
+        $("#fecha_autoexlusion").val(data.estado.fecha_ae);
+        $("#fecha_cierre_definitivo").val(data.estado.fecha_cierre_ae);
+        if(data.estado.resolucion == NOMBRE_NUEVA_RESOLUCION){
           $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
           $("#fecha_renovacion").parent().css("opacity", "0");
+          $("#fecha_vencimiento_periodo").val("");
+          $("#fecha_renovacion").val("");
+        }
+        else if(data.estado.resolucion == '983'){
+          if(data.es_primer_ae){
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "");
+            $("#fecha_renovacion").parent().css("opacity", "");
+            $("#fecha_vencimiento_periodo").val(data.estado.fecha_vencimiento);
+            $("#fecha_renovacion").val(data.estado.fecha_renovacion);
+          }
+          else{
+            $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
+            $("#fecha_renovacion").parent().css("opacity", "0");
+            $("#fecha_vencimiento_periodo").val("");
+            $("#fecha_renovacion").val("");
+          }
+        }
+        else{
+          throw 'Error: Resolución desconocida: ' + data.estado.resolucion;
         }
 
         //precargo el step de la encuesta
@@ -964,7 +1029,7 @@ function validarExtensionArchivo(id) {
 
 function validarFechaImagenes() {
   let valid = 1;
-  $(".step3 :input").each(function () {
+  /*$(".step3 :input").each(function () {
     if ($(this).val() == "") {
       mostrarErrorValidacion(
         $(this),
@@ -973,7 +1038,7 @@ function validarFechaImagenes() {
       );
       valid = 0;
     }
-  });
+  });*/
   if (validarExtensionArchivo("#foto1") == 0) {
     mostrarErrorValidacion(
       $("#foto1"),
@@ -1128,14 +1193,29 @@ $("#btn-guardar").click(function (e) {
   }
 
   const ae_estado = {
-    id_casino: $("#id_casino").val() > 0 ? $("#id_casino").val() : "",
-    id_plataforma: $("#id_casino").val() < 0 ? -$("#id_casino").val() : "",
     id_nombre_estado: $("#id_estado").val(),
     fecha_ae: $("#fecha_autoexlusion").val(),
     fecha_vencimiento: $("#fecha_vencimiento_periodo").val(),
     fecha_renovacion: $("#fecha_renovacion").val(),
     fecha_cierre_ae: $("#fecha_cierre_definitivo").val(),
+    resolucion: $('#resolucion').val(),
+    primer_ae: $('#primer_ae').val()
   };
+  {
+    const op = $('#id_casino option:selected');
+    if(op.is('[data-tipo="casino"]')){
+      ae_estado.id_casino = op.val();
+    }
+    else if(op.is('[data-tipo="plataforma"]')){
+      ae_estado.id_plataforma = -op.val();
+    }
+    else if(op.is('[data-tipo="plataforma_aadd"]')){
+      ae_estado.id_plataforma = -op.val();
+    }
+    else{
+      throw 'ERROR TIPO DE OPCION SIN MANEJAR';
+    }
+  }
   for (const key in ae_estado) {
     formData.append(strRequest("ae_estado", key), ae_estado[key]);
   }
@@ -1247,11 +1327,25 @@ function mostrarAutoexcluido(id_autoexcluido) {
       else if(data.estado.id_plataforma != null) $('#infoCasino').val(-data.estado.id_plataforma);
 
       $('#infoEstado').val(data.estado.id_nombre_estado);
+      $('#infoResolucion').val(data.estado.resolucion);
+      $('#infoPrimerAE').val(data.es_primer_ae? 'SI' : 'NO');
       $('#infoFechaAutoexclusion').val(data.estado.fecha_ae);
-      $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);
-      $('#infoFechaRenovacion').val(data.estado.fecha_renovacion);
       $('#infoFechaCierreDefinitivo').val(data.estado.fecha_cierre_ae);
-
+      if(data.estado.resolucion == '983'){
+        if(data.es_primer_ae){
+          $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);
+          $('#infoFechaRenovacion').val(data.estado.fecha_renovacion);
+        }
+        else{
+          $('#infoFechaVencimiento').val('');
+          $('#infoFechaRenovacion').val('');  
+        }
+      }
+      else if(data.estado.resolucion == NOMBRE_NUEVA_RESOLUCION){
+        $('#infoFechaVencimiento').val('');
+        $('#infoFechaRenovacion').val('');
+      }
+      
       if (data.encuesta != null) {
         $('#infoJuegoPreferido').val(data.encuesta.id_juego_preferido);
         $('#infoFrecuenciaAsistencia').val(data.encuesta.id_frecuencia_asistencia);
