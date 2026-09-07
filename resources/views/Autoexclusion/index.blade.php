@@ -189,6 +189,15 @@ input[required], select[required]{
           </div>
         </div>
       </a>
+      @if($usuario->es_superusuario)
+      <a href="/autoexclusion/logsCarga" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+        <div class="panel panel-default" style="text-align: center;">
+          <span style="width: 100%;">
+            <i class="fa fa-fw fa-search"></i> VER LOGS DE CARGA
+          </span>
+        </div>
+      </a>
+      @endif
     </div>
     @endif
   </div>
@@ -1280,6 +1289,10 @@ input[required], select[required]{
                         <h5>NO ingresaron: ya tienen autoexclusión vigente (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
+                    <div id="detalleCubiertas" class="bloque-resultado bloque-amarillo" hidden>
+                        <h5>NO ingresaron: la persona ya estaba cubierta por una AE previa (<span class="badge">0</span>)</h5>
+                        <ul></ul>
+                    </div>
                     <div id="detalleRepetidas" class="bloque-resultado bloque-amarillo" hidden>
                         <h5>NO ingresaron: fecha repetida (<span class="badge">0</span>)</h5>
                         <ul></ul>
@@ -1367,7 +1380,7 @@ var noSelect=false;
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?9" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?10" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
