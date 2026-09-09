@@ -1123,6 +1123,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('historialDocumento/{tipo}/{id}', 'documentosContablesController@historialDocumento');
   Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
   Route::get('obtenerControlDocumentos', 'documentosContablesController@obtenerControlDocumentos');
+  Route::get('archivosUnificado', 'documentosContablesController@archivosUnificado');
   Route::get('descargarControlDocumentosXlsx', 'documentosContablesController@descargarControlDocumentosXlsx');
 
   // ESTADO CONTABLE
@@ -1265,6 +1266,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('llenarAportesPatronalesEdit/{id}', 'documentosContablesController@llenarAportesPatronalesEdit');
   Route::get('descargarAportesPatronalesXlsx', 'documentosContablesController@descargarAportesPatronalesXlsx');
   Route::get('descargarAportesPatronalesXlsxTodos', 'documentosContablesController@descargarAportesPatronalesXlsxTodos');
+  Route::get('descargarAportesPatronalesPdf', 'documentosContablesController@descargarAportesPatronalesPdf');
   Route::get('descargarAportesPatronalesCsv', 'documentosContablesController@descargarAportesPatronalesCsv');
   //PROMO TICKETS
   Route::post('guardarPromoTickets', 'documentosContablesController@guardarPromoTickets');

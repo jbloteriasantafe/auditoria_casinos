@@ -1104,6 +1104,10 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                 <button id="btn-descargarAportesPatronalesCsv" class="btn btn-infoBuscar">
                   <i class="fa fa-download"></i> .csv
                 </button>
+                {{-- Informe "Personal CRO CME CSF según F.931": siempre los 3 casinos, solo usa el rango de fechas --}}
+                <button id="btn-descargarAportesPatronalesPdf" class="btn btn-infoBuscar">
+                  <i class="fa fa-download"></i> Personal CRO CME CSF
+                </button>
               </div>
             </div>
             <div id="herramientasPaginacionAportesPatronales" class="row zonaPaginacion"></div>
@@ -3393,7 +3397,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
         <div class="row">
             <div class="form-group">
-            <div class="input-group col-md-8">
+            <div class="input-group col-md-8" style="display:none">
               <span class="input-group-btn">
                 <button class="btn btn-primary" type="button" id="btnPickPagosMayoresMesas">
                   <i class="fa fa-folder-open"></i> Examinar…
@@ -3737,7 +3741,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
           </div>
           <div class="row">
               <div class="form-group">
-              <div class="input-group col-md-8">
+              <div class="input-group col-md-8" style="display:none">
                 <span class="input-group-btn">
                   <button class="btn btn-primary" type="button" id="btnPickRegistrosContables">
                     <i class="fa fa-folder-open"></i> Examinar…
@@ -4036,7 +4040,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
         <div class="row">
             <div class="form-group">
-            <div class="input-group col-md-8">
+            <div class="input-group col-md-8" style="display:none">
               <span class="input-group-btn">
                 <button class="btn btn-primary" type="button" id="btnPickPromoTickets">
                   <i class="fa fa-folder-open"></i> Examinar…
@@ -4174,7 +4178,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
       </div>
       <div class="row">
           <div class="form-group">
-          <div class="input-group col-md-8">
+          <div class="input-group col-md-8" style="display:none">
             <span class="input-group-btn">
               <button class="btn btn-primary" type="button" id="btnPickPozosAcumuladosLinkeados">
                 <i class="fa fa-folder-open"></i> Examinar…
@@ -5115,7 +5119,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
         <div class="row">
             <div class="form-group">
-            <div class="input-group col-md-8">
+            <div class="input-group col-md-8" style="display:none">
               <span class="input-group-btn">
                 <button class="btn btn-primary" type="button" id="btnPickJackpotsPagados">
                   <i class="fa fa-folder-open"></i> Examinar…
@@ -5254,7 +5258,7 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
         </div>
         <div class="row">
             <div class="form-group">
-            <div class="input-group col-md-8">
+            <div class="input-group col-md-8" style="display:none">
               <span class="input-group-btn">
                 <button class="btn btn-primary" type="button" id="btnPickPremiosPagados">
                   <i class="fa fa-folder-open"></i> Examinar…
@@ -5396,32 +5400,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <div class="col-md-3"><h5>Total</h5><input type="text" class="form-control" name="PremiosMTM[total]" id="total_PremiosMTM_Unified"></div>
                                     <div class="col-md-3"><h5>Total USD</h5><input type="text" class="form-control" name="PremiosMTM[total_usd]" id="total_usd_PremiosMTM_Unified"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PremiosMTM">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PremiosMTM" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_PremiosMTM" name="uploadPremiosMTM[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_PremiosMTM" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_PremiosMTM" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_PremiosMTM" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosMTM">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_PremiosMTM" style="display:none;"></div>
-                                    </div>
-                                </div>
                                 <br/>
                             </div>
 
@@ -5435,32 +5413,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PromoTickets[importe]" id="importe_PromoTickets_Unified"></div>
                                     <div class="col-md-4"><h5>Importe Dólares</h5><input type="text" class="form-control" name="PromoTickets[importe_usd]" id="importe_usd_PromoTickets_Unified"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PromoTickets">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PromoTickets" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_PromoTickets" name="uploadPromoTickets[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_PromoTickets" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_PromoTickets" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_PromoTickets" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PromoTickets">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_PromoTickets" style="display:none;"></div>
-                                    </div>
-                                </div>
                                 <br/>
                             </div>
 
@@ -5471,32 +5423,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="Pozos[importe]" id="importe_Pozos_Unified"></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="Pozos">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_Pozos" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_Pozos" name="uploadPozos[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_Pozos" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_Pozos" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_Pozos" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Pozos">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_Pozos" style="display:none;"></div>
-                                    </div>
                                 </div>
                                 <br/>
                             </div>
@@ -5509,32 +5435,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                 <div class="row">
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="Jackpots[importe]" id="importe_Jackpots_Unified"></div>
                                     <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="Jackpots[importe_usd]" id="importe_usd_Jackpots_Unified"></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="Jackpots">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_Jackpots" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_Jackpots" name="uploadJackpots[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_Jackpots" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_Jackpots" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_Jackpots" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_Jackpots">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_Jackpots" style="display:none;"></div>
-                                    </div>
                                 </div>
                                 <br/>
                             </div>
@@ -5549,32 +5449,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PremiosPagados[importe]" id="importe_PremiosPagados_Unified"></div>
                                     <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PremiosPagados[importe_usd]" id="importe_usd_PremiosPagados_Unified"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PremiosPagados">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PremiosPagados" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_PremiosPagados" name="uploadPremiosPagados[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_PremiosPagados" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_PremiosPagados" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_PremiosPagados" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PremiosPagados">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_PremiosPagados" style="display:none;"></div>
-                                    </div>
-                                </div>
                                 <br/>
                             </div>
 
@@ -5587,32 +5461,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <div class="col-md-4" style="display:none"><h5>Cantidad</h5><input type="text" class="form-control" name="PagosMesas[cantidad]" id="cant_PagosMesas_Unified"></div>
                                     <div class="col-md-4"><h5>Importe</h5><input type="text" class="form-control" name="PagosMesas[importe]" id="importe_PagosMesas_Unified"></div>
                                     <div class="col-md-4"><h5>Importe USD</h5><input type="text" class="form-control" name="PagosMesas[importe_usd]" id="importe_usd_PagosMesas_Unified"></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="PagosMesas">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_PagosMesas" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_PagosMesas" name="uploadPagosMesas[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_PagosMesas" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_PagosMesas" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_PagosMesas" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_PagosMesas">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_PagosMesas" style="display:none;"></div>
-                                    </div>
                                 </div>
                                 <br/>
                             </div>
@@ -5640,32 +5488,6 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                     <div class="col-md-3"><h5>Total</h5><input type="text" class="form-control" name="RegistrosContables[total]" id="total_RegistrosContables_Unified"></div>
                                     <div class="col-md-3"><h5>Total USD</h5><input type="text" class="form-control" name="RegistrosContables[total_usd]" id="total_usd_RegistrosContables_Unified"></div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-11">
-                                        <h5>Archivo</h5>
-                                        <div class="input-group file-group-unified">
-                                            <span class="input-group-btn">
-                                                <button class="btn btn-primary btnPickUnified" type="button" data-module="RegistrosContables">
-                                                    <i class="fa fa-folder-open"></i> Examinar…
-                                                </button>
-                                            </span>
-                                            <input type="text" class="form-control displayUnified" id="display_RegistrosContables" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
-                                            <input type="file" class="inputUnified" id="upload_RegistrosContables" name="uploadRegistrosContables[]" multiple style="display:none;">
-                                        </div>
-                                        <!-- archivos ya cargados (inline) -->
-                                        <div id="listaArchivosWrap_U_RegistrosContables" class="lista-archivos-doc" style="margin-top:8px; display:none;">
-                                            <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
-                                            <div id="listaArchivos_U_RegistrosContables" class="list-group"></div>
-                                        </div>
-                                        <div class="table-responsive wrapUnified" id="wrap_RegistrosContables" style="margin-top:8px; display:none;">
-                                            <table class="table table-striped table-bordered table-condensed tableUnified" id="table_RegistrosContables">
-                                                <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="containerUnified" id="container_RegistrosContables" style="display:none;"></div>
-                                    </div>
-                                </div>
                                 <br/>
                             </div>
 
@@ -5675,6 +5497,36 @@ Al ir disminuyendo quiere decir que se recurrieron cada vez menos recursos propi
                                 <div class="col-md-12">
                                     <h5>Observaciones del registro</h5>
                                     <textarea class="form-control" maxlength="4000" rows="3" name="observaciones_Unificado" id="obs_Unificado"></textarea>
+                                </div>
+                            </div>
+
+                            {{-- Archivos de TODO el registro (mes + casino): un unico apartado, igual
+                                 que las observaciones. Va fuera de las .prize-section para que no se
+                                 oculte segun el casino. --}}
+                            <div class="row" style="margin-top:15px; padding-top:12px; border-top:2px solid #ccc;">
+                                <div class="col-md-12">
+                                    <h5>Archivos del registro</h5>
+                                    <div class="input-group file-group-unified">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-primary" type="button" id="btnPickUnificado">
+                                                <i class="fa fa-folder-open"></i> Examinar…
+                                            </button>
+                                        </span>
+                                        <input type="text" class="form-control" id="display_Unificado" placeholder="Arrastrá los archivos acá o hacé click en Examinar…" readonly>
+                                        <input type="file" id="upload_Unificado" name="uploadUnificado[]" multiple style="display:none;">
+                                    </div>
+                                    <!-- archivos ya cargados (inline) -->
+                                    <div id="listaArchivosWrap_Unificado" class="lista-archivos-doc" style="margin-top:8px; display:none;">
+                                        <label style="font-weight:bold;">ARCHIVOS CARGADOS</label>
+                                        <div id="listaArchivos_Unificado" class="list-group"></div>
+                                    </div>
+                                    <div class="table-responsive" id="wrap_Unificado" style="margin-top:8px; display:none;">
+                                        <table class="table table-striped table-bordered table-condensed" id="table_Unificado">
+                                            <thead><tr><th style="width:48px;">#</th><th>Archivo</th><th style="width:120px;">Tamaño</th><th style="width:70px;">Acción</th></tr></thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="container_Unificado" style="display:none;"></div>
                                 </div>
                             </div>
 
