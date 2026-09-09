@@ -1364,13 +1364,20 @@ class AutoexclusionController extends Controller
                                  break; // Con uno que coincida alcanza para saltearlo
                              }
 
-                             // 2) Ventana de cobertura. El corte real depende de si el titular pidió
-                             //    terminarla anticipadamente: en ese caso vale la fecha de vencimiento,
-                             //    si no, la de cierre. fecha_revocacion_ae es el marcador durable de esa
-                             //    finalización (se estampa en cambiarEstadoAE y se preserva al vencer).
-                             $corte = is_null($latest_state->fecha_revocacion_ae)
-                                    ? $latest_state->fecha_cierre_ae
-                                    : $latest_state->fecha_vencimiento;
+                             // 2) Ventana de cobertura: hasta cuándo la AE previa sigue tapando.
+                             //    Si el titular la finalizó (Fin. por AE), la cobertura termina en el
+                             //    vencimiento y a partir de ahí puede volver a autoexcluirse: un alta
+                             //    posterior a esa fecha es legítima.
+                             //    fecha_revocacion_ae es el marcador durable de esa finalización, pero
+                             //    NO alcanza por sí solo: las AE de la resolución nueva no tienen
+                             //    vencimiento (es NULL), y sin el segundo chequeo el corte quedaba en
+                             //    NULL y anulaba el control entero, dejando pasar cualquier fecha.
+                             $finalizada_por_titular = !is_null($latest_state->fecha_revocacion_ae)
+                                                    && !is_null($latest_state->fecha_vencimiento);
+
+                             $corte = $finalizada_por_titular
+                                    ? $latest_state->fecha_vencimiento
+                                    : $latest_state->fecha_cierre_ae;
 
                              if (!is_null($corte) && $fecha_ae_str <= $corte) {
                                  $skip_record = true;
