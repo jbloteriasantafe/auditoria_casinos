@@ -1123,6 +1123,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('historialDocumento/{tipo}/{id}', 'documentosContablesController@historialDocumento');
   Route::get('obtenerDocumentosValidados', 'documentosContablesController@obtenerDocumentosValidados');
   Route::get('obtenerControlDocumentos', 'documentosContablesController@obtenerControlDocumentos');
+  Route::get('archivosUnificado', 'documentosContablesController@archivosUnificado');
   Route::get('descargarControlDocumentosXlsx', 'documentosContablesController@descargarControlDocumentosXlsx');
 
   // ESTADO CONTABLE
@@ -1265,6 +1266,7 @@ Route::group(['prefix' => 'documentosContables', 'middleware' => 'tiene_permiso:
   Route::get('llenarAportesPatronalesEdit/{id}', 'documentosContablesController@llenarAportesPatronalesEdit');
   Route::get('descargarAportesPatronalesXlsx', 'documentosContablesController@descargarAportesPatronalesXlsx');
   Route::get('descargarAportesPatronalesXlsxTodos', 'documentosContablesController@descargarAportesPatronalesXlsxTodos');
+  Route::get('descargarAportesPatronalesPdf', 'documentosContablesController@descargarAportesPatronalesPdf');
   Route::get('descargarAportesPatronalesCsv', 'documentosContablesController@descargarAportesPatronalesCsv');
   //PROMO TICKETS
   Route::post('guardarPromoTickets', 'documentosContablesController@guardarPromoTickets');
@@ -1588,6 +1590,9 @@ Route::group(['prefix' => 'autoexclusion', 'middleware' => 'tiene_permiso:ver_se
   Route::get('generarConstanciaReingreso/{id}', 'Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
   Route::get('BDCSV', 'Autoexclusion\AutoexclusionController@BDCSV')->middleware('tiene_permiso:descargar_aes');
   Route::get('logsDescarga','Autoexclusion\AutoexclusionController@logsDescarga')->middleware('tiene_permiso:logs_descargar_aes');
+  //Solo superusuarios: el gate vive dentro del método, no hay permiso asociado.
+  //Tiene que ir ANTES del {dni?} de abajo, que es catch-all y se lo comería.
+  Route::get('logsCarga','Autoexclusion\AutoexclusionController@logsCarga');
   Route::get('{dni?}', 'Autoexclusion\AutoexclusionController@index');
   Route::post('destruirPapel', 'Autoexclusion\AutoexclusionController@destruirPapel');
 });

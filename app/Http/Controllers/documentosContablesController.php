@@ -116,6 +116,7 @@ class documentosContablesController extends Controller
         'ImpInmobiliario' => 'app/public/RegistroImpInmobiliario',
         'EstadoContable' => 'app/public/RegistroEstadoContable',
         'PublicoCasino' => 'app/public/RegistroPublicoCasino',
+        'Unificado' => 'app/public/RegistroUnificado',
       ];
 
       if(!array_key_exists($registro,$path)){
@@ -2108,12 +2109,10 @@ public function descargarDREICsv(Request $request)
                 $push($rubro, 'Alicuota', $b->alicuota);
                 $push($rubro, 'Impuesto Determinado', $b->impuesto_determinado);
             }
-            $push('General','Impuesto Est. y Garage', $r->imp_est_y_garage);
             $push('General','Bromatología', $r->bromatologia);
             $push('General','Deducciones', $r->deducciones);
             $push('General','Intereses', $r->intereses);
             $push('General','Total Impuesto Determinado', $r->total_imp_det);
-            $push('General','Saldo', $r->saldo);
         } else {
             $push('General','Monto Pagado', $r->monto_pagado);
             foreach ($r->bases as $b) {
@@ -2205,9 +2204,9 @@ public function descargarDREIXlsx(Request $request)
         'Base Imponible Otras Actividades', 'Alicuota', 'Impuesto Determinado', 'Saldo', 'Observaciones'
     ],
     2 => [ // Casino 2: CSF
-      'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
+      'Meses', 'Presentación y Pago', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
       'Explotación Casinos y Bingos', 'Alicuota3', 'Impuesto3', 'Apuestas y Juegos de Azar por Plataformas', 'Alicuota4', 'Impuesto4',
-      'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
+      'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Observaciones'
     ],
     3 => [ // Casino 3: RO
         'Meses', 'Monto Pagado Total', 'Vencimiento Previsto',
@@ -2362,21 +2361,19 @@ public function descargarDREIXlsx(Request $request)
             else if($casinoId == 2){
             $sheet->mergeCells("A1:A2");
             $sheet->mergeCells("B1:B2");
-            $sheet->mergeCells("C1:C2");
+            $sheet->mergeCells("O1:O2");
             $sheet->mergeCells("P1:P2");
             $sheet->mergeCells("Q1:Q2");
             $sheet->mergeCells("R1:R2");
             $sheet->mergeCells("S1:S2");
-            $sheet->mergeCells("T1:T2");
-            $sheet->mergeCells("U1:U2");
-            $sheet->mergeCells("D1:F1");
-            $sheet->mergeCells("G1:I1");
-            $sheet->mergeCells("J1:L1");
-            $sheet->mergeCells("M1:O1");
+            $sheet->mergeCells("C1:E1");
+            $sheet->mergeCells("F1:H1");
+            $sheet->mergeCells("I1:K1");
+            $sheet->mergeCells("L1:N1");
 
             $sheet->row($fila,$columnasPorCasino[$casinoId]);
 
-            $sheet->cells("A1:U2", function($cells) use ($casinoId) {
+            $sheet->cells("A1:S2", function($cells) use ($casinoId) {
                 switch ($casinoId) {
                     case 1:
                         $color = '#008f39'; break;
@@ -2394,9 +2391,9 @@ public function descargarDREIXlsx(Request $request)
                 $cells->setAlignment('center');
 
             });
-            $sheet->getStyle("A1:U2")->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("A1:S2")->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
             $sheet->setHeight(1, 15);
-            $sheet->cells("A1:U999", function($cells){
+            $sheet->cells("A1:S999", function($cells){
                 $cells->setFontFamily('Arial');
                 $cells->setFontSize(10);
             });
@@ -2404,22 +2401,22 @@ public function descargarDREIXlsx(Request $request)
             $fila++;
 
 
-            $sheet->row($fila, ['','','','Base Imponible','Alicuota','Subtotal Impuesto Determinado',
+            $sheet->row($fila, ['','','Base Imponible','Alicuota','Subtotal Impuesto Determinado',
                 'Base Imponible','Alicuota','Impuesto Determinado','Base Imponible','Alicuota','Impuesto Determinado',
                 'Base Imponible','Alicuota','Impuesto Determinado']);
 
             $fila++;
 
             foreach ($datos as $anio => $registros) {
-                $sheet->mergeCells("A{$fila}:U{$fila}");
+                $sheet->mergeCells("A{$fila}:S{$fila}");
                 $sheet->setCellValue("A{$fila}", $anio);
-                $sheet->cells("A{$fila}:U{$fila}", function($cells){
+                $sheet->cells("A{$fila}:S{$fila}", function($cells){
                     $cells->setBackground('#CCCCCC');
                     $cells->setFontWeight('bold');
                     $cells->setFontSize(13);
                     $cells->setAlignment('center');
                 });
-                $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $sheet->getStyle("A{$fila}:S{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $sheet->setHeight($fila, 20);
                 $fila++;
 
@@ -2430,7 +2427,6 @@ public function descargarDREIXlsx(Request $request)
                     $sheet->row($fila, [
                         $mesEsp,
                         $r->{'Fecha Presentación'},
-                        "$ " . number_format($r->{'Garage'}, 2, '.', ''),
                         "$ " . number_format($r->{'Base 1'}, 2, '.', ''),
                         number_format($r->{'Alicuota1'}, 2, '.', '') ." %",
                         "$ " . number_format($r->{'Impuesto1'}, 2, '.', ''),
@@ -2447,7 +2443,6 @@ public function descargarDREIXlsx(Request $request)
                         "$ " . number_format($r->{'Deducciones'}, 2, '.', ''),
                         "$ " . number_format($r->{'Impuesto Total Determinado'}, 2, '.', ''),
                         "$ " . number_format($r->{'Intereses'}, 2, '.', ''),
-                        "$ " . number_format($r->{'Saldo'}, 2, '.', ''),
                         $r->{'Observaciones'}
                     ]);
 
@@ -2457,23 +2452,22 @@ public function descargarDREIXlsx(Request $request)
                         $cells->setAlignment('left');
                     });
 
-                    $sheet->cells("B{$fila}:U{$fila}", function($cells){
+                    $sheet->cells("B{$fila}:S{$fila}", function($cells){
                         $cells->setAlignment('center');
                     });
 
-                    $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                    $sheet->getStyle("A{$fila}:S{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                     $fila++;
 
                     foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
                         $sheet->row($fila, [
                             '',
                             '↳ ' . $b->label,
-                            '',
                             '$ ' . number_format($b->base_imponible, 2, '.', ''),
                             number_format($b->alicuota, 2, '.', '') . ' %',
                             '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
                         ]);
-                        $sheet->cells("A{$fila}:U{$fila}", function($cells) {
+                        $sheet->cells("A{$fila}:S{$fila}", function($cells) {
                             $cells->setBackground('#F5F5F5');
                             $cells->setAlignment('center');
                         });
@@ -2485,7 +2479,7 @@ public function descargarDREIXlsx(Request $request)
                 }
             }
 
-            $sheet->getStyle("A1:U1")->applyFromArray([
+            $sheet->getStyle("A1:S1")->applyFromArray([
                 'borders' => [
                     'allborders' => [
                         'style' => PHPExcel_Style_Border::BORDER_THICK,
@@ -2493,7 +2487,7 @@ public function descargarDREIXlsx(Request $request)
                     ]
                 ]
             ]);
-            $sheet->getStyle("D2:O2")->applyFromArray([
+            $sheet->getStyle("C2:N2")->applyFromArray([
                 'borders' => [
                     'allborders' => [
                         'style' => PHPExcel_Style_Border::BORDER_THICK,
@@ -2502,7 +2496,7 @@ public function descargarDREIXlsx(Request $request)
                 ]
             ]);
 
-            $sheet->getStyle("A3:U" . ($fila - 1))->applyFromArray([
+            $sheet->getStyle("A3:S" . ($fila - 1))->applyFromArray([
                 'borders' => [
                     'allborders' => [
                         'style' => PHPExcel_Style_Border::BORDER_THIN,
@@ -2516,7 +2510,7 @@ public function descargarDREIXlsx(Request $request)
                 16, 14, 20, 18, 14, 15, 18, 20, 20,
                 20, 20, 20, 20, 20, 20, 20, 20, 20
             ];
-            foreach (range('A', 'U') as $i => $col) {
+            foreach (range('A', 'S') as $i => $col) {
                 $sheet->setWidth($col, $anchos[$i]);
             }
 
@@ -2719,9 +2713,9 @@ public function descargarDREIXlsxTodos(Request $request)
           'Base Imponible Otras Actividades', 'Alicuota', 'Impuesto Determinado', 'Saldo', 'Observaciones'
       ],
       2 => [ // Casino 2: CSF
-        'Meses', 'Presentación y Pago', 'Servicio de Playa de Estacionamiento y Garage - Impuesto Determinado', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
+        'Meses', 'Presentación y Pago', 'Comercio', 'Alicuota1', 'Impuesto1', 'Gastronomía', 'Alicuota2', 'Impuesto2',
         'Explotación Casinos y Bingos', 'Alicuota3', 'Impuesto3', 'Apuestas y Juegos de Azar por Plataformas', 'Alicuota4', 'Impuesto4',
-        'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Saldo a Favor', 'Observaciones'
+        'Bromatologia', 'Deducciones', 'Impuesto Total Determinado', 'Intereses', 'Observaciones'
       ],
       3 => [ // Casino 3: RO
           'Meses', 'Monto Pagado Total', 'Vencimiento Previsto', 'Presentación y Pago',
@@ -3006,21 +3000,19 @@ public function descargarDREIXlsxTodos(Request $request)
               $fila =1;
               $sheet->mergeCells("A1:A2");
               $sheet->mergeCells("B1:B2");
-              $sheet->mergeCells("C1:C2");
+              $sheet->mergeCells("O1:O2");
               $sheet->mergeCells("P1:P2");
               $sheet->mergeCells("Q1:Q2");
               $sheet->mergeCells("R1:R2");
               $sheet->mergeCells("S1:S2");
-              $sheet->mergeCells("T1:T2");
-              $sheet->mergeCells("U1:U2");
-              $sheet->mergeCells("D1:F1");
-              $sheet->mergeCells("G1:I1");
-              $sheet->mergeCells("J1:L1");
-              $sheet->mergeCells("M1:O1");
+              $sheet->mergeCells("C1:E1");
+              $sheet->mergeCells("F1:H1");
+              $sheet->mergeCells("I1:K1");
+              $sheet->mergeCells("L1:N1");
 
               $sheet->row($fila,$columnasPorCasino[$casinoId]);
 
-              $sheet->cells("A1:U2", function($cells) use ($casinoId) {
+              $sheet->cells("A1:S2", function($cells) use ($casinoId) {
                   switch ($casinoId) {
                       case 1:
                           $color = '#008f39'; break;
@@ -3038,9 +3030,9 @@ public function descargarDREIXlsxTodos(Request $request)
                   $cells->setAlignment('center');
 
               });
-              $sheet->getStyle("A1:U2")->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+              $sheet->getStyle("A1:S2")->getAlignment()->setWrapText(true)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
               $sheet->setHeight(1, 15);
-              $sheet->cells("A1:U999", function($cells){
+              $sheet->cells("A1:S999", function($cells){
                   $cells->setFontFamily('Arial');
                   $cells->setFontSize(10);
               });
@@ -3048,22 +3040,22 @@ public function descargarDREIXlsxTodos(Request $request)
               $fila++;
 
 
-              $sheet->row($fila, ['','','','Base Imponible','Alicuota','Subtotal Impuesto Determinado',
+              $sheet->row($fila, ['','','Base Imponible','Alicuota','Subtotal Impuesto Determinado',
                   'Base Imponible','Alicuota','Impuesto Determinado','Base Imponible','Alicuota','Impuesto Determinado',
                   'Base Imponible','Alicuota','Impuesto Determinado']);
 
               $fila++;
 
               foreach ($datosFiltrados as $anio => $registros) {
-                  $sheet->mergeCells("A{$fila}:U{$fila}");
+                  $sheet->mergeCells("A{$fila}:S{$fila}");
                   $sheet->setCellValue("A{$fila}", $anio);
-                  $sheet->cells("A{$fila}:U{$fila}", function($cells){
+                  $sheet->cells("A{$fila}:S{$fila}", function($cells){
                       $cells->setBackground('#CCCCCC');
                       $cells->setFontWeight('bold');
                       $cells->setFontSize(13);
                       $cells->setAlignment('center');
                   });
-                  $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                  $sheet->getStyle("A{$fila}:S{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                   $sheet->setHeight($fila, 20);
                   $fila++;
 
@@ -3074,7 +3066,6 @@ public function descargarDREIXlsxTodos(Request $request)
                       $sheet->row($fila, [
                           $mesEsp,
                           $r->{'Fecha Presentación'},
-                          "$ " . number_format($r->{'Garage'}, 2, '.', ''),
                           "$ " . number_format($r->{'Base 1'}, 2, '.', ''),
                           number_format($r->{'Alicuota1'}, 2, '.', '') ." %",
                           "$ " . number_format($r->{'Impuesto1'}, 2, '.', ''),
@@ -3091,7 +3082,6 @@ public function descargarDREIXlsxTodos(Request $request)
                           "$ " . number_format($r->{'Deducciones'}, 2, '.', ''),
                           "$ " . number_format($r->{'Impuesto Total Determinado'}, 2, '.', ''),
                           "$ " . number_format($r->{'Intereses'}, 2, '.', ''),
-                          "$ " . number_format($r->{'Saldo'}, 2, '.', ''),
                           $r->{'Observaciones'}
                       ]);
 
@@ -3101,23 +3091,22 @@ public function descargarDREIXlsxTodos(Request $request)
                           $cells->setAlignment('left');
                       });
 
-                      $sheet->cells("B{$fila}:U{$fila}", function($cells){
+                      $sheet->cells("B{$fila}:S{$fila}", function($cells){
                           $cells->setAlignment('center');
                       });
 
-                      $sheet->getStyle("A{$fila}:U{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                      $sheet->getStyle("A{$fila}:S{$fila}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                       $fila++;
 
                       foreach ($basesMap->get($r->id_registroDREI, collect()) as $b) {
                           $sheet->row($fila, [
                               '',
                               '↳ ' . $b->label,
-                              '',
                               '$ ' . number_format($b->base_imponible, 2, '.', ''),
                               number_format($b->alicuota, 2, '.', '') . ' %',
                               '$ ' . number_format($b->impuesto_determinado, 2, '.', ''),
                           ]);
-                          $sheet->cells("A{$fila}:U{$fila}", function($cells) {
+                          $sheet->cells("A{$fila}:S{$fila}", function($cells) {
                               $cells->setBackground('#F5F5F5');
                               $cells->setAlignment('center');
                           });
@@ -3129,7 +3118,7 @@ public function descargarDREIXlsxTodos(Request $request)
                   }
               }
 
-              $sheet->getStyle("A1:U1")->applyFromArray([
+              $sheet->getStyle("A1:S1")->applyFromArray([
                   'borders' => [
                       'allborders' => [
                           'style' => PHPExcel_Style_Border::BORDER_THICK,
@@ -3137,7 +3126,7 @@ public function descargarDREIXlsxTodos(Request $request)
                       ]
                   ]
               ]);
-              $sheet->getStyle("D2:O2")->applyFromArray([
+              $sheet->getStyle("C2:N2")->applyFromArray([
                   'borders' => [
                       'allborders' => [
                           'style' => PHPExcel_Style_Border::BORDER_THICK,
@@ -3146,7 +3135,7 @@ public function descargarDREIXlsxTodos(Request $request)
                   ]
               ]);
 
-              $sheet->getStyle("A3:U" . ($fila - 1))->applyFromArray([
+              $sheet->getStyle("A3:S" . ($fila - 1))->applyFromArray([
                   'borders' => [
                       'allborders' => [
                           'style' => PHPExcel_Style_Border::BORDER_THIN,
@@ -3160,7 +3149,7 @@ public function descargarDREIXlsxTodos(Request $request)
                   16, 14, 20, 18, 14, 15, 18, 20, 20,
                   20, 20, 20, 20, 20, 20, 20, 20, 20
               ];
-              foreach (range('A', 'U') as $i => $col) {
+              foreach (range('A', 'S') as $i => $col) {
                   $sheet->setWidth($col, $anchos[$i]);
               }
 
@@ -8115,6 +8104,135 @@ public function descargarAportesPatronalesXlsxTodos(Request $request)
             });
         }
     })->export('xlsx');
+}
+
+/**
+ * PDF "Personal CRO CME CSF según F.931": cantidad de personal declarada en el F.931 por mes,
+ * y su diferencia contra la cantidad ofertada en el pliego.
+ *
+ * Siempre salen los 3 casinos (no usa el filtro de casino), solo el rango de fechas.
+ * Las cantidades ofertadas son las mismas que muestra RRHH en #ofertado_adjudicado_RRHH.
+ */
+public function descargarAportesPatronalesPdf(Request $request)
+{
+    $desde = $request->query('desde'); // YYYY-MM
+    $hasta = $request->query('hasta'); // YYYY-MM
+
+    // Orden de columnas del informe: CRO (Rosario), CSF (Santa Fe), CME (Melincué).
+    $casinos = [
+        ['cod' => 'CRO', 'id' => 3, 'oferta' => 1398],
+        ['cod' => 'CSF', 'id' => 2, 'oferta' => 585],
+        ['cod' => 'CME', 'id' => 1, 'oferta' => 194],
+    ];
+
+    $query = RegistroAportesPatronales::whereIn('casino', [1, 2, 3]);
+    if ($desde) $query->where('fecha_AportesPatronales', '>=', $desde.'-01');
+    if ($hasta) $query->where('fecha_AportesPatronales', '<=', $hasta.'-31');
+    $registros = $query->orderBy('fecha_AportesPatronales')->get();
+
+    // mes 'YYYY-MM' => [id_casino => cantidad]
+    $datos = [];
+    foreach ($registros as $r) {
+        if (!$r->fecha_AportesPatronales) continue;
+        $mes = date('Y-m', strtotime($r->fecha_AportesPatronales));
+        $datos[$mes][(int)$r->casino] = $r->cant_empleados;
+    }
+
+    // Rango de meses: el del filtro; si no hay filtro, el que abarcan los datos.
+    $ini = $desde ?: (count($datos) ? min(array_keys($datos)) : null);
+    $fin = $hasta ?: (count($datos) ? max(array_keys($datos)) : null);
+    if (!$ini || !$fin) $ini = $fin = date('Y-m');
+
+    $meses = [];
+    $cursor = \Carbon\Carbon::createFromFormat('Y-m-d', $ini.'-01');
+    $tope   = \Carbon\Carbon::createFromFormat('Y-m-d', $fin.'-01');
+    while ($cursor <= $tope && count($meses) < 240) {
+        $meses[] = $cursor->format('Y-m');
+        $cursor->addMonth();
+    }
+
+    $abrev = [1=>'ene',2=>'feb',3=>'mar',4=>'abr',5=>'may',6=>'jun',
+              7=>'jul',8=>'ago',9=>'sep',10=>'oct',11=>'nov',12=>'dic'];
+
+    $anioIni = substr($meses[0], 0, 4);
+    $anioFin = substr(end($meses), 0, 4);
+    $subtitulo = $anioIni === $anioFin ? $anioIni : $anioIni.'-'.$anioFin;
+
+    // --- estilos (replican la planilla original) ---
+    $bordeExt = 'border:2px solid #000;';
+    $bd       = 'border:1px solid #000;';
+    $celda    = $bd.'padding:3px 6px;text-align:right;font-size:11px;';
+    $thCol    = $bd.'padding:3px 6px;text-align:center;font-size:11px;background:#BFBFBF;font-weight:normal;';
+
+    $html  = '<html><head><meta charset="utf-8"><style>';
+    $html .= 'body{font-family:DejaVu Sans, sans-serif;}';
+    $html .= 'table{border-collapse:collapse;}';
+    $html .= '</style></head><body>';
+    $html .= '<div style="text-align:center;font-weight:bold;font-size:13px;">Personal CRO CME CSF según F.931</div>';
+    $html .= '<div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:14px;">'.$subtitulo.'</div>';
+
+    $html .= '<table style="'.$bordeExt.'margin:0 auto;">';
+
+    // Fila 1: los dos grupos
+    $html .= '<tr>';
+    $html .= '<td colspan="4" style="'.$bd.'background:#E2EFDA;text-align:center;padding:10px;font-size:12px;">Cantidad de personal F.931</td>';
+    $html .= '<td colspan="3" style="'.$bd.'background:#FCE4D6;text-align:center;padding:10px;font-size:12px;">Diferencia de personal S/oferta</td>';
+    $html .= '</tr>';
+
+    // Fila 2: MES/AÑO y los códigos de casino (los de la izquierda ocupan también la fila de la oferta)
+    $html .= '<tr>';
+    $html .= '<td rowspan="2" style="'.$thCol.'">MES/AÑO</td>';
+    foreach ($casinos as $c) $html .= '<td rowspan="2" style="'.$thCol.'">'.$c['cod'].'</td>';
+    foreach ($casinos as $c) $html .= '<td style="'.$thCol.'">'.$c['cod'].'</td>';
+    $html .= '</tr>';
+
+    // Fila 3: cantidades ofertadas (solo bajo el grupo de diferencias)
+    $html .= '<tr>';
+    foreach ($casinos as $c) {
+        $html .= '<td style="'.$bd.'background:#F8CBAD;text-align:center;padding:3px 6px;font-size:11px;">'.$c['oferta'].'</td>';
+    }
+    $html .= '</tr>';
+
+    foreach ($meses as $mes) {
+        $m   = (int)substr($mes, 5, 2);
+        $esEnero = ($m === 1);
+        $etiqueta = $abrev[$m].'-'.substr($mes, 2, 2);
+
+        $bgMes = $esEnero ? 'background:#FFC000;' : '';
+        $html .= '<tr>';
+        $html .= '<td style="'.$bd.'padding:3px 6px;text-align:center;font-size:11px;font-weight:bold;'.$bgMes.'">'.$etiqueta.'</td>';
+
+        // Cantidades (sin separador de miles, como la planilla original)
+        foreach ($casinos as $c) {
+            $v = isset($datos[$mes][$c['id']]) ? $datos[$mes][$c['id']] : null;
+            $html .= '<td style="'.$celda.'">'.($v === null ? '' : (int)$v).'</td>';
+        }
+        // Diferencias contra la oferta
+        foreach ($casinos as $c) {
+            $v = isset($datos[$mes][$c['id']]) ? $datos[$mes][$c['id']] : null;
+            $dif = $v === null ? null : ((int)$v - $c['oferta']);
+            $html .= '<td style="'.$celda.'">'.($dif === null ? '' : $dif).'</td>';
+        }
+        $html .= '</tr>';
+    }
+
+    $html .= '</table></body></html>';
+
+    $opt = new \Dompdf\Options();
+    $opt->set('isHtml5ParserEnabled', true);
+    $opt->set('isRemoteEnabled', false);
+
+    $dompdf = new \Dompdf\Dompdf($opt);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->loadHtml($html, 'UTF-8');
+    $dompdf->render();
+
+    $nombre = 'Personal CRO CME CSF '.($hasta ?: $fin).'.pdf';
+
+    return response($dompdf->output(), 200, [
+        'Content-Type'        => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="'.$nombre.'"',
+    ]);
 }
 
 
@@ -13311,30 +13429,15 @@ public function eliminarPremiosMTM_Unificado(Request $request) {
                 $reg->usuario = $userId;
                 $reg->save();
     
-                // Handle Files
-                $files = Arr::wrap($request->file('upload'.$cfg['prefix']));
-                foreach ($files as $file) {
-                    if (!($file instanceof UploadedFile) || !$file->isValid()) continue;
-    
-                    $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $ext  = $file->getClientOriginalExtension();
-                    $safe = preg_replace('/\s+/', '_', $base);
-                    $filename = time().'_'.Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
-    
-                    $file->storeAs('public/'.$cfg['folder'], $filename);
-    
-                    $reg->archivos()->create([
-                        'path'       => $filename,
-                        'usuario'    => $userId,
-                        'fecha_toma' => date('Y-m-d H:i:s'),
-                    ]);
-                }
+                // Los archivos ya no se cargan por sección: ahora hay un único apartado para todo
+                // el registro y se cuelgan del contenedor (RegistroUnificadoObservacion), más abajo.
+                // Los archivos viejos siguen asociados a cada sección y se listan en archivosUnificado().
             }
 
             // Observación que aplica a TODO el registro (mes + casino), no a una sección.
             // Va en tabla aparte porque no todos los casinos llevan las mismas secciones.
             $obs = $request->input('observaciones_Unificado');
-            RegistroUnificadoObservacion::updateOrCreate(
+            $contenedor = RegistroUnificadoObservacion::updateOrCreate(
                 ['fecha' => $fecha, 'casino' => $casino],
                 [
                     'observaciones' => ($obs === '' ? null : $obs),
@@ -13342,6 +13445,25 @@ public function eliminarPremiosMTM_Unificado(Request $request) {
                     'fecha_toma'    => date('Y-m-d H:i:s'),
                 ]
             );
+
+            // Archivos del registro completo: un único apartado, colgado del contenedor.
+            $files = Arr::wrap($request->file('uploadUnificado'));
+            foreach ($files as $file) {
+                if (!($file instanceof UploadedFile) || !$file->isValid()) continue;
+
+                $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $ext  = $file->getClientOriginalExtension();
+                $safe = preg_replace('/\s+/', '_', $base);
+                $filename = time().'_'.Str::random(6).'_'.$safe.($ext?'.'.$ext:'');
+
+                $file->storeAs('public/RegistroUnificado', $filename);
+
+                $contenedor->archivos()->create([
+                    'path'       => $filename,
+                    'usuario'    => $userId,
+                    'fecha_toma' => date('Y-m-d H:i:s'),
+                ]);
+            }
 
             DB::commit();
             return response()->json(['success' => true]);
@@ -13365,6 +13487,76 @@ public function llenarPremiosMTM_Unificado(Request $request) {
         'RegistrosContables' => RegistroRegistrosContables::where('fecha_RegistrosContables', $fecha)->where('casino', $casino)->with('archivos')->first(),
         'Observaciones' => RegistroUnificadoObservacion::where('fecha', $fecha)->where('casino', $casino)->first(),
     ]);
+}
+
+/**
+ * Archivos del registro unificado (mes+casino) en un solo listado.
+ *
+ * Devuelve la unión de:
+ *  - los del contenedor, que es donde se cargan desde que hay un único apartado, y
+ *  - los históricos, que quedaron colgados de cada pseudo-documento cuando cada sección
+ *    tenía su propia carga. No se migran: se muestran acá indicando de qué sección vienen.
+ *
+ * `tipo` es la clave del mapa de visualizarArchivo(), que es como el front arma el enlace.
+ */
+public function archivosUnificado(Request $request)
+{
+    $fecha  = $request->query('fecha').'-01';
+    $casino = $request->query('casino');
+
+    if(!$request->query('fecha') || !$casino){
+        return response()->json(['success' => false, 'msg' => 'Faltan parámetros'], 400);
+    }
+
+    $user = Usuario::find(session('id_usuario'));
+    $permitidos = $user->casinos->pluck('id_casino')->toArray();
+    if(!in_array((int)$casino, array_map('intval', $permitidos))){
+        return response()->json(['success' => false, 'msg' => 'Casino no permitido'], 403);
+    }
+
+    // origen => [modelo, columna de fecha, clave de visualizarArchivo]
+    $legacy = [
+        'Premios MTM'          => ['App\RegistroPremiosMTM',               'fecha_PremiosMTM',               'PremiosMTM'],
+        'Promo Tickets'        => ['App\RegistroPromoTickets',             'fecha_PromoTickets',             'PromoTickets'],
+        'Pozos Acumulados'     => ['App\RegistroPozosAcumuladosLinkeados', 'fecha_PozosAcumuladosLinkeados', 'PozosAcumuladosLinkeados'],
+        'Jackpots'             => ['App\RegistroJackpotsPagados',          'fecha_JackpotsPagados',          'JackpotsPagados'],
+        'Premios Pagados'      => ['App\RegistroPremiosPagados',           'fecha_PremiosPagados',           'PremiosPagados'],
+        'Pagos Mesas de Paño'  => ['App\RegistroPagosMayoresMesas',        'fecha_PagosMayoresMesas',        'PagosMayoresMesas'],
+        'Registros Contables'  => ['App\RegistroRegistrosContables',       'fecha_RegistrosContables',       'RegistrosContables'],
+    ];
+
+    $salida = [];
+
+    $contenedor = RegistroUnificadoObservacion::with('archivos')
+        ->where('fecha', $fecha)->where('casino', $casino)->first();
+    if($contenedor){
+        foreach($contenedor->archivos as $a){
+            $salida[] = [
+                'id'     => $a->id_registro_archivo,
+                'nombre' => basename($a->path),
+                'fecha'  => $a->fecha_toma,
+                'tipo'   => 'Unificado',
+                'origen' => null, // cargado para todo el registro
+            ];
+        }
+    }
+
+    foreach($legacy as $origen => $cfg){
+        list($modelo, $colFecha, $tipoVer) = $cfg;
+        $reg = $modelo::with('archivos')->where($colFecha, $fecha)->where('casino', $casino)->first();
+        if(!$reg) continue;
+        foreach($reg->archivos as $a){
+            $salida[] = [
+                'id'     => $a->id_registro_archivo,
+                'nombre' => basename($a->path),
+                'fecha'  => $a->fecha_toma,
+                'tipo'   => $tipoVer,
+                'origen' => $origen,
+            ];
+        }
+    }
+
+    return response()->json($salida);
 }
 
 public function eliminarPremiosMTM($id){
@@ -14976,11 +15168,14 @@ public function descargarAutDirectoresXlsxTodos(Request $request)
      if ($c = $request->query('id_casino')) {
        $query->where('casino', $c);
      }
+     // El filtro llega como 'YYYY-MM' y estas columnas son DATE con días reales (una póliza puede
+     // terminar el 28). Sin completar el día la comparación se hace como texto y dejaba afuera el
+     // mes del "hasta" ('2026-02-28' > '2026-02').
      if ($desde = $request->query('desde')){
-       $query->where('periodo_inicio',">=",$desde);
+       $query->where('periodo_inicio',">=",$desde.'-01');
      }
      if ($hasta = $request->query('hasta')){
-       $query->where('periodo_fin',"<=",$hasta);
+       $query->where('periodo_fin',"<=",$hasta.'-31');
      }
 
      // Orden por columna de fecha al clickear el encabezado de la tabla.
@@ -15121,6 +15316,9 @@ public function actualizarSeguros(Request $request, $id){
      $casinoId = $request->query('casino');
      $desde    = $request->query('desde');
      $hasta    = $request->query('hasta');
+     // 'YYYY-MM' => día completo, si no la comparación contra las columnas DATE se hace como texto.
+     $desde    = $desde ? $desde.'-01' : $desde;
+     $hasta    = $hasta ? $hasta.'-31' : $hasta;
 
      $user = Usuario::find(session('id_usuario'));
      $allowedCasinoIds = $user->casinos->pluck('id_casino')->toArray();
@@ -15210,6 +15408,9 @@ public function actualizarSeguros(Request $request, $id){
      $casinoId = $request->query('casino');
      $desde    = $request->query('desde');
      $hasta    = $request->query('hasta');
+     // 'YYYY-MM' => día completo, si no la comparación contra las columnas DATE se hace como texto.
+     $desde    = $desde ? $desde.'-01' : $desde;
+     $hasta    = $hasta ? $hasta.'-31' : $hasta;
 
      $casino = Casino::findOrFail($casinoId);
 
@@ -15372,6 +15573,9 @@ public function actualizarSeguros(Request $request, $id){
 
      $desde = $request->query('desde');
      $hasta = $request->query('hasta');
+     // 'YYYY-MM' => día completo, si no la comparación contra las columnas DATE se hace como texto.
+     $desde = $desde ? $desde.'-01' : $desde;
+     $hasta = $hasta ? $hasta.'-31' : $hasta;
 
      $user    = Usuario::find(session('id_usuario'));
      $casinos = $user->casinos->pluck('nombre','id_casino');
@@ -16939,16 +17143,19 @@ public function ultimasImpInmobiliario(Request $request)
 
     $query = RegistroImpInmobiliario
               ::withCount('archivos')
+              ->whereIn('casino', $allowedCasinoIds)
               ->orderBy('fecha_ImpInmobiliario', 'desc');
 
     if ($c = $request->query('id_casino')) {
       $query->where('casino', $c);
     }
+    // El filtro llega como 'YYYY-MM': hay que completar el día. Sin eso la comparación contra la
+    // columna DATE se hace como texto ('2026-07-01' > '2026-07') y el mes del "hasta" quedaba afuera.
     if ($desde = $request->query('desde')){
-      $query->where('fecha_ImpInmobiliario',">=",$desde);
+      $query->where('fecha_ImpInmobiliario',">=",$desde.'-01');
     }
     if ($hasta = $request->query('hasta')){
-      $query->where('fecha_ImpInmobiliario',"<=",$hasta);
+      $query->where('fecha_ImpInmobiliario',"<=",$hasta.'-31');
     }
 
     // Orden por columna de fecha al clickear el encabezado de la tabla.
@@ -17392,6 +17599,23 @@ public function descargarImpInmobiliarioXlsxTodos(Request $request)
   // Por eso ahora solo se bloquea la validación de un documento SIN datos: alcanza con que exista al
   // menos un campo de datos cargado. Un 0 cuenta como cargado; NULL o cadena vacía no.
   private function documentoTieneCamposIncompletos($tipo, $doc){
+      // Pseudo-documentos del unificado que el casino no carga: quedan vacíos de forma legítima
+      // (ej. Premios MTM es solo de Rosario), así que no deben bloquear la validación.
+      // Espejo de seccionesUnificadoPorCasino(); ver casinoLlevaUnificado().
+      $seccionUnificado = [
+          'premios_mtm'         => 'PremiosMTM',
+          'promo_tickets'       => 'PromoTickets',
+          'pozos_acumulados'    => 'Pozos',
+          'jackpots_pagados'    => 'Jackpots',
+          'premios_pagados'     => 'PremiosPagados',
+          'pagos_mayores_mesas' => 'PagosMesas',
+          'registros_contables' => 'RegistrosContables',
+      ];
+      if(isset($seccionUnificado[$tipo])
+         && !$this->casinoLlevaUnificado($doc->casino, $seccionUnificado[$tipo])){
+          return false;
+      }
+
       // Público Casino: los datos se cargan por día; deben estar todos los días reales del mes.
       if($tipo === 'publico_casino'){
           $diasDelMes = (int)date('t', strtotime($doc->fecha_mes));

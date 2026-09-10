@@ -189,6 +189,15 @@ input[required], select[required]{
           </div>
         </div>
       </a>
+      @if($usuario->es_superusuario)
+      <a href="/autoexclusion/logsCarga" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+        <div class="panel panel-default" style="text-align: center;">
+          <span style="width: 100%;">
+            <i class="fa fa-fw fa-search"></i> VER LOGS DE CARGA
+          </span>
+        </div>
+      </a>
+      @endif
     </div>
     @endif
   </div>
@@ -1303,6 +1312,10 @@ input[required], select[required]{
                     <!-- AMARILLO: no ingresaron (el rojo queda reservado para errores) -->
                     <div id="detalleVigentes" class="bloque-resultado bloque-amarillo" hidden>
                         <h5>NO ingresaron: ya tienen autoexclusión vigente (<span class="badge">0</span>)</h5>
+                        <ul></ul>
+                    </div>
+                    <div id="detalleCubiertas" class="bloque-resultado bloque-amarillo" hidden>
+                        <h5>NO ingresaron: la persona ya estaba cubierta por una AE previa (<span class="badge">0</span>)</h5>
                         <ul></ul>
                     </div>
                     <div id="detalleRepetidas" class="bloque-resultado bloque-amarillo" hidden>

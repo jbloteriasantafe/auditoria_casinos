@@ -54,22 +54,20 @@ function buscar(pagina){
                 const tipo_archivo = data[i].tipo_archivo;
                 const nombre = data[i].nombre;
                 const link = '/galeriaImagenesAutoexcluidos/mostrarArchivo/' + id_importacion + '/' + tipo_archivo;
-                const img = $('<embed>')
+                const img = crearElementoArchivo(link,nombre,tipo_archivo)
                 .addClass('fotoMiniatura')
                 .attr('id-autoexcluido',id_autoexcluido)
                 .attr('nro-dni',nro_dni)
                 .attr('data-id-importacion',id_importacion)
                 .attr('data-tipo-archivo',tipo_archivo)
-                .attr('data-nombre',nombre)
-                .attr('src',link +'#toolbar=0');
+                .attr('data-nombre',nombre);
 
                 const div = $('<div>')
                 .addClass('thumbnail')
                 .append(img);
 
                 div.click(function(){
-                  const big_img = img.clone().removeClass('fotoMiniatura').removeAttr('style');
-                  clickImagenGaleria(nro_dni,big_img,nombre);
+                  clickImagenGaleria(nro_dni,link,nombre,tipo_archivo);
                 });
                 $('#thumbs div[data-n="'+(i+1)+'"]').empty().append(div);
             }
@@ -82,7 +80,23 @@ function buscar(pagina){
     $('#thumbs div[data-n="1"] .thumbnail').click()
 }
 
-function clickImagenGaleria(nro_dni,embed,nombre){
+//Las imágenes van en un <img> y no en un <embed>: como la URL de mostrarArchivo no
+//tiene extensión, el navegador no le conoce el tamaño natural al <embed> y lo deja en
+//su tamaño por defecto (300x150), recortando la foto en una ventanita chica.
+function esImagen(nombre,tipo_archivo){
+  if(tipo_archivo == 'sin_foto') return true;//El placeholder es un jpg
+  const indice_ext = nombre.lastIndexOf('.');
+  if(indice_ext == -1) return false;//Sin extension
+  const ext = nombre.toLowerCase().substr(indice_ext+1);
+  return ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'gif' || ext == 'bmp' || ext == 'webp';
+}
+
+function crearElementoArchivo(link,nombre,tipo_archivo){
+  if(esImagen(nombre,tipo_archivo)) return $('<img>').attr('src',link);
+  return $('<embed>').attr('src',link + '#toolbar=0');//PDF o DOC o algun otro
+}
+
+function clickImagenGaleria(nro_dni,link,nombre,tipo_archivo){
   $.ajax({
     type: 'GET',
     url: '/galeriaImagenesAutoexcluidos/getDatosUnAutoexcluido/' + nro_dni,
@@ -99,20 +113,18 @@ function clickImagenGaleria(nro_dni,embed,nombre){
         document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;
         document.getElementById("fecha_cierre").innerHTML = res.fecha_cierre_ae;
 
-        const indice_ext = nombre.lastIndexOf('.');
-        if(indice_ext != -1){
-          const ext = nombre.toLowerCase().substr(indice_ext+1);
-          if(ext == 'png' || ext == 'jpg' || ext == 'jpeg'){
-            embed.css('max-height','100%');
-          }
-          else{//PDF o DOC o algun otro
-            embed.css('height','100%').css('width','100%');
-          }
+        //Si ya tuvo autoexclusiones anteriores, estas dos fechas no son de este período
+        $('#fila_vencimiento').toggle(!!res.es_primer_ae);
+        $('#fila_revocacion').toggle(!!res.es_primer_ae);
+
+        const visor = crearElementoArchivo(link,nombre,tipo_archivo);
+        if(esImagen(nombre,tipo_archivo)){
+          visor.css('max-width','100%').css('max-height','100%');
         }
-        else{//Sin extension
-          embed.css('height','100%').css('width','100%');
+        else{
+          visor.css('height','100%').css('width','100%');
         }
-        $('#viewer').empty().append(embed);
+        $('#viewer').empty().append(visor);
     },
     error: function(data) {
         console.log('Error:', data);

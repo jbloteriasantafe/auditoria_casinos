@@ -23,6 +23,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class AutoexclusionController extends Controller
 {
+    //Estados en los que la persona sigue autoexcluida y no corresponde darle un alta nueva:
+    //1 Vigente, 2 Renovado, 3 Pendiente de val., 6 RES.983 Pendiente, 7 RES.983 Verificado.
+    const ESTADOS_AE_ACTIVOS = [1, 2, 3, 6, 7];
+
+    //Piso razonable para la fecha de autoexclusión de un padrón importado.
+    const ANIO_MINIMO_FECHA_AE = 2010;
+
+    //Se incrementa cuando cambia lo que se guarda en ae_bd_cargas.data (igual que en las descargas).
+    const VERSION_LOG_CARGA = 1;
+
     private static $atributos = [];
 
     private static $instance;
@@ -384,6 +394,14 @@ class AutoexclusionController extends Controller
       }
       $this->subirImportacionArchivos($ae,$request['ae_importacion']);
     });
+
+    $this->_logearCarga('alta_individual', [
+      'nro_dni'       => $request['ae_datos']['nro_dni'] ?? null,
+      'id_casino'     => $request['ae_estado']['id_casino'] ?? null,
+      'id_plataforma' => $request['ae_estado']['id_plataforma'] ?? null,
+      'alta_nueva'    => $esNuevo,//false = se editó un AE existente
+    ]);
+
     return ['nuevo' => $esNuevo];
   }
 
@@ -558,6 +576,15 @@ class AutoexclusionController extends Controller
       $ae_importacion[$request->tipo_archivo] = $request->archivo;
       $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
     });
+
+    $ae_log = AE\Autoexcluido::find($request->id_autoexcluido);
+    $this->_logearCarga('adjunto', [
+      'id_autoexcluido' => $request->id_autoexcluido,
+      'nro_dni'         => $ae_log? $ae_log->nro_dni : null,
+      'tipo_archivo'    => $request->tipo_archivo,
+      'archivo'         => $request->file('archivo')? $request->file('archivo')->getClientOriginalName() : null,
+    ]);
+
     return ['codigo' => 200];
   }
 
@@ -964,6 +991,67 @@ class AutoexclusionController extends Controller
       return $l;
     });
   }
+
+  private function _asegurarTablaLogsCarga(){
+    DB::statement('CREATE TABLE IF NOT EXISTS ae_bd_cargas (
+      id_ae_bd_carga INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+      data TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )');
+  }
+
+  /**
+   * Registra quién cargó qué y cuándo. Espejo de los logs de descarga.
+   * $origen: 'importacion_masiva' | 'alta_individual' | 'adjunto'
+   * $extra:  datos propios de cada origen (archivo, dni, contadores, etc.)
+   * Nunca debe romper la operación que lo invoca: si el log falla, se avisa por Log::error.
+   */
+  private function _logearCarga($origen, array $extra = []){
+    try {
+      $this->_asegurarTablaLogsCarga();
+      $AC = AuthenticationController::getInstancia();
+
+      $id_usuario = $AC->obtenerIdUsuario();
+      $usuario    = \App\Usuario::withTrashed()->find($id_usuario);
+      $user_name  = $usuario? $usuario->user_name : null;
+
+      $API_token    = $AC->obtenerAPIToken();
+      $id_api_token = $API_token? $API_token->id_api_token : null;
+      $token        = $API_token? $API_token->token : null;
+      $ip           = request()->ip() ?? null;
+
+      $timestamp = \Carbon\Carbon::now()->format('Y-m-d\TH:i:s.uP');
+      $version   = self::VERSION_LOG_CARGA;
+
+      DB::table('ae_bd_cargas')->insert([
+        'data' => json_encode(array_merge(compact(
+          'origen','id_usuario','user_name',
+          'id_api_token','token','ip',
+          'timestamp','version'
+        ), $extra))
+      ]);
+    } catch (\Exception $e) {
+      Log::error("No se pudo registrar el log de carga ($origen): " . $e->getMessage());
+    }
+  }
+
+  public function logsCarga(Request $request){
+    $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
+    if(is_null($usuario) || !$usuario->es_superusuario){
+      return response()->json(['error' => 'No tiene acceso'], 403);
+    }
+    $this->_asegurarTablaLogsCarga();
+    return DB::table('ae_bd_cargas')->orderBy('id_ae_bd_carga','desc')->get()->transform(function(&$l){
+      $decoded = json_decode($l->data,true);
+      if($decoded === null){
+        $l->invalid_json = 1;
+      }
+      else{
+        $l->data = $decoded;
+      }
+      return $l;
+    });
+  }
     
     public function importarMasivo(Request $request){
         $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
@@ -1018,6 +1106,7 @@ class AutoexclusionController extends Controller
         $lista_previas = []; // Existing DNI, but previous status was NOT active (expired/finished)
         $lista_vigentes_saltadas = [];     // Existing DNI, and previous status WAS active (1 or 2)
         $lista_repetidas = []; // Existing DNI, same exclusion date
+        $lista_cubiertas = []; // La fecha del archivo cae dentro de la cobertura de una AE previa
         
         $errores_detalle = [];
 
@@ -1202,36 +1291,60 @@ class AutoexclusionController extends Controller
                  }
 
                  // --- Date Logic ---
-                 
+
                  $fecha_ae = null;
                  $fecha_ae_raw = null;
                  if ($idx_fecha_ae !== null && array_key_exists($idx_fecha_ae,$row)) {
                     $fecha_ae_raw = $row[$idx_fecha_ae];
                     $fecha_ae = $F_PARSE_FECHA($fecha_ae_raw);
                  }
-                 // If null, default to now (or skip if strict?)
-                 // User says "saltea todos", implying they want data.
-                 if (!$fecha_ae) {
-                     Log::warning("LINE=$rowidx | ImportarMasivo: fecha_ae no parseada, cae a HOY. DNI=$dni raw=".json_encode($fecha_ae_raw));
-                     $fecha_ae = \Carbon\Carbon::now();//@Sus: debería tirar error o skipear
-                 }
-                 
+                 //El fallback a HOY se sacó: ahora la fila se rechaza (ver validaciones abajo).
+
                  $apellido_nombres = (($idx_apellido !== null) ? ($row[$idx_apellido] ?? '-') : '-') . ', ' . (($idx_nombre !== null) ? ($row[$idx_nombre] ?? '-') : '-');
+
+                 // --- VALIDACIONES DE FECHA ---
+                 // Antes, una fecha ilegible caía a HOY en silencio: eso inventaba una autoexclusión
+                 // con fecha falsa y además salteaba el control de solapamiento (que compara por fecha).
+                 // Ahora la fila se rechaza y queda visible en el bloque de errores.
+                 if (!$fecha_ae) {
+                     $cant_errores++;
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: fecha de autoexclusión ilegible ("
+                         . json_encode($fecha_ae_raw) . "). La fila no se cargó.";
+                     $rowidx++;
+                     continue;
+                 }
+                 if ($fecha_ae->gt(\Carbon\Carbon::now()->endOfDay())) {
+                     $cant_errores++;
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: la fecha de autoexclusión ("
+                         . $fecha_ae->format('d/m/Y') . ") es futura. La fila no se cargó.";
+                     $rowidx++;
+                     continue;
+                 }
+                 if ($fecha_ae->year < self::ANIO_MINIMO_FECHA_AE) {
+                     $cant_errores++;
+                     $errores_detalle[] = "LINEA: $rowidx | DNI $dni: la fecha de autoexclusión ("
+                         . $fecha_ae->format('d/m/Y') . ") es anterior a " . self::ANIO_MINIMO_FECHA_AE
+                         . ". La fila no se cargó.";
+                     $rowidx++;
+                     continue;
+                 }
+
                  $persona_desc = "Fila $rowidx: DNI $dni - $apellido_nombres - Fecha AE: " . $fecha_ae->format('d/m/Y');
 
-                 // --- DUPLICATE CHECK (Based on DNI + Active Status) ---
-                 // User request: Check if DNI exists and if current status is "active". 
-                 // If active -> Ignore. If not active (expired, etc) -> Create new.
-                 
+                 // --- CONTROL DE DUPLICADOS ---
+                 // Se saltea la fila si la persona YA ESTABA CUBIERTA cuando, según el archivo,
+                 // se autoexcluyó. Se evalúa contra la fecha que trae el archivo (no contra HOY):
+                 // el proveedor puede mandar un padrón semanas después del alta real, y lo que
+                 // importa es si en ESA fecha la persona seguía excluida.
                  $skip_record = false;
                  $skip_reason = '';
-                 
+                 $skip_detalle = '';
+                 $fecha_ae_str = $fecha_ae->format('Y-m-d');
+
                  // Buscar TODOS los registros del usuario por DNI
                  $existentes_ae = AE\Autoexcluido::select('id_autoexcluido')->where('nro_dni', $dni)->get();
                  $primer_ae = true;
                  if ($existentes_ae->count() > 0) {
-                     // Si existen registros, busco si ALGUNO de ellos tiene un estado global vigente o renovado
-                     // O si coincide exactamente la misma fecha de autoexclusión (evita re-ingresar un histórico vencido)
                      foreach($existentes_ae as $ae_hist) {
                          //Solo debería haber un ae_estado por autoexcluido, ademas al hacerlo por Model limpiamos los que estan deleteados
                          $latest_state = AE\EstadoAE::where('id_autoexcluido', $ae_hist->id_autoexcluido)
@@ -1239,18 +1352,42 @@ class AutoexclusionController extends Controller
 
                          if ($latest_state) {
                             //Si encontramos un AE anterior al que estamos importando, ya no lo marcamos como primer AE
-                            if($primer_ae && ($latest_state->fecha_ae < $fecha_ae->format('Y-m-d'))){
+                            if($primer_ae && ($latest_state->fecha_ae < $fecha_ae_str)){
                                 $primer_ae = false;
                             }
-                              
-                             if (in_array($latest_state->id_nombre_estado, [1,2,7])) {//Estados Vigentes
-                                 // "si algún estado es vigente, que se ignore"
+
+                             // 1) Estado activo: vigente, renovado, o pendiente de aprobación.
+                             //    1 Vigente, 2 Renovado, 7 RES.983 Verificado, 3 Pendiente de val., 6 RES.983 Pendiente.
+                             if (in_array($latest_state->id_nombre_estado, self::ESTADOS_AE_ACTIVOS)) {
                                  $skip_record = true;
                                  $skip_reason = 'vigente';
                                  break; // Con uno que coincida alcanza para saltearlo
-                             } 
-                             // Mismo registro/fecha histórico duplicado en el CSV? -> Saltear
-                             elseif ($latest_state->fecha_ae == $fecha_ae->format('Y-m-d')) {
+                             }
+
+                             // 2) Ventana de cobertura: hasta cuándo la AE previa sigue tapando.
+                             //    Si el titular la finalizó (Fin. por AE), la cobertura termina en el
+                             //    vencimiento y a partir de ahí puede volver a autoexcluirse: un alta
+                             //    posterior a esa fecha es legítima.
+                             //    fecha_revocacion_ae es el marcador durable de esa finalización, pero
+                             //    NO alcanza por sí solo: las AE de la resolución nueva no tienen
+                             //    vencimiento (es NULL), y sin el segundo chequeo el corte quedaba en
+                             //    NULL y anulaba el control entero, dejando pasar cualquier fecha.
+                             $finalizada_por_titular = !is_null($latest_state->fecha_revocacion_ae)
+                                                    && !is_null($latest_state->fecha_vencimiento);
+
+                             $corte = $finalizada_por_titular
+                                    ? $latest_state->fecha_vencimiento
+                                    : $latest_state->fecha_cierre_ae;
+
+                             if (!is_null($corte) && $fecha_ae_str <= $corte) {
+                                 $skip_record = true;
+                                 $skip_reason = 'cubierta';
+                                 $skip_detalle = \Carbon\Carbon::parse($corte)->format('d/m/Y');
+                                 break;
+                             }
+
+                             // 3) La misma fecha exacta ya cargada: el archivo repite un histórico.
+                             if ($latest_state->fecha_ae == $fecha_ae_str) {
                                  $skip_record = true;
                                  $skip_reason = 'repetido';
                                  break;
@@ -1258,11 +1395,13 @@ class AutoexclusionController extends Controller
                          }
                      }
                  }
-                 
+
                  if ($skip_record) {
                      $cant_saltados++;
                      if($skip_reason == 'vigente'){
                          $lista_vigentes_saltadas[] = $persona_desc . " (Salteada por AE vigente)";
+                     } elseif ($skip_reason == 'cubierta'){
+                         $lista_cubiertas[] = $persona_desc . " (Ya cubierta por una AE previa hasta el $skip_detalle)";
                      } elseif ($skip_reason == 'repetido'){
                          $lista_repetidas[] = $persona_desc . " (Salteada por fecha repetida)";
                      }
@@ -1377,6 +1516,16 @@ class AutoexclusionController extends Controller
             return response()->json(['error' => 'Error: ' . $e->getMessage()], 200);
         }
 
+        $this->_logearCarga('importacion_masiva', [
+            'archivo'        => $archivo->getClientOriginalName(),
+            'id_casino'      => $id_casino,
+            'id_plataforma'  => $id_plataforma,
+            'nuevas'         => count($lista_nuevas),
+            'previas'        => count($lista_previas),
+            'salteadas'      => $cant_saltados,
+            'errores'        => $cant_errores,
+        ]);
+
         return response()->json([
             'procesados' => $cant_procesados,
             'saltados' => $cant_saltados,
@@ -1389,7 +1538,8 @@ class AutoexclusionController extends Controller
                 'detalles_previas' => $lista_previas,
                 'vigentes' => count($lista_vigentes_saltadas),
                 'detalles_vigentes' => $lista_vigentes_saltadas,
-                'detalles_repetidas' => $lista_repetidas
+                'detalles_repetidas' => $lista_repetidas,
+                'detalles_cubiertas' => $lista_cubiertas
             ]
         ], 200);
     }

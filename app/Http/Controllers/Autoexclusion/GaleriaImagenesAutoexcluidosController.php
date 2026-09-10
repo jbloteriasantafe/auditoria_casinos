@@ -90,12 +90,18 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->where($reglas)->whereNotNull('ae_importacion.foto2')->whereRaw('LENGTH(ae_importacion.foto2) > 0')
         ->whereNull('ae_datos.deleted_at')->whereNull('ae_importacion.deleted_at')->whereNull('ae_estado.deleted_at');
       
+      //El importador masivo no crea la fila en ae_importacion, así que esos autoexcluidos
+      //no tienen ninguna. Con leftJoin igual aparecen, como SIN FOTO. El deleted_at va en
+      //el ON para que una importación borrada tampoco los saque del listado.
       $resultados_sin_foto = DB::table('ae_datos')
         ->selectRaw("ae_datos.id_autoexcluido,ae_datos.nro_dni,0 as id_importacion,'sin_foto' as tipo_archivo,'SIN FOTO' as nombre")
-        ->join('ae_importacion', 'ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+        ->leftJoin('ae_importacion', function($join){
+          $join->on('ae_importacion.id_autoexcluido', '=', 'ae_datos.id_autoexcluido')
+               ->whereNull('ae_importacion.deleted_at');
+        })
         ->join('ae_estado' , 'ae_estado.id_autoexcluido' , '=' , 'ae_datos.id_autoexcluido')
         ->where($reglas)->whereNull('ae_importacion.foto1')->whereNull('ae_importacion.foto2')
-        ->whereNull('ae_datos.deleted_at')->whereNull('ae_importacion.deleted_at')->whereNull('ae_estado.deleted_at');
+        ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at');
 
       $count =  (clone $resultados_foto1)->count() + (clone $resultados_foto2)->count() + (clone $resultados_sin_foto)->count();
       $union = $resultados_foto1->union($resultados_foto2);
@@ -122,6 +128,13 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
         ->orderBy('ae_datos.id_autoexcluido','desc')
         ->take(1)->get();
+
+      //Si la persona ya tuvo autoexclusiones anteriores, el vencimiento del 1° período
+      //y la revocación no aplican a este registro, así que el detalle no los muestra.
+      foreach($resultado as $r){
+        $ae = Autoexcluido::find($r->id_autoexcluido);
+        $r->es_primer_ae = $ae !== null? $ae->es_primer_ae : true;
+      }
 
       return $resultado;
     }

@@ -341,6 +341,7 @@ $('#btn-importar').click(function(e){
             $('#detalleNuevas ul').empty();
             $('#detallePrevias ul').empty();
             $('#detalleVigentes ul').empty();
+            $('#detalleCubiertas ul').empty();
             $('#detalleRepetidas ul').empty();
             
             // Function to populate generic lists
@@ -359,6 +360,7 @@ $('#btn-importar').click(function(e){
             fillList('#detalleNuevas', data.resumen.detalles_nuevas, '#detalleNuevas .badge');
             fillList('#detallePrevias', data.resumen.detalles_previas, '#detallePrevias .badge');
             fillList('#detalleVigentes', data.resumen.detalles_vigentes, '#detalleVigentes .badge');
+            fillList('#detalleCubiertas', data.resumen.detalles_cubiertas, '#detalleCubiertas .badge');
             fillList('#detalleRepetidas', data.resumen.detalles_repetidas, '#detalleRepetidas .badge');
             
             $('#mensajeExitoImportacion').show();

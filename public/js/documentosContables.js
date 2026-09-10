@@ -575,6 +575,8 @@ $(document).on("click", "#btn-eliminarArchivo", function () {
           Seguros: (id, target) => cargarArchivosSegurosLista(id, target),
           publicoCasino: (id, target) => cargarArchivosPublicoCasinoLista(id, target),
           EstadoContable: (id, target) => cargarArchivosEstadoContableLista(id, target),
+          // El unificado no va por id de registro: relee la lista completa del mes+casino.
+          Unificado: () => cargarArchivosUnificadoInline(),
         };
 
         if (reloaders[scope]) {
@@ -4280,7 +4282,9 @@ function abrirModalIMP_AP_MTMEditar(id) {
     $('input[name="impuesto_determinadoIMP_AP_MTM"]').val(
       formatoAR(d.impuesto_determinado ?? "")
     );
-    $('input[name="cantMTM_IMP_AP_MTM"]').val(formatoAR(d.cant_mtm ?? ""));
+    // Cantidad de máquinas: es un entero (columna int), sin decimales. formatoAR() sin el
+    // segundo argumento fuerza un mínimo de 2 y mostraba "21.521,00".
+    $('input[name="cantMTM_IMP_AP_MTM"]').val(formatoAR(d.cant_mtm ?? "", 0));
     $('[name="obsIMP_AP_MTM"]').val(d.obs || "");
   }).fail(function (xhr) {
     console.error("[IMP_AP_MTM] GET FAIL", xhr.status, xhr.responseText);
@@ -7454,6 +7458,24 @@ $("#btn-descargarAportesPatronalesCsv").on("click", function () {
   window.location.href = url;
 });
 
+// Informe "Personal CRO CME CSF según F.931". Siempre los 3 casinos: solo manda el rango de fechas.
+$("#btn-descargarAportesPatronalesPdf").on("click", function () {
+  var _fg = filtrosGlobalDescarga();
+  const desde = _fg.desde;
+  const hasta = _fg.hasta;
+
+  if (desde > hasta && hasta) {
+    avisoDescargaDoc("El intérvalo de inicio no puede ser posterior al de fin.");
+    return;
+  }
+
+  let url = "/documentosContables/descargarAportesPatronalesPdf?";
+  if (desde) url += `desde=${desde}&`;
+  if (hasta) url += `hasta=${hasta}`;
+
+  window.open(url, "_blank");
+});
+
 //PROMO TICKETS
 
 instalarNumeroFlexibleAR("#importe_PromoTickets", {
@@ -8898,7 +8920,8 @@ instalarAutoSumaAR({
   decimales: 0,
 });
 instalarAutoPorcentajeAR({
-  base: "#total_ludicos_RRHH",
+  // Va sobre el total de personal que vive en Santa Fe, no sobre el total de personal.
+  base: "#total_ludicos_viviendo_RRHH",
   parte: "#ludicos_vivivendo_RRHH",
   target: "#porcentaje_ludicos_sf_RRHH",
   decimales: 2,
@@ -11515,9 +11538,12 @@ $(document).on("click", "#PremiosMTM_nuevo", function () {
   ).attr("disabled", false);
   $("#obs_Unificado").val("");
   // Clear file containers and displays
-  $(".containerUnified").empty();
-  $(".wrapUnified").hide();
-  $(".displayUnified").val("");
+  $("#container_Unificado").empty();
+  $("#wrap_Unificado").hide();
+  $("#table_Unificado tbody").empty();
+  $("#display_Unificado").val("");
+  $("#listaArchivos_Unificado").empty();
+  $("#listaArchivosWrap_Unificado").hide();
 
   $("#PremiosMTM_Unificado_modo").val("create");
   $("#modalCargarPremiosMTM_titulo").text("| NUEVO REGISTRO UNIFICADO");
@@ -11621,15 +11647,14 @@ $(function () {
   });
 });
 
-// Manejo de Archivos Unificado (Pattern: PromoTickets/Aportes)
-$(document).on("click", ".btnPickUnified", function () {
-  const mod = $(this).data("module");
-  $("#upload_" + mod).click();
+// Archivos del registro unificado: un unico apartado para todo el registro (mes+casino),
+// ya no uno por seccion. Mismo patron que Publico Casino.
+$(document).on("click", "#btnPickUnificado", function () {
+  $("#upload_Unificado").click();
 });
 
-$(document).on("change", ".inputUnified", function () {
+$(document).on("change", "#upload_Unificado", function () {
   if (!this.files || !this.files.length) return;
-  const mod = $(this).closest(".prize-section").attr("id").replace("sec_", "");
   const $inputGroup = $(this).closest(".input-group");
   const gid =
     "lote_" +
@@ -11639,25 +11664,21 @@ $(document).on("change", ".inputUnified", function () {
     .attr("data-group", gid)
     .removeAttr("id")
     .addClass("archived")
-    .appendTo("#container_" + mod);
-  renderUnifiedUploads(mod);
+    .appendTo("#container_Unificado");
+  renderUnifiedUploads();
 
   const $new = $(
-    '<input type="file" class="inputUnified" id="upload_' +
-      mod +
-      '" name="upload' +
-      mod +
-      '[]" multiple style="display:none;">'
+    '<input type="file" id="upload_Unificado" name="uploadUnificado[]" multiple style="display:none;">'
   );
   $inputGroup.append($new);
 });
 
-function renderUnifiedUploads(mod) {
-  const $tbody = $("#table_" + mod + " tbody").empty();
+function renderUnifiedUploads() {
+  const $tbody = $("#table_Unificado tbody").empty();
   let totalFiles = 0,
     rowIdx = 1;
 
-  $("#container_" + mod + " input[type=file]").each(function () {
+  $("#container_Unificado input[type=file]").each(function () {
     const $inp = $(this);
     const gid = $inp.attr("data-group");
     const files = this.files || [];
@@ -11671,7 +11692,6 @@ function renderUnifiedUploads(mod) {
       const $btn = $(
         `<button type="button" class="btn btn-xs btn-danger" title="Quitar"><i class="fa fa-trash"></i></button>`
       )
-        .attr("data-module", mod)
         .attr("data-group", gid)
         .attr("data-idx", i);
       $tr.append($("<td></td>").append($btn));
@@ -11679,19 +11699,18 @@ function renderUnifiedUploads(mod) {
     }
   });
 
-  $("#wrap_" + mod).toggle(totalFiles > 0);
-  $("#display_" + mod).val(
+  $("#wrap_Unificado").toggle(totalFiles > 0);
+  $("#display_Unificado").val(
     totalFiles
       ? totalFiles + " archivo(s) seleccionado(s)"
       : ""
   );
 }
 
-$(document).on("click", ".wrapUnified .btn-danger", function () {
-  const mod = $(this).attr("data-module");
+$(document).on("click", "#table_Unificado .btn-danger", function () {
   const gid = $(this).attr("data-group");
   const idx = parseInt($(this).attr("data-idx"), 10);
-  const $inp = $(`#container_${mod} input[data-group="${gid}"]`);
+  const $inp = $(`#container_Unificado input[data-group="${gid}"]`);
 
   if (!$inp.length) return;
   const dt = new DataTransfer();
@@ -11701,7 +11720,7 @@ $(document).on("click", ".wrapUnified .btn-danger", function () {
   }
   $inp[0].files = dt.files;
   if ($inp[0].files.length === 0) $inp.remove();
-  renderUnifiedUploads(mod);
+  renderUnifiedUploads();
 });
 
 $(document).on("shown.bs.modal", "#modalCargarPremiosMTM", function () {
@@ -11728,9 +11747,10 @@ function clearUnifiedModalInputs() {
     .not("#PremiosMTM_Unificado_modo")
     .val("");
   // Clear file containers
-  $(".containerUnified").empty();
-  $(".wrapUnified").hide();
-  $(".displayUnified").val("");
+  $("#container_Unificado").empty();
+  $("#wrap_Unificado").hide();
+  $("#table_Unificado tbody").empty();
+  $("#display_Unificado").val("");
   // Clear validation errors
   $("#formNuevoRegistroPremiosMTM_Unificado")
     .find(".has-error")
@@ -12028,7 +12048,7 @@ $(document).on(
           ).attr("disabled", true);
           // Hide file pickers and containers in View mode
           $(".file-group-unified").hide();
-          $(".wrapUnified").hide();
+          $("#wrap_Unificado").hide();
           // Show "Ver Archivos" buttons
           $("#guardarRegistroPremiosMTM_Unificado").hide();
           // Ensure Date is visible
@@ -12055,35 +12075,78 @@ $(document).on(
   }
 );
 
-// Modal unificado: la lista de archivos de cada sub-documento se muestra inline, debajo de su
-// botón de subir archivos (antes había un botón "VER ARCHIVOS" que abría un modal aparte).
-// OJO: las claves son los nombres cortos (Pozos/Jackpots/PagosMesas), igual que la respuesta
-// del backend y los contenedores del blade.
-var MAP_ARCHIVOS_UNIFICADO = {
-  PremiosMTM: { id: "#id_registroPremiosMTM_Unified", fn: "cargarArchivosPremiosMTMLista" },
-  PromoTickets: { id: "#id_registroPromoTickets_Unified", fn: "cargarArchivosPromoTicketsLista" },
-  Pozos: { id: "#id_registroPozos_Unified", fn: "cargarArchivosPozosAcumuladosLinkeadosLista" },
-  Jackpots: { id: "#id_registroJackpots_Unified", fn: "cargarArchivosJackpotsPagadosLista" },
-  PremiosPagados: { id: "#id_registroPremiosPagados_Unified", fn: "cargarArchivosPremiosPagadosLista" },
-  PagosMesas: { id: "#id_registroPagosMesas_Unified", fn: "cargarArchivosPagosMayoresMesasLista" },
-  RegistrosContables: { id: "#id_registroRegistrosContables_Unified", fn: "cargarArchivosRegistrosContablesLista" },
-};
-
+// Modal unificado: una sola lista de archivos para todo el registro (mes+casino).
+// Junta los cargados en el apartado único con los históricos, que quedaron colgados de cada
+// sección cuando cada una tenía su propia carga; a esos se les muestra de dónde vienen.
 function cargarArchivosUnificadoInline() {
-  Object.keys(MAP_ARCHIVOS_UNIFICADO).forEach(function (type) {
-    var cfg = MAP_ARCHIVOS_UNIFICADO[type];
-    var id = $(cfg.id).val();
-    var fn = window[cfg.fn];
-    var $wrap = $("#listaArchivosWrap_U_" + type);
-    if (id && typeof fn === "function") {
-      $wrap.show();
-      fn(id, "#listaArchivos_U_" + type); // target explícito: contenedor del unificado
-    } else {
-      $("#listaArchivos_U_" + type).empty();
-      $wrap.hide();
-    }
-  });
+  var fecha = $("#fecha_Unificado").val();
+  var casino = $("#casino_Unificado").val();
+  var $wrap = $("#listaArchivosWrap_Unificado");
+  var $list = $("#listaArchivos_Unificado");
+
+  if (!fecha || !casino) {
+    $list.empty();
+    $wrap.hide();
+    return;
+  }
+
+  $wrap.show();
+  $list.empty().append('<div class="list-group-item">Cargando...</div>');
+
+  $.getJSON("/documentosContables/archivosUnificado", { fecha: fecha, casino: casino })
+    .done(function (res) {
+      var files = Array.isArray(res) ? res : res.data || [];
+      $list.empty();
+      if (!files.length) {
+        $list.append('<div class="list-group-item">Sin archivos asociados.</div>');
+        return;
+      }
+      files.forEach(function (f) {
+        var nombre = f.nombre || "archivo";
+        var href =
+          "/documentosContables/visualizarArchivo/" +
+          encodeURIComponent(f.tipo) +
+          "/" +
+          encodeURIComponent(nombre);
+
+        var $row = $('<div class="list-group-item clearfix">');
+        var $a = $('<a target="_blank">')
+          .attr("href", href)
+          .text(iconoExt(nombre) + " " + nombreVisibleArchivo(nombre));
+
+        var $del = $('<button type="button" class="btn btn-sm btn-danger btn-del-archivo-Unificado">')
+          .attr("data-id", f.id)
+          .attr("data-toggle", "tooltip")
+          .attr("data-placement", "bottom")
+          .attr("title", "ELIMINAR ARCHIVO")
+          .css("float", "right")
+          .append($("<i>").addClass("fa fa-trash"));
+
+        $row.append($a);
+        // Los viejos se identifican con la sección de la que vienen.
+        if (f.origen) {
+          $row.append(
+            $('<span class="label label-default">')
+              .css("margin-left", "8px")
+              .text(f.origen)
+          );
+        }
+        $row.append($del);
+        $list.append($row);
+      });
+    })
+    .fail(function () {
+      $list
+        .empty()
+        .append('<div class="list-group-item text-danger">Error al cargar archivos.</div>');
+    });
 }
+
+$(document).on("click", ".btn-del-archivo-Unificado", function () {
+  const id = $(this).data("id");
+  $("#btn-eliminarArchivo").attr("data-id", id);
+  $("#modalEliminarArchivo").data({ id: id, scope: "Unificado" }).modal("show");
+});
 
 $("#btn-eliminarPremiosMTM").on("click", function () {
   const fecha = $(this).attr("data-fecha");
@@ -19719,7 +19782,7 @@ function aplicarSoloLecturaDoc(cfg, soloLectura) {
       .not(":disabled")
       .attr("data-ro-doc", "1")
       .prop("disabled", true);
-    $m.find("[id^=btnPick], .btnPickUnified").attr("data-ro-doc-hide", "1").hide();
+    $m.find("[id^=btnPick]").attr("data-ro-doc-hide", "1").hide();
     $guardar.attr("data-ro-doc-hide", "1").hide();
   } else {
     $m.find("[data-ro-doc]").removeAttr("data-ro-doc").prop("disabled", false);
@@ -19806,10 +19869,11 @@ function limpiarBufferArchivosDoc($m) {
   $m.find("[id^=uploads][id$=Table]").find("tbody").empty();
   $m.find("[id^=uploads][id$=Wrap]").hide();
   $m.find("input[type=file]").val("");
-  // modal unificado
-  $m.find(".wrapUnified").hide();
-  $m.find(".tableUnified").find("tbody").empty();
-  $m.find(".displayUnified").val("");
+  // modal unificado: un unico apartado de archivos para todo el registro
+  $m.find("#container_Unificado").empty();
+  $m.find("#wrap_Unificado").hide();
+  $m.find("#table_Unificado").find("tbody").empty();
+  $m.find("#display_Unificado").val("");
 }
 
 // Al cerrar un modal se limpia todo el estado: archivos ya cargados, buffer de subida y
