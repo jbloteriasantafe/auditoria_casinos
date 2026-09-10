@@ -163,10 +163,15 @@ background-color: #4CAF50;
                             <span id="estado" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">FECHA AE </h5>
                             <span id="fecha_ae" style="margin-top:6px; margin-left: 15px;"></span><br>
-                            <h5 style="display:inline-block">VENCIMIENTO 1° PERÍODO </h5>
-                            <span id="vencimiento" style="margin-top:6px; margin-left: 15px;"></span><br>
-                            <h5 style="display:inline-block">FECHA REVOCACIÓN </h5>
-                            <span id="fecha_revocacion" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <!-- Solo se muestran si es la primera autoexclusión de la persona -->
+                            <div id="fila_vencimiento">
+                              <h5 style="display:inline-block">VENCIMIENTO 1° PERÍODO </h5>
+                              <span id="vencimiento" style="margin-top:6px; margin-left: 15px;"></span>
+                            </div>
+                            <div id="fila_revocacion">
+                              <h5 style="display:inline-block">FECHA REVOCACIÓN </h5>
+                              <span id="fecha_revocacion" style="margin-top:6px; margin-left: 15px;"></span>
+                            </div>
                             <h5 style="display:inline-block">FECHA CIERRE </h5>
                             <span id="fecha_cierre" style="margin-top:6px; margin-left: 15px;"></span>
                             <br>
@@ -227,5 +232,5 @@ background-color: #4CAF50;
   </script>
   <script type="text/javascript" src="/js/noprint.js"></script> 
 
-  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?2" charset="utf-8"></script>
+  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?3" charset="utf-8"></script>
   @endsection

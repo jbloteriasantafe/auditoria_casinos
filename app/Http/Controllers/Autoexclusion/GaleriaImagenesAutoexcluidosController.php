@@ -123,6 +123,13 @@ class GaleriaImagenesAutoexcluidosController extends Controller
         ->orderBy('ae_datos.id_autoexcluido','desc')
         ->take(1)->get();
 
+      //Si la persona ya tuvo autoexclusiones anteriores, el vencimiento del 1° período
+      //y la revocación no aplican a este registro, así que el detalle no los muestra.
+      foreach($resultado as $r){
+        $ae = Autoexcluido::find($r->id_autoexcluido);
+        $r->es_primer_ae = $ae !== null? $ae->es_primer_ae : true;
+      }
+
       return $resultado;
     }
 }
