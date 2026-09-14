@@ -159,8 +159,9 @@ background-color: #4CAF50;
                             <span id="dni" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <h5 style="display:inline-block">CASINO </h5>
                             <span id="casino_plataforma" style="margin-top:6px; margin-left: 15px;"></span><br>
-                            <h5 style="display:inline-block">ESTADO </h5>
-                            <span id="estado" style="margin-top:6px; margin-left: 15px;"></span><br>
+                            <!-- El h5 ya viene en peso 700; lo que lo aclara es el color #aaa del tema -->
+                            <h5 style="display:inline-block; color: #444;">ESTADO </h5>
+                            <span id="estado" style="margin-top:6px; margin-left: 15px; text-transform: uppercase; font-weight: bold;"></span><br>
                             <h5 style="display:inline-block">FECHA AE </h5>
                             <span id="fecha_ae" style="margin-top:6px; margin-left: 15px;"></span><br>
                             <!-- Solo se muestran si es la primera autoexclusión de la persona -->
@@ -232,5 +233,5 @@ background-color: #4CAF50;
   </script>
   <script type="text/javascript" src="/js/noprint.js"></script> 
 
-  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?3" charset="utf-8"></script>
+  <script src="/js/Autoexclusion/galeriaImagenesAutoexcluidos.js?4" charset="utf-8"></script>
   @endsection
