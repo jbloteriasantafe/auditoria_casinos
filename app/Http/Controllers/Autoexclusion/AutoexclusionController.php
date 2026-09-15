@@ -711,6 +711,9 @@ class AutoexclusionController extends Controller
     else if($id_formulario == 8){
       $path = $pathForms . 'Formulario AU 494.pdf';
     }
+    else if($id_formulario == 9){
+      $path = $pathForms . 'Caratula AU 494.pdf';
+    }
     else return "Formulario invalido";
     if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
     return response()->file($path);

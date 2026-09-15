@@ -1235,7 +1235,7 @@ input[required], select[required]{
           <div class="row">
             <div class="col-lg-6">
               <h5>Carátula AU</h5>
-              <button id="1" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU</button>
+              <button id="9" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU</button>
             </div>
           </div>
           <div class="row">
