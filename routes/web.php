@@ -1580,7 +1580,7 @@ Route::group(['prefix' => 'autoexclusion', 'middleware' => 'tiene_permiso:ver_se
   Route::post('importarMasivo', 'Autoexclusion\AutoexclusionController@importarMasivo');
   Route::get('cambiarEstadoAE/{id}/{id_estado}', 'Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('existeAutoexcluido/{dni}', 'Autoexclusion\AutoexclusionController@existeAutoexcluido');
-  Route::get('generarEstado/{fecha_ae}/{dni}/{adicionales?}', 'Autoexclusion\AutoexclusionController@generarEstado');
+  Route::get('generarEstado/{fecha_ae}/{dni}/{adicionales?}/{alcance_interjurisdiccional?}', 'Autoexclusion\AutoexclusionController@generarEstado');
   Route::post('buscarAutoexcluidos', 'Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('buscarAutoexcluido/{id}', 'Autoexclusion\AutoexclusionController@buscarAutoexcluido');
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}', 'Autoexclusion\AutoexclusionController@mostrarArchivo');

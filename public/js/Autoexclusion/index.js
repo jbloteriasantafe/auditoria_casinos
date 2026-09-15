@@ -495,7 +495,11 @@ $("#fecha_autoexlusion,#años_adicionales").change(function () {
     return;
   }
   $.ajax({
-    url: 'autoexclusion/generarEstado/' + iso(fecha_autoexclusion) + '/' + $('#nro_dni').val() + '/' +$('#años_adicionales').val(),
+    url: 'autoexclusion/generarEstado/' 
+      + iso(fecha_autoexclusion) + '/' 
+      + $('#nro_dni').val() + '/' 
+      + $('#años_adicionales').val() + '/'
+      + $('#alcance_interjurisdiccional').val(),
     type: 'GET',
     success: function(data){
       $('#resolucion').val(data?.resolucion ?? '');
@@ -505,11 +509,13 @@ $("#fecha_autoexlusion,#años_adicionales").change(function () {
       $('#fecha_cierre_definitivo').val(data?.fechas?.fecha_cierre_ae ?? '');
       $('#fecha_cierre_minima').val(data?.fechas?.fecha_cierre_minima ?? '').parent().css("opacity", "0");
       $('#años_adicionales').val(data?.fechas?.años_adicionales ?? '').parent().css("opacity", "0");
+      $('#alcance_interjurisdiccional').val(data?.alcance_interjurisdiccional ?? '').parent().css('opacity',"0");
       if(data?.resolucion == NOMBRE_NUEVA_RESOLUCION){
         $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
         $("#fecha_renovacion").parent().css("opacity", "0");
         $('#fecha_cierre_minima').parent().css("opacity", "");
         $('#años_adicionales').parent().css("opacity", "");
+        $('#alcance_interjurisdiccional').parent().css('opacity',"");
       }
       else if(data?.resolucion == '983' && (!!data?.primer_ae)){
         if(!!data?.primer_ae){
@@ -723,12 +729,14 @@ function validarDNI() {
             $("#fecha_renovacion").parent().css("opacity", "0");
             $('#fecha_cierre_minima').parent().css("opacity", "");
             $('#años_adicionales').parent().css("opacity", "");
+            $('#alcance_interjurisdiccional').parent().css('opacity',"");
           }
           else if(data['resolucion'] == '983'){
             $("#fecha_vencimiento_periodo").parent().css("opacity", "");
             $("#fecha_renovacion").parent().css("opacity", "");
             $('#fecha_cierre_minima').parent().css("opacity", "0");
             $('#años_adicionales').parent().css("opacity", "0");
+            $('#alcance_interjurisdiccional').parent().css('opacity',"0");
           }
           else{
             throw 'Error: Resolución desconocida: ' + data['resolucion'];
@@ -744,12 +752,14 @@ function validarDNI() {
             $("#fecha_renovacion").parent().css("opacity", "0");
             $('#fecha_cierre_minima').parent().css("opacity", "");
             $('#años_adicionales').parent().css("opacity", "");
+            $('#alcance_interjurisdiccional').parent().css('opacity',"");
           }
           else if(data['resolucion'] == '983'){
             $("#fecha_vencimiento_periodo").parent().css("opacity", "0");
             $("#fecha_renovacion").parent().css("opacity", "0");
             $('#fecha_cierre_minima').parent().css("opacity", "0");
             $('#años_adicionales').parent().css("opacity", "0");
+            $('#alcance_interjurisdiccional').parent().css('opacity',"0");
           }
           else{
             throw 'Error: Resolución desconocida: ' + data['resolucion'];
@@ -822,12 +832,16 @@ function validarDNI() {
           $('#fecha_cierre_minima').val(data.estado.fecha_cierre_minima);
           $('#años_adicionales').parent().css("opacity", "");
           $('#años_adicionales').val(data.estado.años_adicionales);
+          $('#alcance_interjurisdiccional').parent().css('opacity',"");
+          $('#alcance_interjurisdiccional').val(data.estado.alcance_interjurisdiccional);
         }
         else if(data.estado.resolucion == '983'){
           $('#fecha_cierre_minima').parent().css("opacity", "0");
           $('#fecha_cierre_minima').val('');
           $('#años_adicionales').parent().css("opacity", "0");
           $('#años_adicionales').val('');
+          $('#alcance_interjurisdiccional').parent().css('opacity',"0");
+          $('#alcance_interjurisdiccional').val('');
 
           if(data.es_primer_ae){
             $("#fecha_vencimiento_periodo").parent().css("opacity", "");
@@ -1222,6 +1236,7 @@ $("#btn-guardar").click(function (e) {
     fecha_cierre_ae: $("#fecha_cierre_definitivo").val(),
     fecha_cierre_minima: $('#fecha_cierre_minima').val(),
     años_adicionales: $('#años_adicionales').val(),
+    alcance_interjurisdiccional: $('#alcance_interjurisdiccional').val(),
     resolucion: $('#resolucion').val(),
     primer_ae: $('#primer_ae').val()
   };
@@ -1358,6 +1373,7 @@ function mostrarAutoexcluido(id_autoexcluido) {
       if(data.estado.resolucion == '983'){
         $('#infoFechaCierreMinima').val('');
         $('#infoAñosAdicionales').val('');
+        $('#infoAlcanceInterjurisdiccional').val('');
         if(data.es_primer_ae){
           $('#infoFechaVencimiento').val(data.estado.fecha_vencimiento);
           $('#infoFechaRenovacion').val(data.estado.fecha_renovacion);
@@ -1370,6 +1386,7 @@ function mostrarAutoexcluido(id_autoexcluido) {
       else if(data.estado.resolucion == NOMBRE_NUEVA_RESOLUCION){
         $('#infoFechaCierreMinima').val(data.estado.fecha_cierre_minima ?? '');
         $('#infoAñosAdicionales').val(data.estado.años_adicionales ?? '');
+        $('#infoAlcanceInterjurisdiccional').val(data.estado.alcance_interjurisdiccional ?? '');
         $('#infoFechaVencimiento').val('');
         $('#infoFechaRenovacion').val('');
       }

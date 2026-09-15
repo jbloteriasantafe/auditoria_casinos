@@ -657,6 +657,14 @@ input[required], select[required]{
                         <h5>FECHA CIERRE DEFINITIVO</h5>
                         <input style="text-align: center;" id="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
                       </div>
+                      <div class="col-lg-12">
+                        <h5>ALCANCE INTERJURISDICCIONAL</h5>
+                        <select style="text-align: center;" id="alcance_interjurisdiccional" type="text" class="form-control"  placeholder="" value="" required>
+                          <option value="">- SELECCIONE -</option>
+                          <option value="1">SI CONSIENTO</option>
+                          <option value="0">NO CONSIENTO</option>
+                        </select>
+                      </div>
                     </div>
                     <div class="row">
                       <div class="col-lg-6">
@@ -1030,13 +1038,21 @@ input[required], select[required]{
                 </div>
               </div>
               <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                   <h5>FECHA CIERRE MÍNIMA</h5>
                   <input id="infoFechaCierreMinima" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                   <h5>AÑOS ADICIONALES</h5>
                   <input id="infoAñosAdicionales" type="text" class="form-control" placeholder="" value="" required disabled>
+                </div>
+                <div class="col-lg-4">
+                  <h5>ALCANCE INTERJURISDICCIONAL</h5>
+                  <select id="infoAlcanceInterjurisdiccional" class="form-control" placeholder="" value="" required disabled>
+                    <option value="">-</option>
+                    <option value="1">Sí</option>
+                    <option value="0">NO</option>
+                  </select>
                 </div>
               </div>
               <div class="row">
@@ -1232,12 +1248,6 @@ input[required], select[required]{
             $desde = \DateTimeImmutable::createFromFormat('Y-m-d',$hasta)->modify('+1 day')->format('Y-m-d'); 
           ?>
           <h6>DESDE {{$desde}}</h6>
-          <div class="row">
-            <div class="col-lg-6">
-              <h5>Carátula AU</h5>
-              <button id="9" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU</button>
-            </div>
-          </div>
           <div class="row">
             <div class="col-lg-6">
               <h5>RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</h5>

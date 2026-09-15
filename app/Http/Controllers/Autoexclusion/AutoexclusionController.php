@@ -249,6 +249,8 @@ class AutoexclusionController extends Controller
       //La existencia se chequea abajo con existePlataforma().
       'ae_estado.id_plataforma'     => 'nullable|integer',
       'ae_estado.fecha_ae'          => 'required|date',
+      'ae_estado.años_adicionales'  => 'nullable|integer|min:0',
+      'ae_estado.alcance_interjurisdiccional'  => 'nullable|integer|in:1,0',
       'hace_encuesta'                         => 'required|boolean',
       'ae_encuesta.id_juego_preferido'        => 'nullable|integer|exists:ae_juego_preferido,id_juego_preferido',
       'ae_encuesta.id_frecuencia_asistencia'  => 'nullable|integer|exists:ae_frecuencia_asistencia,id_frecuencia',
@@ -337,6 +339,15 @@ class AutoexclusionController extends Controller
       //Si es para crear uno nuevo y ya hay uno vigente, error
       if(is_null($id_ae) && !$todos_vencidos){
         $validator->errors()->add('ae_datos.nro_dni', 'Ya existe un autoexcluido vigente con ese DNI.');
+      }
+
+      if($this->resolucion_por_fecha($data['ae_estado']['fecha_ae']) == env('NOMBRE_NUEVA_RESOLUCION','494')){
+        if(!isset($data['ae_estado']['años_adicionales'])){
+          $validator->errors()->add('ae_estado.años_adicionales', 'El valor es requerido');
+        }
+        if(!isset($data['ae_estado']['alcance_interjurisdiccional'])){
+          $validator->errors()->add('ae_estado.alcance_interjurisdiccional', 'El valor es requerido');
+        }
       }
     })->validate();
     
@@ -446,7 +457,7 @@ class AutoexclusionController extends Controller
     return $ret;
   }
 
-  public function generarEstado($fecha_ae,$dni,int $adicionales = 0){//Usado en front
+  public function generarEstado($fecha_ae,$dni,int $adicionales = 0,$alcance_interjurisdiccional = null){//Usado en front
     $ae = AE\Autoexcluido::where('nro_dni',$dni)
     ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
     ->where('ae_estado.fecha_ae','<=',$fecha_ae)
@@ -454,14 +465,24 @@ class AutoexclusionController extends Controller
     ->first();
     $resolucion = $this->resolucion_por_fecha($fecha_ae);
     if($resolucion == '983'){
-      $años_adicionales = 0;
+      $adicionales = 0;
+    }
+    if($alcance_interjurisdiccional !== null){
+      $alcance_interjurisdiccional = !!$alcance_interjurisdiccional;
     }
     $primer_ae = $ae === null || $ae->es_primer_ae;
     $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae,$adicionales);
+    $alcance_interjurisdiccional = $alcance_interjurisdiccional === null? 
+      ''
+    : (
+      (!!$alcance_interjurisdiccional)? 1 : 0
+    );
+
     return [
       'resolucion' => $resolucion,
       'fechas' => $fechas,
-      'primer_ae' => $primer_ae
+      'primer_ae' => $primer_ae,
+      'alcance_interjurisdiccional' => $alcance_interjurisdiccional
     ];
   }
 
@@ -478,6 +499,7 @@ class AutoexclusionController extends Controller
     $estado->id_casino = $ae_estado['id_casino'] ?? null;
     $estado->id_plataforma = $ae_estado['id_plataforma'] ?? null;
     $estado->años_adicionales = $ae_estado['años_adicionales'] ?? 0;
+    $estado->alcance_interjurisdiccional = $ae_estado['alcance_interjurisdiccional'] ?? null;
     $fs = $this->generarFechas($estado->fecha_ae,$estado->resolucion,$ae->es_primer_ae,$estado->años_adicionales);
     $estado->fecha_vencimiento = $fs->fecha_vencimiento;
     $estado->fecha_renovacion  = $fs->fecha_renovacion;
@@ -711,9 +733,6 @@ class AutoexclusionController extends Controller
     else if($id_formulario == 8){
       $path = $pathForms . 'Formulario AU 494.pdf';
     }
-    else if($id_formulario == 9){
-      $path = $pathForms . 'Caratula AU 494.pdf';
-    }
     else return "Formulario invalido";
     if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
     return response()->file($path);
@@ -727,6 +746,7 @@ class AutoexclusionController extends Controller
       'fecha_vencimiento' => date("d/m/Y", strtotime($estado->fecha_vencimiento)),
       'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae)),
       'años_adicionales' => $estado->años_adicionales,
+      'alcance_interjurisdiccional' => $estado->alcance_interjurisdiccional,
       'resolucion' => $estado->resolucion
     );
     if($datos_estado['resolucion'] != '984'){
@@ -929,7 +949,7 @@ class AutoexclusionController extends Controller
 
     $primer_ae = true;
     $query = DB::table('ae_datos as ad')
-    ->selectRaw("ae.fecha_ae,ae.fecha_renovacion, ae.fecha_vencimiento, ae.fecha_revocacion_ae, ae.fecha_cierre_ae,ae.fecha_cierre_minima,ae.años_adicionales,
+    ->selectRaw("ae.fecha_ae,ae.fecha_renovacion, ae.fecha_vencimiento, ae.fecha_revocacion_ae, ae.fecha_cierre_ae,ae.fecha_cierre_minima,ae.años_adicionales,ae.alcance_interjurisdiccional,
     CASE 
         WHEN ane.id_nombre_estado = 6 THEN 'Pendiente de val.'
         WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
@@ -1514,7 +1534,8 @@ class AutoexclusionController extends Controller
                           'id_plataforma' => $id_plataforma,
                           'id_usuario' => $user->id_usuario,
                           'fecha_ae' => $fecha_ae->format('Y-m-d'),
-                          'años_adicionales' => 0 //@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
+                          'años_adicionales' => 0,//@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
+                          'alcance_interjurisdiccional' => null,//@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
                       ];//Las demas fechas se calculan al setearEstado
                       
                       $ae_bd = new AE\Autoexcluido;
