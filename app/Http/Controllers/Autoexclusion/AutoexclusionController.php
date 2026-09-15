@@ -708,34 +708,42 @@ class AutoexclusionController extends Controller
 
   public function mostrarFormulario ($id_formulario) {
     $pathForms = realpath('../') . '/public/importacionesAutoexcluidos/formularios/';
-
+    $filename = '';
     if ($id_formulario == 1) {
-      $path = $pathForms . 'Carátula AU 1°.pdf';
+      $filename =  'Carátula AU 1°.pdf';
     }
     else if ($id_formulario == 2) {
-      $path = $pathForms . 'Carátula AU 2°.pdf';
+      $filename =  'Carátula AU 2°.pdf';
     }
     else if ($id_formulario == 3) {
-      $path = $pathForms . 'Formulario AU 1°.pdf';
+      $filename =  'Formulario AU 1°.pdf';
     }
     else if ($id_formulario == 4) {
-      $path = $pathForms . 'Formulario AU 2°.pdf';
+      $filename = 'Formulario AU 2°.pdf';
     }
     else if ($id_formulario == 5) {
-      $path = $pathForms . 'Formulario Finalización AU.pdf';
+      $filename = 'Formulario Finalización AU.pdf';
     }
     else if ($id_formulario == 6){
-      $path = $pathForms . 'RVE N° 983.pdf';
+      $filename = 'RVE N° 983.pdf';
     }
     else if($id_formulario == 7){
-      $path = $pathForms . 'RVE 494.pdf';
+      $filename = 'RVE 494.pdf';
     }
     else if($id_formulario == 8){
-      $path = $pathForms . 'Formulario AU 494.pdf';
+      $filename = 'SOLICITUD DE AUTOEXCLUSIÓN V2.0.docx';
     }
     else return "Formulario invalido";
+    $path = $pathForms . $filename;
     if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
-    return response()->file($path);
+
+    $nombreEscapado = str_replace('"', '\\"', $filename);
+    $nombreCodificado = rawurlencode($filename);
+    $filenameFallback = "filename=\"{$nombreEscapado}\"; filename*=UTF-8''{$nombreCodificado}";
+    
+    return response()->file($path, [
+      'Content-Disposition' => "inline; {$filenameFallback}"
+    ]);
   }
 
   public function generarSolicitudAutoexclusion($id){

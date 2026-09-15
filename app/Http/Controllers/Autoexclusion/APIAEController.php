@@ -248,6 +248,8 @@ class APIAEController extends Controller
           'ae_datos.estado_civil'     => 'nullable|string|max:4|exists:ae_estado_civil,codigo',
           'ae_estado.fecha_ae'        => 'required|date',
           'ae_estado.fecha_revocacion_ae' => 'nullable|date',
+          'ae_estado.años_adicionales' => 'nullable|integer|min:0',
+          'ae_estado.alcance_interjurisdiccional'  => 'nullable|integer|in:1,0',
           'ae_importacion.foto1' => 'nullable|imageBase64',
           'ae_importacion.foto2' => 'nullable|imageBase64',
           'ae_importacion.scandni' => 'nullable|imageBase64'
@@ -295,6 +297,14 @@ class APIAEController extends Controller
             return $validator->errors()->add('ae_estado.fecha_ae','No puede agregar un AE en esa fecha');
           }
           
+          if($rel_id['resolucion'] == env('NOMBRE_NUEVA_RESOLUCION','494')){
+            if(!isset($data['ae_estado']['años_adicionales'])){
+              $validator->errors()->add('ae_estado.años_adicionales', 'El valor es requerido');
+            }
+            if(!isset($data['ae_estado']['alcance_interjurisdiccional'])){
+              $validator->errors()->add('ae_estado.alcance_interjurisdiccional', 'El valor es requerido');
+            }
+          }
         });
     
         if($validator->errors()->any()) return $this->errorOut($validator->errors());
