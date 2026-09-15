@@ -25,6 +25,7 @@ Route::group(['prefix' => 'AE','middleware' => 'check_API_token'],function(){
   Route::get('finalizar/{DNI}','Autoexclusion\APIAEController@finalizar');
   Route::post('agregar','Autoexclusion\APIAEController@agregar');
   Route::get('descargar','Autoexclusion\APIAEController@descargar');
+  Route::get('listado','Autoexclusion\AutoexclusionController@listado');
 
   //Agregado por Ignacio, por favor Verificar!
   Route::post('importacion/archivos','Autoexclusion\APIAEController@set_importacion_archivos');

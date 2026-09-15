@@ -96,6 +96,19 @@ function crearElementoArchivo(link,nombre,tipo_archivo){
   return $('<embed>').attr('src',link + '#toolbar=0');//PDF o DOC o algun otro
 }
 
+//Los estados de ae_nombre_estado son fijos, así que el cartel se resuelve por id y no
+//por la descripción que venga de la BD (esa ya se renombró alguna vez). El texto se
+//muestra en mayúsculas por CSS, no hace falta escribirlo así acá.
+const ESTADOS_AE = {
+  1: 'Vigente',
+  2: 'Renovado',
+  3: 'Pendiente de val.',
+  4: 'Fin. por AE',
+  5: 'Vencido',
+  6: 'RES.983 - Pendiente',
+  7: 'RES.983 - Verificado'
+};
+
 function clickImagenGaleria(nro_dni,link,nombre,tipo_archivo){
   $.ajax({
     type: 'GET',
@@ -107,7 +120,8 @@ function clickImagenGaleria(nro_dni,link,nombre,tipo_archivo){
         document.getElementById("nombres").innerHTML = res.nombres;
         document.getElementById("dni").innerHTML = res.nro_dni;
         document.getElementById("casino_plataforma").innerHTML = res.casino_plataforma;
-        document.getElementById("estado").innerHTML = res.estado;
+        //Si apareciera un id nuevo, caigo en la descripción de la BD antes que dejarlo vacío
+        document.getElementById("estado").innerHTML = ESTADOS_AE[res.id_nombre_estado] || res.estado;
         document.getElementById("fecha_ae").innerHTML = res.fecha_ae;
         document.getElementById("vencimiento").innerHTML = res.fecha_vencimiento;
         document.getElementById("fecha_revocacion").innerHTML = res.fecha_revocacion_ae;

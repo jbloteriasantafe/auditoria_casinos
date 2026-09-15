@@ -1613,4 +1613,127 @@ class AutoexclusionController extends Controller
     });
     return $request->id_autoexcluido;
   }
+
+  /**
+   * Listado del padrón de autoexcluidos en JSON, para que lo consuman otros sistemas.
+   * Se expone como GET /api/AE/listado (routes/api.php, detrás del middleware check_API_token).
+   *
+   * Todos los parámetros son opcionales; sin ninguno devuelve el padrón completo paginado.
+   *   fecha_ae_desde / fecha_ae_hasta          filtran ae_estado.fecha_ae
+   *   fecha_cierre_desde / fecha_cierre_hasta  filtran ae_estado.fecha_cierre_ae
+   *   estado     nombres separados por coma, ej: Vigente,Vencido
+   *   page       default 1
+   *   page_size  entero 1..5000 (default 1000) o el literal 'all'
+   */
+  public function listado(Request $request){
+    $validator = Validator::make($request->all(), [
+      'fecha_ae_desde'     => 'nullable|date_format:Y-m-d',
+      'fecha_ae_hasta'     => 'nullable|date_format:Y-m-d',
+      'fecha_cierre_desde' => 'nullable|date_format:Y-m-d',
+      'fecha_cierre_hasta' => 'nullable|date_format:Y-m-d',
+      'estado'             => 'nullable|string|max:200',
+      'page'               => 'nullable|integer|min:1',
+    ], [
+      //El proyecto no tiene resources/lang, así que sin esto salen como 'validation.date_format'
+      'date_format' => 'La fecha tiene que estar en formato YYYY-MM-DD',
+      'integer'     => 'El valor tiene que ser un entero',
+      'min'         => 'El valor es menor al mínimo permitido',
+      'string'      => 'El valor tiene que ser texto',
+      'max'         => 'El valor supera el largo máximo',
+    ], self::$atributos)->after(function($validator){
+      //page_size admite un entero acotado o el literal 'all'; ninguna regla nativa cubre los dos.
+      $data = $validator->getData();
+      if(!isset($data['page_size']) || $data['page_size'] === '' || $data['page_size'] === 'all') return;
+      $es_entero = is_int($data['page_size']) || ctype_digit((string) $data['page_size']);
+      if(!$es_entero || (int) $data['page_size'] < 1 || (int) $data['page_size'] > 5000){
+        $validator->errors()->add('page_size','Tiene que ser un entero entre 1 y 5000, o "all"');
+      }
+    });
+
+    if($validator->errors()->any()) return $this->errorOut($validator->errors());
+
+    //Los estados 6 y 7 son los de la Res.983 y se muestran con el nombre del estado equivalente.
+    $estado_case = "CASE
+        WHEN ane.id_nombre_estado = 6 THEN 'Pendiente de val.'
+        WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
+        ELSE ane.descripcion
+      END";
+
+    $query = DB::table('ae_datos as ad')
+    ->selectRaw("ad.nro_dni, ae.fecha_ae, ae.fecha_cierre_ae,
+    ad.nombre_localidad, ad.nombre_provincia, ad.codigo_postal,
+    {$estado_case} as estado")
+    ->join('ae_estado as ae','ae.id_autoexcluido','=','ad.id_autoexcluido')
+    ->join('ae_nombre_estado as ane','ane.id_nombre_estado','=','ae.id_nombre_estado')
+    ->whereNull('ad.deleted_at')->whereNull('ae.deleted_at');
+
+    $rangos = [
+      'fecha_ae_desde'     => ['ae.fecha_ae'       ,'>='],
+      'fecha_ae_hasta'     => ['ae.fecha_ae'       ,'<='],
+      'fecha_cierre_desde' => ['ae.fecha_cierre_ae','>='],
+      'fecha_cierre_hasta' => ['ae.fecha_cierre_ae','<='],
+    ];
+    foreach($rangos as $param => $columna_operador){
+      if(empty($request->{$param})) continue;
+      $query->where($columna_operador[0],$columna_operador[1],$request->{$param});
+    }
+
+    if(!empty($request->estado)){
+      //Ojo: el CASE de arriba renombra dos estados, así que el nombre que manda el sistema
+      //externo no coincide 1:1 con ae_nombre_estado.descripcion. Pedir 'Vigente' tiene que
+      //traer el id 1 y el 7. Resuelvo el mapa desde la tabla para no hardcodear ids acá.
+      $etiquetas = [];//minúscula => etiqueta tal cual se devuelve
+      $ids_por_etiqueta = [];
+      foreach(AE\NombreEstadoAutoexclusion::all() as $ne){
+        $etiqueta = $ne->id_nombre_estado == 6? 'Pendiente de val.'
+                  : ($ne->id_nombre_estado == 7? 'Vigente' : $ne->descripcion);
+        $clave = mb_strtolower(trim($etiqueta));
+        $etiquetas[$clave] = $etiqueta;
+        $ids_por_etiqueta[$clave][] = $ne->id_nombre_estado;
+      }
+
+      $ids = [];
+      foreach(explode(',',$request->estado) as $pedido){
+        $clave = mb_strtolower(trim($pedido));
+        if($clave === '') continue;
+        if(!isset($ids_por_etiqueta[$clave])){
+          return response()->json([
+            'estado'          => ['Estado desconocido: '.trim($pedido)],
+            'estados_validos' => array_values($etiquetas),
+          ],422);
+        }
+        $ids = array_merge($ids,$ids_por_etiqueta[$clave]);
+      }
+      if(!empty($ids)) $query->whereIn('ae.id_nombre_estado',array_unique($ids));
+    }
+
+    //id_autoexcluido desempata: sin eso dos páginas consecutivas pueden repetir o saltear filas,
+    //porque hay cientos de fechas de AE compartidas por varios autoexcluidos.
+    $query->orderBy('ae.fecha_ae','desc')->orderBy('ad.id_autoexcluido','desc');
+
+    $total = (clone $query)->count();
+
+    $page      = max(1,(int) ($request->page ?: 1));
+    $page_size = $request->page_size;
+    if($page_size === null || $page_size === '') $page_size = 1000;
+
+    if($page_size === 'all'){
+      $page        = 1;
+      $total_pages = 1;
+      $data        = $query->get();
+    }
+    else{
+      $page_size   = max(1,min(5000,(int) $page_size));
+      $total_pages = (int) ceil($total / $page_size);
+      $data        = $query->forPage($page,$page_size)->get();
+    }
+
+    return response()->json([
+      'total'       => $total,
+      'page'        => $page,
+      'page_size'   => $page_size,
+      'total_pages' => $total_pages,
+      'data'        => $data,
+    ]);
+  }
 }
