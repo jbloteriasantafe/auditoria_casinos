@@ -405,7 +405,7 @@ class AutoexclusionController extends Controller
     return ['nuevo' => $esNuevo];
   }
 
-  public function generarFechas($fecha_ae,$resolucion,$primer_ae){//Usado en APIAEController
+  public function generarFechas($fecha_ae,$resolucion,$primer_ae,int $años_adicionales){//Usado en APIAEController
     $date_ae = date_create_from_format('Y-m-d',$fecha_ae);
     $ret = new \stdClass();
     // @BUG? (definir bien los limites): Si quiero ser compatible
@@ -414,15 +414,31 @@ class AutoexclusionController extends Controller
       $ret->fecha_renovacion    = (clone $date_ae)->modify('+149 day')->format('Y-m-d');
       $ret->fecha_vencimiento   = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
       $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+      $ret->años_adicionales    = null;
+      $ret->fecha_cierre_minima = null;
     }
-    else if ($resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+    else if ($resolucion == env('NOMBRE_NUEVA_RESOLUCION','494')){
       $ret->fecha_renovacion    = null;
       $ret->fecha_vencimiento   = null;
-      if($primer_ae){
-        $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+179 day')->format('Y-m-d');
-      }else{
-        $ret->fecha_cierre_ae     = (clone $date_ae)->modify('+364 day')->format('Y-m-d');
+
+      $fecha_cierre_minima = (clone $date_ae)->modify('+364 day');
+      $ret->fecha_cierre_minima = $fecha_cierre_minima->format('Y-m-d');
+
+      $años_adicionales = $años_adicionales < 0? 0 : $años_adicionales;
+      $ret->años_adicionales = $años_adicionales;
+
+      $fecha_cierre_ae = (clone $fecha_cierre_minima);
+      while($años_adicionales > 0){
+        //el primer vencimiento ocurre despues que $HOY > fecha_cierre_minima, se le agrega un día
+        //si años = 0, pasaría a "vencido", pero como esta extendido
+        //-- es como que se autoexcluye devuelta el día siguiente -- (+1 day) 
+        //y despues +364 day como arriba
+        $fecha_cierre_ae = $fecha_cierre_ae->modify('+1 day');
+        $fecha_cierre_ae = $fecha_cierre_ae->modify('+364 day');
+        $años_adicionales--;
       }
+
+      $ret->fecha_cierre_ae = $fecha_cierre_ae->format('Y-m-d');
     }
     else{
       throw new \Exception("Resolucion $resolucion sin implementar");
@@ -430,15 +446,18 @@ class AutoexclusionController extends Controller
     return $ret;
   }
 
-  public function generarEstado($fecha_ae,$dni){//Usado en front
+  public function generarEstado($fecha_ae,$dni,int $adicionales = 0){//Usado en front
     $ae = AE\Autoexcluido::where('nro_dni',$dni)
     ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
     ->where('ae_estado.fecha_ae','<=',$fecha_ae)
     ->orderBy('ae_estado.fecha_ae','desc')
     ->first();
     $resolucion = $this->resolucion_por_fecha($fecha_ae);
+    if($resolucion == '983'){
+      $años_adicionales = 0;
+    }
     $primer_ae = $ae === null || $ae->es_primer_ae;
-    $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae);
+    $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae,$adicionales);
     return [
       'resolucion' => $resolucion,
       'fechas' => $fechas,
@@ -458,11 +477,14 @@ class AutoexclusionController extends Controller
     $estado->resolucion = $this->resolucion_por_fecha($estado->fecha_ae);
     $estado->id_casino = $ae_estado['id_casino'] ?? null;
     $estado->id_plataforma = $ae_estado['id_plataforma'] ?? null;
-    $fs = $this->generarFechas($estado->fecha_ae,$estado->resolucion,$ae->es_primer_ae);
+    $estado->años_adicionales = $ae_estado['años_adicionales'] ?? 0;
+    $fs = $this->generarFechas($estado->fecha_ae,$estado->resolucion,$ae->es_primer_ae,$estado->años_adicionales);
     $estado->fecha_vencimiento = $fs->fecha_vencimiento;
     $estado->fecha_renovacion  = $fs->fecha_renovacion;
     $estado->fecha_cierre_ae   = $fs->fecha_cierre_ae;
     $estado->fecha_revocacion_ae = null;
+    $estado->fecha_cierre_minima = $fs->fecha_cierre_minima;
+    $estado->años_adicionales = $fs->años_adicionales;
     $estado->ultima_actualizacion_estado = '1970-01-01';
 
     if($estado->resolucion == '983'){
@@ -589,7 +611,7 @@ class AutoexclusionController extends Controller
   }
 
   public function resolucion_por_fecha($fecha){
-    return $fecha > env('FECHA_FIN_R983')? env('NOMBRE_NUEVA_RESOLUCION') : '983'; 
+    return $fecha > env('FECHA_FIN_R983','2026-09-09')? env('NOMBRE_NUEVA_RESOLUCION','494') : '983'; 
   }
 
   public function existeAutoexcluido($dni,$date = null){//Usado en APIAEController
@@ -683,6 +705,12 @@ class AutoexclusionController extends Controller
     else if ($id_formulario == 6){
       $path = $pathForms . 'RVE N° 983.pdf';
     }
+    else if($id_formulario == 7){
+      $path = $pathForms . 'RVE 494.pdf';
+    }
+    else if($id_formulario == 8){
+      $path = $pathForms . 'Formulario AU 494.pdf';
+    }
     else return "Formulario invalido";
     if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
     return response()->file($path);
@@ -694,8 +722,13 @@ class AutoexclusionController extends Controller
     $datos_estado = array(
       'fecha_ae' => date("d/m/Y",strtotime($estado->fecha_ae)),
       'fecha_vencimiento' => date("d/m/Y", strtotime($estado->fecha_vencimiento)),
-      'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae))
+      'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae)),
+      'años_adicionales' => $estado->años_adicionales,
+      'resolucion' => $estado->resolucion
     );
+    if($datos_estado['resolucion'] != '984'){
+      return '-FORMULARIO EN IMPLEMENTACIÓN-';
+    }
     $encuesta = $autoexcluido->encuesta;
     $es_primer_ae = $autoexcluido->es_primer_ae;
     if (is_null($encuesta)) {
@@ -803,7 +836,7 @@ class AutoexclusionController extends Controller
       if($estado->resolucion == '983'){
         $estado->fecha_revocacion_ae = date('Y-m-d');//Si es fin por AE guardo la fecha que lo pidio revocar.
       }
-      else if($estado->resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+      else if($estado->resolucion == env('NOMBRE_NUEVA_RESOLUCION','494')){
         return $this->errorOut(['id_autoexcluido' => 'No puede cambiar a ese estado bajo esta resolución']);
       }
       else{
@@ -893,7 +926,7 @@ class AutoexclusionController extends Controller
 
     $primer_ae = true;
     $query = DB::table('ae_datos as ad')
-    ->selectRaw("ae.fecha_ae, ae.fecha_renovacion, ae.fecha_vencimiento, ae.fecha_revocacion_ae, ae.fecha_cierre_ae,
+    ->selectRaw("ae.fecha_ae,ae.fecha_renovacion, ae.fecha_vencimiento, ae.fecha_revocacion_ae, ae.fecha_cierre_ae,ae.fecha_cierre_minima,ae.años_adicionales,
     CASE 
         WHEN ane.id_nombre_estado = 6 THEN 'Pendiente de val.'
         WHEN ane.id_nombre_estado = 7 THEN 'Vigente'
@@ -955,7 +988,7 @@ class AutoexclusionController extends Controller
       $timestamp    = $timestamp->format('Y-m-d\TH:i:s.uP');
       //@ATENCION!
       //Cada vez que realizen un cambio a lo guardado, incrementar este número
-      $version = 2;
+      $version = 3;
       
       DB::table('ae_bd_descargas')->insert([
         'data' => json_encode(compact(
@@ -1477,7 +1510,8 @@ class AutoexclusionController extends Controller
                           'id_casino' => $id_casino,
                           'id_plataforma' => $id_plataforma,
                           'id_usuario' => $user->id_usuario,
-                          'fecha_ae' => $fecha_ae->format('Y-m-d')
+                          'fecha_ae' => $fecha_ae->format('Y-m-d'),
+                          'años_adicionales' => 0 //@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
                       ];//Las demas fechas se calculan al setearEstado
                       
                       $ae_bd = new AE\Autoexcluido;

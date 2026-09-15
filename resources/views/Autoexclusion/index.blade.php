@@ -15,6 +15,8 @@ $puede_subir_archivos = true;//Cualquiera con acceso a la sección puede subir/r
 //Las plataformas de apuestas deportivas no cuelgan de ningún casino, así que no se pueden filtrar
 //por plataforma_tiene_casino como las online: se muestran todas o ninguna según el permiso.
 $plats_deportivas_alta = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas_deportivas : [];
+$NOMBRE_NUEVA_RESOLUCION = env('NOMBRE_NUEVA_RESOLUCION','494');
+$FECHA_FIN_R983 = env('FECHA_FIN_R983','2026-09-09')
 ?>
 
 @section('estilos')
@@ -627,13 +629,21 @@ input[required], select[required]{
                           @endif
                         </select>
                       </div>
-                      <div class="col-lg-6">
+                      <div class="col-lg-12">
                         <h5>FECHA AUTOEXCLUSIÓN</h5>
                         <div class="input-group date" id="dtpFechaAutoexclusionEstado" data-date-format="yyyy-mm-dd" data-link-format="yyyy-mm-dd">
-                          <input type="text" class="form-control" placeholder="Fecha de autoexclusion" id="fecha_autoexlusion" autocomplete="off" data-original-title="" title="" required>
+                          <input style="text-align: center;" type="text" class="form-control" placeholder="Fecha de autoexclusion" id="fecha_autoexlusion" autocomplete="off" data-original-title="" title="" required>
                           <span id="input-times" class="input-group-addon" style="border-left:none;cursor:pointer;"><i class="fa fa-times"></i></span>
                           <span id="input-calendar" class="input-group-addon" style="cursor:pointer;"><i class="fa fa-calendar"></i></span>
                         </div>
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>FECHA CIERRE MINIMA</h5>
+                        <input id="fecha_cierre_minima" type="text" class="form-control"  placeholder="" value="" disabled="" required>
+                      </div>
+                      <div class="col-lg-6">
+                        <h5>AÑOS ADICIONALES</h5>
+                        <input id="años_adicionales" type="number" class="form-control"  placeholder="" value="" required>
                       </div>
                       <div class="col-lg-6">
                         <h5>VENCIMIENTO 1° PERIODO</h5>
@@ -643,9 +653,9 @@ input[required], select[required]{
                         <h5>PERMITIR RENOVACIÓN DESDE</h5>
                         <input id="fecha_renovacion" type="text" class="form-control" placeholder="" value="" disabled="" required>
                       </div>
-                      <div class="col-lg-6">
+                      <div class="col-lg-12">
                         <h5>FECHA CIERRE DEFINITIVO</h5>
-                        <input id="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
+                        <input style="text-align: center;" id="fecha_cierre_definitivo" type="text" class="form-control"  placeholder="" value="" disabled="" required>
                       </div>
                     </div>
                     <div class="row">
@@ -1021,6 +1031,16 @@ input[required], select[required]{
               </div>
               <div class="row">
                 <div class="col-lg-6">
+                  <h5>FECHA CIERRE MÍNIMA</h5>
+                  <input id="infoFechaCierreMinima" type="text" class="form-control" placeholder="" value="" required disabled>
+                </div>
+                <div class="col-lg-6">
+                  <h5>AÑOS ADICIONALES</h5>
+                  <input id="infoAñosAdicionales" type="text" class="form-control" placeholder="" value="" required disabled>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-lg-6">
                   <h5>PERMITIR RENOVACIÓN DESDE</h5>
                   <input id="infoFechaRenovacion" type="text" class="form-control" placeholder="" value="" required disabled>
                 </div>
@@ -1206,7 +1226,6 @@ input[required], select[required]{
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body">
-          <h6>Formularios AE - Resolución 983</h6>
           <div class="row">
             <div class="col-lg-6">
               <h5>Carátula AU 1°</h5>
@@ -1217,24 +1236,42 @@ input[required], select[required]{
               <button id="2" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 2°</button>
             </div>
           </div>
+          <hr>
+          <?php 
+            $hasta = $FECHA_FIN_R983;
+            $desde = \DateTimeImmutable::createFromFormat('Y-m-d',$hasta)->modify('+1 day')->format('Y-m-d'); 
+          ?>
+          <h6>DESDE {{$desde}}</h6>
+          <div class="row">
+            <div class="col-lg-6">
+              <h5>RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</h5>
+              <button id="7" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</button>
+            </div>
+            <div class="col-lg-6">
+              <h5>Formulario AU RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</h5>
+              <button id="8" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU</button>
+            </div>
+          </div>
+          <hr>
+          <h6>HASTA {{$hasta}}</h6>
           <div class="row">
             <div class="col-lg-6">
               <h5>Formulario AU 1°</h5>
-              <button id="3" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 1°</button>
+              <button id="3" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 1°</button>
             </div>
             <div class="col-lg-6">
               <h5>Formulario AU 2°</h5>
-              <button id="4" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 2°</button>
+              <button id="4" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f  !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU 2°</button>
             </div>
           </div>
           <div class="row">
             <div class="col-lg-6">
                 <h5>Formulario Finalización AU</h5>
-                <button id="5" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario Finalización AU</button>
+                <button id="5" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f  !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario Finalización AU</button>
             </div>
             <div class="col-lg-6">
               <h5>RVE N°983</h5>
-              <button id="6" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la RVE N°983</button>
+              <button id="6" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f  !important; color: white; font-weight: bold;" >Click aquí para ver la RVE N°983</button>
             </div>
           </div>
         </div>
@@ -1402,12 +1439,12 @@ var noCopy=false;
 var noScreenshot=true;
 var autoBlur=true;
 var noSelect=false;
-const FECHA_FIN_R983 = "{!! env('FECHA_FIN_R983') !!}";
-const NOMBRE_NUEVA_RESOLUCION = "{!! env('NOMBRE_NUEVA_RESOLUCION') !!}";
+const FECHA_FIN_R983 = "{!! env('FECHA_FIN_R983','2026-09-09') !!}";
+const NOMBRE_NUEVA_RESOLUCION = "{!! env('NOMBRE_NUEVA_RESOLUCION','494') !!}";
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?10" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?11" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

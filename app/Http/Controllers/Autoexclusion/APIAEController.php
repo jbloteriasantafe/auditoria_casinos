@@ -337,7 +337,7 @@ class APIAEController extends Controller
           }else{
             $ae_estado['id_nombre_estado'] = 4;//Fin. por AE
           }
-          $ae_estado['resolucion'] = date('Y-m-d') > env('FECHA_FIN_R983')? env('NOMBRE_NUEVA_RESOLUCION') : '983';
+          $ae_estado['resolucion'] = $this->AEC->resolucion_por_fecha($ae_estado['fecha_ae']);
           $ae_estado['id_plataforma'] = ($api_token->metadata ?? [])['id_plataforma'] ?? null;
           $AEC = AutoexclusionController::getInstancia(false);
           $AEC->setearEstado($ae,$ae_estado);

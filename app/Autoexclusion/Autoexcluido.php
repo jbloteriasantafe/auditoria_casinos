@@ -87,15 +87,13 @@ class Autoexcluido extends Model
                  ¦validado        En cualquier momento, si HOY > fecha_cierre_ae
      #######+----------+####################################          ¦
      #           ¦                                         #          ¦
-     #           ¦Primer AE?  fecha_cierre_ae = +180 dias  #          ¦
-     #  +----no--o--si-------------------+                 #          ¦  
-     #  ¦                                ¦                 #          ¦
-     #  ¦                                ¦                 #          ¦
-     #  ¦fecha_cierre_ae = +365 dias     ¦                 #          ¦
-     #  ¦                                ¦                 #          ¦
-     #  ¦                    +-------+   ¦                 #          ¦
-     #  +--------------------¦Vigente¦---+                 #          ¦
-     #                       +-------+                     #          ¦
+     #       +-------+                                     #          ¦
+     #       ¦Vigente¦                                     #          ¦
+     #       +-------+                                     #          ¦
+     #                                                     #          ¦
+     #                                                     #          ¦
+     #                                                     #          ¦
+     #                                                     #          ¦
      #                                                     #          ¦
      #######################################################          ¦
                              +-------+                                ¦
@@ -193,7 +191,7 @@ class Autoexcluido extends Model
               }
           }
       }
-      else if($resolucion == env('NOMBRE_NUEVA_RESOLUCION')){
+      else if($resolucion == env('NOMBRE_NUEVA_RESOLUCION','494')){
           //En la nueva resolución la primer AE es directamente mas corta y las fechas
           //se setean correctamente, asi que puedo verificar contra la fecha final nomas
           if($nombre_estado == 'Vencido'){
