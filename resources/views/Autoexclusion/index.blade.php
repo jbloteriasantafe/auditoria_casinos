@@ -1226,16 +1226,6 @@ input[required], select[required]{
       </div>
       <div id="colapsado" class="collapse in">
         <div class="modal-body">
-          <div class="row">
-            <div class="col-lg-6">
-              <h5>Carátula AU 1°</h5>
-              <button id="1" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 1°</button>
-            </div>
-            <div class="col-lg-6">
-              <h5>Carátula AU 2°</h5>
-              <button id="2" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 2°</button>
-            </div>
-          </div>
           <hr>
           <?php 
             $hasta = $FECHA_FIN_R983;
@@ -1244,16 +1234,34 @@ input[required], select[required]{
           <h6>DESDE {{$desde}}</h6>
           <div class="row">
             <div class="col-lg-6">
+              <h5>Carátula AU</h5>
+              <button id="1" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-6">
               <h5>RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</h5>
               <button id="7" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver la RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</button>
             </div>
+          </div>
+          <div class="row">
             <div class="col-lg-6">
-              <h5>Formulario AU RVE N° {{$NOMBRE_NUEVA_RESOLUCION}}</h5>
+              <h5>Formulario AU</h5>
               <button id="8" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #4FC3F7 !important; color: white; font-weight: bold;" >Click aquí para ver el Formulario AU</button>
             </div>
           </div>
           <hr>
           <h6>HASTA {{$hasta}}</h6>
+          <div class="row">
+            <div class="col-lg-6">
+              <h5>Carátula AU 1°</h5>
+              <button id="1" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 1°</button>
+            </div>
+            <div class="col-lg-6">
+              <h5>Carátula AU 2°</h5>
+              <button id="2" type="button" class="btn btn-default btn-ver-formulario" style="width:419px; background-color: #888d8f !important; color: white; font-weight: bold;" >Click aquí para ver la Carátula AU 2°</button>
+            </div>
+          </div>
           <div class="row">
             <div class="col-lg-6">
               <h5>Formulario AU 1°</h5>
