@@ -225,8 +225,8 @@ class AutoexclusionController extends Controller
       'ae_datos.nombres'          => 'required|string|max:150',
       'ae_datos.fecha_nacimiento' => 'required|date',
       'ae_datos.id_sexo'          => 'required|integer|exists:ae_sexo,id_sexo',
-      'ae_datos.domicilio'        => 'required|string|max:100',
-      'ae_datos.nro_domicilio'    => 'required|string|max:11',
+      'ae_datos.domicilio'        => 'nullable|string|max:100',
+      'ae_datos.nro_domicilio'    => 'nullable|string|max:11',
       'ae_datos.piso'             => 'nullable|string|max:5',
       'ae_datos.dpto'             => 'nullable|string|max:5',
       'ae_datos.codigo_postal'    => 'nullable|string|max:10',
@@ -319,7 +319,7 @@ class AutoexclusionController extends Controller
           $validator->errors()->add('ae_estado.id_casino','Error al procesar el casino.');
         }
       }
-      if(!is_numeric($data['ae_datos']['nro_domicilio'])){
+      if(!is_numeric($data['ae_datos']['nro_domicilio']) && !empty($data['ae_datos']['nro_domicilio'])){
         $validator->errors()->add('ae_datos.nro_domicilio','El valor no es numérico');
       }
       if(!$user->es_superusuario && $user->es_fiscalizador && !$data['hace_encuesta']){

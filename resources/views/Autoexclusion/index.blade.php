@@ -503,11 +503,11 @@ input[required], select[required]{
                       </div>
                       <div class="col-lg-6">
                         <h5>DOMICILIO</h5>
-                        <input id="domicilio" type="text" class="form-control"  placeholder="" value="" required>
+                        <input id="domicilio" type="text" class="form-control"  placeholder="" value="">
                       </div>
                       <div class="col-lg-6">
                         <h5>NRO. DOMICILIO</h5>
-                        <input id="nro_domicilio" type="text" class="form-control"  placeholder="" value="" required numeric data-size="100">
+                        <input id="nro_domicilio" type="text" class="form-control"  placeholder="" value="" numeric data-size="100">
                       </div>
                       <div class="col-lg-6">
                         <h5>PISO</h5>
@@ -1462,7 +1462,7 @@ const NOMBRE_NUEVA_RESOLUCION = "{!! env('NOMBRE_NUEVA_RESOLUCION','494') !!}";
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?12" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?13" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->
