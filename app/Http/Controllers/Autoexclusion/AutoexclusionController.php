@@ -734,6 +734,7 @@ class AutoexclusionController extends Controller
       $filename = 'SOLICITUD DE AUTOEXCLUSIÓN V2.0.docx';
     }
     else return "Formulario invalido";
+    
     $path = $pathForms . $filename;
     if(!file_exists($path)) return "Formulario no cargado en el sistema, informar al administrador";
 
@@ -757,7 +758,7 @@ class AutoexclusionController extends Controller
       'alcance_interjurisdiccional' => $estado->alcance_interjurisdiccional,
       'resolucion' => $estado->resolucion
     );
-    if($datos_estado['resolucion'] != '984'){
+    if($datos_estado['resolucion'] != '983'){
       return '-FORMULARIO EN IMPLEMENTACIÓN-';
     }
     $encuesta = $autoexcluido->encuesta;
