@@ -457,7 +457,17 @@ class AutoexclusionController extends Controller
     return $ret;
   }
 
-  public function generarEstado($fecha_ae,$dni,int $adicionales = 0,$alcance_interjurisdiccional = null){//Usado en front
+  public function generarEstado(Request $request,$fecha_ae,$dni){//Usado en front
+    $años_adicionales = 0;
+    if(isset($request->años_adicionales) && ctype_digit($request->años_adicionales)){
+      $años_adicionales = intval($request->años_adicionales);
+    }
+
+    $alcance_interjurisdiccional = null;
+    if(isset($request->alcance_interjurisdiccional) && ctype_digit($request->alcance_interjurisdiccional)){
+      $alcance_interjurisdiccional = intval($request->alcance_interjurisdiccional);
+    }
+    
     $ae = AE\Autoexcluido::where('nro_dni',$dni)
     ->join('ae_estado','ae_estado.id_autoexcluido','=','ae_datos.id_autoexcluido')
     ->where('ae_estado.fecha_ae','<=',$fecha_ae)
@@ -465,13 +475,13 @@ class AutoexclusionController extends Controller
     ->first();
     $resolucion = $this->resolucion_por_fecha($fecha_ae);
     if($resolucion == '983'){
-      $adicionales = 0;
+      $años_adicionales = 0;
     }
     if($alcance_interjurisdiccional !== null){
       $alcance_interjurisdiccional = !!$alcance_interjurisdiccional;
     }
     $primer_ae = $ae === null || $ae->es_primer_ae;
-    $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae,$adicionales);
+    $fechas = (array) $this->generarFechas($fecha_ae,$resolucion,$primer_ae,$años_adicionales);
     $alcance_interjurisdiccional = $alcance_interjurisdiccional === null? 
       ''
     : (

@@ -494,12 +494,16 @@ $("#fecha_autoexlusion,#años_adicionales").change(function () {
     $("#fecha_renovacion,#fecha_vencimiento_periodo,#fecha_cierre_definitivo" ).val("");
     return;
   }
+
+  let qs = '?';
+  qs+=encodeURIComponent('años_adicionales')+'='+encodeURIComponent($('#años_adicionales').val());
+  qs+='&'+encodeURIComponent('alcance_interjurisdiccional')+'='+encodeURIComponent($('#alcance_interjurisdiccional').val());
+
   $.ajax({
     url: 'autoexclusion/generarEstado/' 
       + iso(fecha_autoexclusion) + '/' 
-      + $('#nro_dni').val() + '/' 
-      + $('#años_adicionales').val() + '/'
-      + $('#alcance_interjurisdiccional').val(),
+      + $('#nro_dni').val()
+      + qs,
     type: 'GET',
     success: function(data){
       $('#resolucion').val(data?.resolucion ?? '');
