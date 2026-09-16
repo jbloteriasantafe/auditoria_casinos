@@ -741,7 +741,7 @@ class AutoexclusionController extends Controller
       $filename = 'RVE 494.pdf';
     }
     else if($id_formulario == 8){
-      $filename = 'SOLICITUD DE AUTOEXCLUSIÓN V2.0.docx';
+      $filename = 'SOLICITUD DE AUTOEXCLUSIÓN V2.3.pdf';
     }
     else return "Formulario invalido";
     
@@ -776,7 +776,7 @@ class AutoexclusionController extends Controller
       $dompdf->loadHtml($view->render());
       $dompdf->render();
       $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-      $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
+      //$dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
       $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
       return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
     }
