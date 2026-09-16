@@ -758,38 +758,49 @@ class AutoexclusionController extends Controller
       'alcance_interjurisdiccional' => $estado->alcance_interjurisdiccional,
       'resolucion' => $estado->resolucion
     );
-    if($datos_estado['resolucion'] != '983'){
-      return '-FORMULARIO EN IMPLEMENTACIÓN-';
+    if($datos_estado['resolucion'] == env('NOMBRE_NUEVA_RESOLUCION','494')){
+      $contacto = $autoexcluido->contacto;
+      $view = View::make('Autoexclusion.planillaFormularioAE494', compact('autoexcluido', 'datos_estado', 'contacto'));
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'portrait');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
+      $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
+      return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
     }
-    $encuesta = $autoexcluido->encuesta;
-    $es_primer_ae = $autoexcluido->es_primer_ae;
-    if (is_null($encuesta)) {
-      $encuesta = array(
-        'id_frecuencia_asistencia' => -1,
-        'veces' => -1,
-        'tiempo_jugado' => -1,
-        'como_asiste' => -1,
-        'id_juego_preferido' => -1,
-        'club_jugadores' => -1,
-        'conoce_plataformas' => -1,
-        'utiliza_plataformas' => -1,
-        'autocontrol_juego' => -1,
-        'recibir_informacion' => -1,
-        'medio_recibir_informacion' => -1,
-        'observacion' => ''
-      );
-    }
-    $contacto = $autoexcluido->contacto;
-    $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
-    $dompdf = new Dompdf();
-    $dompdf->set_paper('A4', 'portrait');
-    $dompdf->loadHtml($view->render());
-    $dompdf->render();
-    $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
-    $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
-    $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
+    else if($datos_estado['resolucion'] == '983'){
+      $encuesta = $autoexcluido->encuesta;
+      $es_primer_ae = $autoexcluido->es_primer_ae;
+      if (is_null($encuesta)) {
+        $encuesta = array(
+          'id_frecuencia_asistencia' => -1,
+          'veces' => -1,
+          'tiempo_jugado' => -1,
+          'como_asiste' => -1,
+          'id_juego_preferido' => -1,
+          'club_jugadores' => -1,
+          'conoce_plataformas' => -1,
+          'utiliza_plataformas' => -1,
+          'autocontrol_juego' => -1,
+          'recibir_informacion' => -1,
+          'medio_recibir_informacion' => -1,
+          'observacion' => ''
+        );
+      }
+      $contacto = $autoexcluido->contacto;
+      $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
+      $dompdf = new Dompdf();
+      $dompdf->set_paper('A4', 'portrait');
+      $dompdf->loadHtml($view->render());
+      $dompdf->render();
+      $font = $dompdf->getFontMetrics()->get_font("helvetica", "regular");
+      $dompdf->getCanvas()->page_text(20, 820, "Dirección General de Casinos y Bingos / Caja de Asistencia Social - Lotería de Santa Fe", $font, 8, array(0,0,0));
+      $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
-    return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
+      return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
+    }
   }
 
   public function generarConstanciaReingreso($id){
