@@ -1565,7 +1565,7 @@ class AutoexclusionController extends Controller
                           'id_usuario' => $user->id_usuario,
                           'fecha_ae' => $fecha_ae->format('Y-m-d'),
                           'años_adicionales' => 0,//@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
-                          'alcance_interjurisdiccional' => null,//@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
+                          'alcance_interjurisdiccional' => 0,//@TODO: por defecto hasta que lo manden, pongo que no consienten
                       ];//Las demas fechas se calculan al setearEstado
                       
                       $ae_bd = new AE\Autoexcluido;
