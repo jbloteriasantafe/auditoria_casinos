@@ -1763,6 +1763,7 @@
     <!-- JS Manual para Wizard -->
     <script>
         var PUEDE_ELIMINAR = {{ $puedeEliminar ? 'true' : 'false' }};
+        var PUEDE_BORRAR_DOCS = {{ !empty($puedeBorrarDocs) ? 'true' : 'false' }};
         var NIVEL_ESTADO = '{{ $nivelEstado }}';
         var ROL_VISTA = '{{ $rolVista ?? "all" }}';
         // Solo juego_responsable no ve NUNCA la rama FISC (los funcionarios sí pueden verla).

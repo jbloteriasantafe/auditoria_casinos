@@ -3634,7 +3634,7 @@ $(document).ready(function () {
         if (esPdf && ult) h += '<button class="btn btn-xs btn-warning btn-anotar-doc" data-nota="' + notaId + '" data-tipo="' + tipo + '" data-version="' + ult.version_id + '" title="Anotar PDF" style="' + bs + '"><i class="fa fa-edit"></i></button>';
         h += '<button class="btn btn-xs btn-default btn-nueva-version-doc" data-doc="' + doc.id + '" title="Subir nueva versión" style="' + bs + '"><i class="fa fa-upload"></i></button>';
         if (doc.cant_versiones > 1) h += '<button class="btn btn-xs btn-default btn-ver-versiones-doc" data-doc="' + doc.id + '" title="Ver versiones" style="' + bs + '"><i class="fa fa-history"></i></button>';
-        if (window.PUEDE_ELIMINAR) h += '<button class="btn btn-xs btn-danger btn-eliminar-doc" data-doc="' + doc.id + '" title="Eliminar documento" style="' + bs + '"><i class="fa fa-trash"></i></button>';
+        if (window.PUEDE_BORRAR_DOCS) h += '<button class="btn btn-xs btn-danger btn-eliminar-doc" data-doc="' + doc.id + '" title="Eliminar documento" style="' + bs + '"><i class="fa fa-trash"></i></button>';
         h += '</div></div>';
         h += '<div class="doc-versiones" data-doc="' + doc.id + '" style="display:none; margin-top:6px; border-top:1px solid #e2e8f0; padding-top:6px;"></div>';
         h += '</div>'; // cierra .doc-item (sin esto, el siguiente tipo quedaba anidado adentro)

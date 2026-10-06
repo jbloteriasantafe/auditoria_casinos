@@ -966,6 +966,10 @@ class NotasUnificadasController extends Controller
         // Los roles administrador NO pueden eliminar notas (sí adjuntos / comentarios)
         $puedeEliminarNotas = $puedeEliminar && !$usuario->es_administrador;
 
+        // Borrar archivos adjuntos: quienes pueden eliminar + rol 'NOTAS_BORRAR_DOCS'
+        // (el superusuario siempre, aunque además tenga rol de funcionario)
+        $puedeBorrarDocs = $puedeEliminar || $usuario->es_superusuario || $usuario->tieneRol('NOTAS_BORRAR_DOCS');
+
         // Comentarios: visibles para todos MENOS casinos/plataformas (regular sin rol admin)
         $puedeVerComentarios = true; // Los comentarios de las notas son visibles para todos (pedido del usuario)
 
@@ -1107,7 +1111,7 @@ class NotasUnificadasController extends Controller
         // Puede exportar: admin o funcionario
         $puedeExportar = $esAdmin || $esFuncionario;
 
-        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador', 'esJuegoResponsable', 'esSuperusuario', 'puedeAprobarNota'));
+        return view('Unified.index', compact('grupos', 'notasSueltas', 'casinos', 'categorias', 'tipos_evento', 'estados', 'puedeEliminar', 'puedeEliminarNotas', 'puedeBorrarDocs', 'nivelEstado', 'esFuncionario', 'esFuncionario1', 'esFuncionario2', 'rolVista', 'muestraVerTodo', 'verTodo', 'totalGrupos', 'tiposEventoMkt', 'tiposEventoFisc', 'aprobacionesPorGrupo', 'puedeVerComentarios', 'esAdminMails', 'puedeGestionarMails', 'puedeExportar', 'puedeEditarBorrador', 'esConcesionario', 'esAdministrador', 'esJuegoResponsable', 'esSuperusuario', 'puedeAprobarNota'));
     }
 
     /**
@@ -2825,6 +2829,18 @@ class NotasUnificadasController extends Controller
     }
 
     /**
+     * Permiso para borrar ARCHIVOS ADJUNTOS (documentos) de una nota: los roles que ya
+     * pueden eliminar, o cualquier usuario con el rol 'NOTAS_BORRAR_DOCS'.
+     */
+    private function puedeBorrarDocs()
+    {
+        if ($this->puedeEliminar())
+            return true;
+        $u = $this->usuarioActual();
+        return $u && $u->tieneRol('NOTAS_BORRAR_DOCS');
+    }
+
+    /**
      * Permiso para eliminar NOTAS (destroy individual / eliminación masiva).
      * Igual base que puedeEliminar() pero los roles administrador quedan excluidos.
      */
@@ -3890,7 +3906,7 @@ class NotasUnificadasController extends Controller
      */
     public function deleteAdjunto($id, $campo)
     {
-        if (!$this->puedeEliminar()) {
+        if (!$this->puedeBorrarDocs()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
@@ -4147,7 +4163,7 @@ class NotasUnificadasController extends Controller
     /** Elimina un documento completo: sus versiones, archivos físicos y el registro. */
     public function eliminarDocumento($idDoc)
     {
-        if (!$this->puedeEliminar()) {
+        if (!$this->puedeBorrarDocs()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
         try {
