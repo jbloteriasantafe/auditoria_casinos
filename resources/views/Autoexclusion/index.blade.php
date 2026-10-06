@@ -11,7 +11,7 @@ $puede_ver_formularios = $puede_agregar || $puede_modificar;
 $puede_descargar = $usuario->es_superusuario || $usuario->tienePermiso('descargar_aes');
 $puede_borrar    = $usuario->es_superusuario || $usuario->tienePermiso('borrar_ae');
 $puede_ver_logs_descargas = $usuario->es_superusuario || $usuario->tienePermiso('logs_descargar_aes');
-$puede_subir_archivos = true;//Cualquiera con acceso a la sección puede subir/reemplazar las imágenes
+$puede_subir_archivos = $puede_agregar;
 //Las plataformas de apuestas deportivas no cuelgan de ningún casino, así que no se pueden filtrar
 //por plataforma_tiene_casino como las online: se muestran todas o ninguna según el permiso.
 $plats_deportivas_alta = $usuario->tienePermiso('aym_ae_plataformas')? $plataformas_deportivas : [];
@@ -365,6 +365,9 @@ input[required], select[required]{
         <i class="fa fa-fw fa-search-plus"></i>
       </button>
       @if($puede_modificar)
+      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+        <i class="fa fa-fw"></i>
+      </button>
       @if($usuario->es_superusuario)
       <button id="btnEditarSuperusuario" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
@@ -374,9 +377,6 @@ input[required], select[required]{
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
       @endif
-      <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
-        <i class="fa fa-fw"></i>
-      </button>
       @endif
       @if($puede_subir_archivos)
       <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" data-placement="left"
