@@ -85,11 +85,11 @@ class NotaEstado extends Model
      */
     public static function transicionesFuncionario1()
     {
-        return [
+        return self::conDesdeCargaInicial([
             self::CONTROL_INICIADO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::OBS_CORREGIDA    => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::VISTO_CON_OBSERVACIONES => [self::APROBADO_FUNCIONARIO],
-        ];
+        ]);
     }
 
     /**
@@ -97,12 +97,31 @@ class NotaEstado extends Model
      */
     public static function transicionesFuncionario2()
     {
-        return [
+        return self::conDesdeCargaInicial([
             self::CONTROL_INICIADO     => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::OBS_CORREGIDA        => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::CON_INFORME_NEGATIVO => [self::APROBADO_FUNCIONARIO, self::VISTO_CON_OBSERVACIONES],
             self::VISTO_CON_OBSERVACIONES => [self::APROBADO_FUNCIONARIO],
-        ];
+        ]);
+    }
+
+    /**
+     * Funcionarios: desde CARGA INICIAL pueden mover la nota a CUALQUIERA de los
+     * estados destino que ya manejan (unión de todos los destinos de su mapa),
+     * sin depender de que la transición puntual esté configurada.
+     */
+    private static function conDesdeCargaInicial(array $mapa)
+    {
+        $destinos = [];
+        foreach ($mapa as $lista) {
+            foreach ($lista as $d) {
+                if ($d !== self::CARGA_INICIAL && !in_array($d, $destinos, true)) {
+                    $destinos[] = $d;
+                }
+            }
+        }
+        $mapa[self::CARGA_INICIAL] = $destinos;
+        return $mapa;
     }
 
     /**

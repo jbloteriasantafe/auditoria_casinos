@@ -1,3 +1,62 @@
+// Bloqueo de imágenes/videos en TODAS las subidas de archivos de notas.
+// Se engancha en fase de captura sobre document para correr ANTES que los
+// handlers propios de cada input (nueva versión, subir a documento, etc.):
+// si hay alguna imagen/video se vacía el input, se corta el evento y se
+// explica que esos archivos van a un repositorio compartido + link en la nota.
+(function () {
+    var EXT_MEDIA = /\.(jpe?g|png|gif|bmp|webp|tiff?|svg|heic|heif|ico|mp4|m4v|mov|avi|wmv|mkv|webm|flv|3gp|mpe?g|ogv)$/i;
+    function esMedia(f) {
+        var t = (f.type || '').toLowerCase();
+        return t.indexOf('image/') === 0 || t.indexOf('video/') === 0 || EXT_MEDIA.test(f.name || '');
+    }
+    window.esArchivoMultimedia = esMedia;
+
+    var modalHtml =
+        '<div class="modal fade" id="modalSinMultimedia" tabindex="-1" role="dialog" style="z-index: 99999;">' +
+        '  <div class="modal-dialog" role="document">' +
+        '    <div class="modal-content" style="border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">' +
+        '      <div class="modal-header" style="background: #f0ad4e; color: white; border: none; padding: 15px 20px;">' +
+        '        <h4 class="modal-title" style="margin: 0; font-size: 16px;"><i class="fa fa-film"></i> No se permiten imágenes ni videos</h4>' +
+        '      </div>' +
+        '      <div class="modal-body" style="padding: 20px; font-size: 14px;">' +
+        '        <p>Los archivos de <strong>imagen</strong> o <strong>video</strong> no se adjuntan a la nota.</p>' +
+        '        <p style="margin-bottom:8px;">Para incluirlos:</p>' +
+        '        <ol style="padding-left:20px; margin-bottom:12px;">' +
+        '          <li>Subilos a un <strong>repositorio compartido</strong> (Drive, OneDrive, carpeta compartida, etc.).</li>' +
+        '          <li>Copiá el <strong>link</strong> de acceso.</li>' +
+        '          <li>Pegá ese link dentro de la nota (por ejemplo en un documento PDF o Word adjunto).</li>' +
+        '        </ol>' +
+        '        <p id="modalSinMultimediaLista" class="text-muted" style="margin:0; font-size:12.5px; word-break:break-all;"></p>' +
+        '      </div>' +
+        '      <div class="modal-footer" style="border-top: 1px solid #eee; padding: 10px 20px;">' +
+        '        <button type="button" class="btn btn-warning btn-sm" data-dismiss="modal">Entendido</button>' +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+
+    function mostrar(nombres) {
+        if (!document.getElementById('modalSinMultimedia')) $('body').append(modalHtml);
+        $('#modalSinMultimediaLista').text('Archivo(s) rechazado(s): ' + nombres.join(', '));
+        $('#modalSinMultimedia').modal('show');
+    }
+
+    document.addEventListener('change', function (e) {
+        var el = e.target;
+        if (!el || el.tagName !== 'INPUT' || el.type !== 'file' || !el.files || !el.files.length) return;
+        var rechazados = [];
+        for (var i = 0; i < el.files.length; i++) {
+            if (esMedia(el.files[i])) rechazados.push(el.files[i].name);
+        }
+        if (!rechazados.length) return;
+        el.value = '';
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        $(el).next('.btn-quitar-archivo').remove();
+        mostrar(rechazados);
+    }, true);
+})();
+
 // Modal de confirmación personalizado (reemplaza confirm() nativo)
 (function () {
     var modalHtml =
@@ -1151,6 +1210,7 @@ $(document).ready(function () {
             fecha_propuesta_realizacion: $('#inpFechaPropuestaReal').val() || '',
             compartir_administrador: $('#chkCompartirAdmin').is(':checked') ? 1 : 0,
             involucra_juegos: $('#chkInvolucraJuegos').is(':checked') ? 1 : 0,
+            involucra_clubes: $('#chkInvolucraClubes').is(':checked') ? 1 : 0,
             fecha_inicio_evento: $('#inpFechaInicio').val(),
             fecha_fin_evento: $('#inpFechaFin').val(),
             // fecha_referencia eliminada del UI; el backend recibirá null.
@@ -2131,7 +2191,10 @@ $(document).ready(function () {
         gridState.page = 1;
         $('#inpBusqueda').val('');
 
-        if (filter === 'hoy') {
+        if (filter === 'clubes') {
+            gridState.quick_filter = 'clubes';
+            gridState.ver_todo = '';
+        } else if (filter === 'hoy') {
             gridState.quick_filter = 'hoy';
             gridState.ver_todo = '';
         } else if (filter === 'proximos') {
@@ -2336,6 +2399,7 @@ $(document).ready(function () {
         var fFin = $('#inpFechaFin').val();
         var compartir = $('#chkCompartirAdmin').is(':checked');
         var involucra = $('#chkInvolucraJuegos').is(':checked');
+        var involucraClubes = $('#chkInvolucraClubes').is(':checked');
         var notaPadre = $('#hidIdGrupoPadre').val()
             ? ($.trim($('#inpBuscarNotaPadre').val()) || ('Trámite #' + $('#hidIdGrupoPadre').val()))
             : '';
@@ -2363,6 +2427,7 @@ $(document).ready(function () {
         if (fInicio || fFin) addRow('fa-calendar', 'Fechas del evento', 'Del ' + (fInicio || '—') + ' al ' + (fFin || '—'));
         addRow('fa-share-alt', 'Compartir c/ administrador', compartir ? 'Sí' : 'No');
         addRow('fa-gamepad', 'Involucra juegos', involucra ? 'Sí' : 'No');
+        addRow('fa-shield', 'Involucra clubes/camisetas', involucraClubes ? 'Sí' : 'No');
         if (notaPadre) addRow('fa-link', 'Se acopla a', notaPadre);
 
         var html =
@@ -3418,6 +3483,8 @@ $(document).ready(function () {
         html = sr(html, '{{fecha_propuesta_realizacion}}', nota.fecha_propuesta_realizacion || 'N/A');
         html = sr(html, '{{compartir_administrador}}', nota.compartir_administrador ? '1' : '0');
         html = sr(html, '{{compartir_administrador_label}}', nota.compartir_administrador ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>');
+        html = sr(html, '{{involucra_clubes}}', nota.involucra_clubes ? '1' : '0');
+        html = sr(html, '{{involucra_clubes_label}}', nota.involucra_clubes ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>');
         html = sr(html, '{{estado}}', nota.estado || 'INGRESADO');
         html = sr(html, '{{estadoStyle}}', getEstadoStyle(nota.estado));
         html = sr(html, '{{created_at}}', nota.created_at || 'N/A');
@@ -3443,6 +3510,7 @@ $(document).ready(function () {
         if (nota.tipo_rama !== 'MKT') {
             $tmp.find('.row-fecha-pretendida').remove();
             $tmp.find('.row-compartir-admin').remove();
+            $tmp.find('.row-involucra-clubes').remove();
             $tmp.find('.row-categoria').remove();
         } else {
             // En MKT 'Tipo Evento' está borrado lógicamente; FISC sigue mostrando su Tipo Evento Técnico.
@@ -4434,7 +4502,7 @@ $(document).ready(function () {
                 inputHtml = '<select class="form-control edit-input" data-field="' + field + '" style="font-size: 13px;"><option value="">-- Seleccione --</option>';
                 opciones.forEach(function(o) { inputHtml += '<option value="' + o.id + '"' + (o.id == selectedId ? ' selected' : '') + '>' + o.nombre + '</option>'; });
                 inputHtml += '</select>';
-            } else if (field === 'compartir_administrador') {
+            } else if (field === 'compartir_administrador' || field === 'involucra_clubes') {
                 var checked = ($span.data('value') == 1) ? ' checked' : '';
                 inputHtml = '<label style="display:inline-flex; align-items:center; gap:6px; font-weight:normal; cursor:pointer; margin:0;"><input type="checkbox" class="edit-input edit-input-check" data-field="' + field + '"' + checked + ' style="width:16px; height:16px;"> <span style="font-size:13px;">Sí</span></label>';
             } else if (field === 'estado') {
@@ -4512,7 +4580,7 @@ $(document).ready(function () {
                         var field = $input.data('field');
                         var $editable = $input.is(':checkbox') ? $input.closest('label').prev('.editable') : $input.prev('.editable');
                         var displayValue;
-                        if (field === 'compartir_administrador') {
+                        if (field === 'compartir_administrador' || field === 'involucra_clubes') {
                             var val = $input.is(':checked') ? 1 : 0;
                             $editable.data('value', val);
                             $editable.html(val ? '<span style="color:#5cb85c;"><i class="fa fa-check-circle"></i> Sí</span>' : '<span style="color:#999;"><i class="fa fa-times-circle"></i> No</span>').show();

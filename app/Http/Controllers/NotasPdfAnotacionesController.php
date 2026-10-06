@@ -417,6 +417,7 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function subirNuevaVersion(Request $request)
     {
+        if ($r = NotasUnificadasController::rechazoMultimedia($request)) return $r;
         try {
             $idNota = $request->id_nota;
             $tipo = $request->tipo_archivo;

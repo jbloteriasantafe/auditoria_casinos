@@ -229,9 +229,38 @@ class NotasUnificadasController extends Controller
     {
         $transport = new \Swift_SmtpTransport('correo.santafe.gov.ar', 587, 'tls');
         $transport->setUsername('no-reply-loteria');
-        $transport->setPassword('C0ntr0l_L0t3r14');
+        $transport->setPassword('jTDQSUVvGTT4');
         $transport->setTimeout(5);
         return new \Swift_Mailer($transport);
+    }
+
+    /** Mensaje único para el rechazo de imágenes/videos (el front muestra un popup equivalente). */
+    const MSG_SIN_MULTIMEDIA = 'No se permiten imágenes ni videos como adjuntos. Súbalos a un repositorio compartido e incluya el link dentro de la nota.';
+
+    /**
+     * Red de seguridad server-side: si en el request viene algún archivo de imagen
+     * o video (por MIME real o por extensión) devuelve la respuesta 422 a retornar;
+     * si no, null. El wizard ya lo bloquea en el navegador.
+     */
+    public static function rechazoMultimedia(Request $request)
+    {
+        $ext = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'tiff', 'svg', 'heic', 'heif', 'ico',
+            'mp4', 'm4v', 'mov', 'avi', 'wmv', 'mkv', 'webm', 'flv', '3gp', 'mpg', 'mpeg', 'ogv'];
+        $rechazados = [];
+        $files = $request->allFiles();
+        array_walk_recursive($files, function ($f) use ($ext, &$rechazados) {
+            if (!$f instanceof \Illuminate\Http\UploadedFile) return;
+            $mime = strtolower((string) $f->getMimeType());
+            $e = strtolower($f->getClientOriginalExtension());
+            if (strpos($mime, 'image/') === 0 || strpos($mime, 'video/') === 0 || in_array($e, $ext, true)) {
+                $rechazados[] = $f->getClientOriginalName();
+            }
+        });
+        if (empty($rechazados)) return null;
+        return response()->json([
+            'success' => false,
+            'msg' => self::MSG_SIN_MULTIMEDIA . ' Rechazado(s): ' . implode(', ', $rechazados),
+        ], 422);
     }
 
     /**
@@ -248,7 +277,18 @@ class NotasUnificadasController extends Controller
     /**
      * Genera el HTML del mail de cambio de estado
      */
-    private static function htmlCambioEstado($usuario, $nroNota, $tipoNota, $estadoAnterior, $estadoNuevo, $casino, $titulo = '')
+    /**
+     * Aviso (texto plano) para notas MKT con el tilde "¿Involucra clubes/camisetas?".
+     */
+    private static function htmlBannerClubes()
+    {
+        return '
+                <p style="color: #333; font-size: 15px; margin: 0 0 20px; line-height: 1.5;">
+                    <strong>Esta nota involucra CLUBES / CAMISETAS.</strong>
+                </p>';
+    }
+
+    private static function htmlCambioEstado($usuario, $nroNota, $tipoNota, $estadoAnterior, $estadoNuevo, $casino, $titulo = '', $esClubes = false)
     {
         $colorEstado = function ($estado) {
             $lower = mb_strtolower($estado);
@@ -287,6 +327,7 @@ class NotasUnificadasController extends Controller
                 <p style="color: #333; font-size: 15px; margin: 0 0 20px; line-height: 1.5;">
                     ' . $mensaje . '
                 </p>
+' . ($esClubes ? self::htmlBannerClubes() : '') . '
 
                 <!-- Detalle -->
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -333,7 +374,7 @@ class NotasUnificadasController extends Controller
      * Genera el HTML del mail de "Nota Aprobada" (variante verde para la categoría
      * aviso_aprobaciones): se envía cuando una nota llega a un estado de aprobación.
      */
-    private static function htmlNotaAprobada($usuario, $nroNota, $tipoNota, $estadoNuevo, $casino, $titulo = '')
+    private static function htmlNotaAprobada($usuario, $nroNota, $tipoNota, $estadoNuevo, $casino, $titulo = '', $esClubes = false)
     {
         return '
         <div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -351,6 +392,7 @@ class NotasUnificadasController extends Controller
                 <p style="color: #333; font-size: 15px; margin: 0 0 20px; line-height: 1.5;">
                     La nota fue <strong style="color:#15803d;">aprobada</strong> por <strong>' . e($usuario) . '</strong>.
                 </p>
+' . ($esClubes ? self::htmlBannerClubes() : '') . '
 
                 <!-- Detalle -->
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -417,9 +459,13 @@ class NotasUnificadasController extends Controller
                         ->orWhere('id_estado_origen', -1);
                 })
                 ->where('activo', 1)
-                ->where(function ($q) use ($idTipoEventoNota) {
+                ->where(function ($q) use ($idTipoEventoNota, $nota) {
                     $q->where('id_tipo_evento', 0)
                         ->orWhere('id_tipo_evento', $idTipoEventoNota);
+                    // id_tipo_evento = -1 => "Clubes / Camisetas": solo notas con el tilde
+                    if ((int) $nota->involucra_clubes === 1) {
+                        $q->orWhere('id_tipo_evento', -1);
+                    }
                 })
                 ->pluck('categoria')
                 ->toArray();
@@ -486,9 +532,11 @@ class NotasUnificadasController extends Controller
             // Las notas notificadas por la categoría "aviso_aprobaciones" reciben el HTML de
             // aprobación (verde), en vez del genérico de cambio de estado.
             $esAviso = in_array('aviso_aprobaciones', $categorias);
+            // Notas MKT con el tilde "¿Involucra clubes/camisetas?": se resalta en el cuerpo y en el asunto.
+            $esClubes = ((int) $nota->involucra_clubes === 1);
             $html = $esAviso
-                ? self::htmlNotaAprobada($nombreUsuario, $nroNota, $tipoNota, $descEstadoDestino, $casino, $titulo)
-                : self::htmlCambioEstado($nombreUsuario, $nroNota, $tipoNota, $descEstadoOrigen, $descEstadoDestino, $casino, $titulo);
+                ? self::htmlNotaAprobada($nombreUsuario, $nroNota, $tipoNota, $descEstadoDestino, $casino, $titulo, $esClubes)
+                : self::htmlCambioEstado($nombreUsuario, $nroNota, $tipoNota, $descEstadoOrigen, $descEstadoDestino, $casino, $titulo, $esClubes);
 
             $emailsRaw = $destinatarios->pluck('email')->unique()->toArray();
             $emails = [];
@@ -513,6 +561,9 @@ class NotasUnificadasController extends Controller
             $subject = $esAviso
                 ? 'Nota aprobada - ' . $nroNota
                 : ($esCreacion ? 'Nueva nota - ' . $nroNota : 'Cambio de estado - Nota ' . $nroNota);
+            if ($esClubes) {
+                $subject = '[CLUBES/CAMISETAS] ' . $subject;
+            }
 
             $message = (new \Swift_Message($subject))
                 ->setFrom(['no-reply-loteria@santafe.gov.ar' => 'Control Sistemas Loteria'])
@@ -781,6 +832,12 @@ class NotasUnificadasController extends Controller
 
         // Quick Filters
         if ($request->has('quick_filter')) {
+            if ($request->quick_filter === 'clubes') {
+                // Grupos con alguna nota MKT que involucra clubes / camisetas
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('involucra_clubes', 1);
+                });
+            }
             if ($request->quick_filter === 'hoy') {
                 // Grupos que tienen alguna nota creada hoy
                 $gruposQuery->whereHas('notas', function ($q) {
@@ -1252,6 +1309,11 @@ class NotasUnificadasController extends Controller
 
         // Quick filters
         if ($request->has('quick_filter') && $request->quick_filter) {
+            if ($request->quick_filter === 'clubes') {
+                $gruposQuery->whereHas('notas', function ($q) {
+                    $q->where('involucra_clubes', 1);
+                });
+            }
             if ($request->quick_filter === 'hoy') {
                 $gruposQuery->whereHas('notas', function ($q) {
                     $q->whereDate('created_at', \Carbon\Carbon::today());
@@ -1691,6 +1753,7 @@ class NotasUnificadasController extends Controller
                 if ($tipo_rama === 'MKT') {
                     $nota->compartir_administrador = $request->compartir_administrador ? 1 : 0;
                     $nota->involucra_juegos = $request->involucra_juegos ? 1 : 0;
+                    $nota->involucra_clubes = $request->involucra_clubes ? 1 : 0;
                 }
 
                 $nota->save();
@@ -2072,6 +2135,7 @@ class NotasUnificadasController extends Controller
      */
     public function guardarAdjuntos(Request $request)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         \Log::info("UPLOAD: METHOD ENTRY - RAW INPUTS: " . json_encode($request->only(['id_nota_mkt', 'id_nota_fisc'])));
         $disk = 'public';
 
@@ -2150,6 +2214,7 @@ class NotasUnificadasController extends Controller
      */
     public function agregarAdjuntos(Request $request, $id)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         $disk = 'public';
         $nota = NotaIngreso::findOrFail($id);
         $userId = session('id_usuario') ?? Auth::id() ?? 1;
@@ -2375,6 +2440,7 @@ class NotasUnificadasController extends Controller
      */
     public function uploadArchivo(Request $request)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $nota = NotaIngreso::findOrFail($request->id_nota);
             $tipo = $request->tipo; // pautas, diseno, bases
@@ -3237,6 +3303,7 @@ class NotasUnificadasController extends Controller
             'fecha_propuesta_realizacion' => $nota->fecha_propuesta_realizacion,
             'compartir_administrador' => (int) $nota->compartir_administrador,
             'involucra_juegos' => (int) $nota->involucra_juegos,
+            'involucra_clubes' => (int) $nota->involucra_clubes,
             'created_at' => $nota->created_at ? $nota->created_at->format('d/m/Y H:i') : null,
             'adjuntos' => $adjuntos,
             'documentos' => $documentos,
@@ -3318,6 +3385,7 @@ class NotasUnificadasController extends Controller
                 'fecha_pretendida_aprobacion' => 'fecha_pretendida_aprobacion',
                 'fecha_propuesta_realizacion' => 'fecha_propuesta_realizacion',
                 'compartir_administrador' => 'compartir_administrador',
+                'involucra_clubes' => 'involucra_clubes',
                 'fecha_referencia' => 'fecha_referencia'
             ];
 
@@ -3993,6 +4061,7 @@ class NotasUnificadasController extends Controller
     /** Crea un NUEVO documento de un tipo con su primer archivo (versión 1). */
     public function subirDocumento(Request $request, $idNota, $tipo)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $nota = NotaIngreso::findOrFail($idNota);
             $tiposValidos = ['solicitud', 'diseno', 'bases', 'informe', 'varios', 'anexo'];
@@ -4018,6 +4087,7 @@ class NotasUnificadasController extends Controller
     /** Sube una NUEVA versión a un documento existente. */
     public function subirVersionDocumento(Request $request, $idDoc)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $doc = \App\Models\NotaArchivoDocumento::findOrFail($idDoc);
             $nota = NotaIngreso::findOrFail($doc->id_nota_ingreso);
@@ -4271,6 +4341,7 @@ class NotasUnificadasController extends Controller
      */
     public function subirNotaAprobacion(Request $request)
     {
+        if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $idGrupo = $request->input('id_grupo');
             $tipoRama = $request->input('tipo_rama'); // MKT o FISC
@@ -5000,7 +5071,7 @@ class NotasUnificadasController extends Controller
                 't.id_tipo_evento',
                 DB::raw("IFNULL(eo.descripcion, 'AL CREAR') as estado_origen"),
                 'ed.descripcion as estado_destino',
-                'te.descripcion as tipo_evento_nombre',
+                DB::raw("CASE WHEN t.id_tipo_evento = -1 THEN 'Clubes / Camisetas' ELSE te.descripcion END as tipo_evento_nombre"),
                 DB::raw("IFNULL(eo.orden, 0) as orden_origen")
             )
             ->orderBy('orden_origen');

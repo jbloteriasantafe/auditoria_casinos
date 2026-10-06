@@ -19,6 +19,7 @@ class NotaIngreso extends Model
         'tipo_solicitud',
         'tipo_rama',  // MKT o FISC
         'involucra_juegos',  // MKT: nota asociada a juegos / activos
+        'involucra_clubes',  // MKT: nota que involucra clubes / camisetas
         // Adjuntos
         'path_solicitud',   // Solicitud Concesionario (común)
         'path_pautas',      // Legacy - ya no se usa

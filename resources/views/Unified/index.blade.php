@@ -514,6 +514,9 @@
                             </div>
                         </div>
                         <div class="col-md-7" style="padding-left:15px;">
+                            <button class="btn btn-sm btn-default btn-quick-filter" data-filter="clubes"
+                                style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i
+                                    class="fa fa-shield"></i> Clubes</button>
                             <button class="btn btn-sm btn-default btn-quick-filter" data-filter="hoy"
                                 style="margin-right:4px; border-radius:15px; padding:4px 14px;"><i
                                     class="fa fa-calendar-check-o"></i> Hoy</button>
@@ -828,6 +831,16 @@
                         </label>
                     </div>
 
+                    <!-- INVOLUCRA CLUBES / CAMISETAS (solo MKT; aplica a cualquier casino/plataforma) -->
+                    <div class="section-marketing wiz-field" id="secInvolucraClubes">
+                        <label
+                            style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; gap:8px;">
+                            <input type="checkbox" name="involucra_clubes" id="chkInvolucraClubes" value="1"
+                                style="width:18px; height:18px; cursor:pointer;">
+                            <span style="font-size:13px;">¿Involucra clubes/camisetas?</span>
+                        </label>
+                    </div>
+
                     <!-- FECHAS -->
                     <div class="wiz-row">
                         <div class="wiz-col">
@@ -984,8 +997,8 @@
                                     <label style="font-weight: 600; color: #1e40af;"><i class="fa fa-image"></i> Adjunto
                                         Diseño</label>
                                     <input id="adjuntoDisenio" name="adjuntoDisenio[]" type="file" class="form-control"
-                                        accept=".pdf,.zip,.jpg,.png" multiple style="margin-top:10px;">
-                                    <small class="text-muted">PDF, ZIP, JPG, PNG · podés elegir varios</small>
+                                        accept=".pdf,.zip" multiple style="margin-top:10px;">
+                                    <small class="text-muted">PDF, ZIP · podés elegir varios</small>
                                 </div>
                             </div>
                             <!-- Bases y Condiciones MKT -->
@@ -1162,7 +1175,7 @@
                                     <div class="form-group">
                                         <label><i class="fa fa-image"></i> Diseño</label>
                                         <input type="file" name="adjuntoDisenio[]" class="form-control"
-                                            accept=".pdf,.zip,.jpg,.png" multiple>
+                                            accept=".pdf,.zip" multiple>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -1521,6 +1534,7 @@
                                                 <tr class="row-fecha-pretendida"><td><strong>Fecha Est. Aprob.:</strong></td><td><span class="editable" data-field="fecha_pretendida_aprobacion">{{fecha_pretendida_aprobacion}}</span></td></tr>
                                                 <tr class="row-fecha-propuesta"><td><strong>Fecha prop. realiz.:</strong></td><td><span class="editable" data-field="fecha_propuesta_realizacion">{{fecha_propuesta_realizacion}}</span></td></tr>
                                                 <tr class="row-compartir-admin"><td><strong>Compartir Admin.:</strong></td><td><span class="editable editable-toggle" data-field="compartir_administrador" data-value="{{compartir_administrador}}">{{compartir_administrador_label}}</span></td></tr>
+                                                <tr class="row-involucra-clubes"><td><strong>Clubes/Camisetas:</strong></td><td><span class="editable editable-toggle" data-field="involucra_clubes" data-value="{{involucra_clubes}}">{{involucra_clubes_label}}</span></td></tr>
                                                 <tr><td><strong>Estado:</strong></td><td><span class="editable" data-field="estado" data-value="{{estado}}"><span class="label" style="{{estadoStyle}}">{{estado}}</span></span></td></tr>
                                                 <tr><td><strong>Creado:</strong></td><td>{{created_at}}</td></tr>
                                             </table>
@@ -1934,7 +1948,7 @@
                                         <i class="fa fa-upload"></i> Subir nueva versión
                                     </button>
                                     <input type="file" id="inputNuevaVersion" style="display:none;"
-                                        accept=".pdf,.png,.jpg,.jpeg">
+                                        accept=".pdf">
                                     <label class="text-muted"
                                         style="margin:0; font-weight:normal; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap;">
                                         <input type="checkbox" id="check-comparar"> Comparar versiones
@@ -2231,6 +2245,8 @@
                                         <select class="form-control" id="selTransTipoEvento" style="font-size:12px;">
                                             <option value="0">Todos</option>
                                             <optgroup label="Marketing">
+                                                {{-- -1 = centinela: solo notas con el tilde "¿Involucra clubes/camisetas?" --}}
+                                                <option value="-1">Clubes / Camisetas</option>
                                                 @foreach($tiposEventoMkt ?? [] as $te)
                                                     <option value="{{ $te->id }}">{{ $te->descripcion }}</option>
                                                 @endforeach
