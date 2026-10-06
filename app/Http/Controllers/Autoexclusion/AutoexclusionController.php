@@ -1297,8 +1297,19 @@ class AutoexclusionController extends Controller
                 }
             }
             
+            // --- Encoding ---
+            // Los CSV exportados desde Excel suelen venir en Latin-1/Windows-1252: la "ñ" del header
+            // (años_adicionales) no matchea y valores como "España" hacen fallar el insert en MySQL.
+            // Se convierte campo por campo y solo si ese campo no es UTF-8 válido: hay archivos con
+            // encoding mezclado (header en UTF-8 y datos en Latin-1) y convertir todo el archivo
+            // doble-codifica lo que ya estaba bien ("años" -> "aã±os") y el header deja de matchear.
+            $F_UTF8 = function($s) {
+                if (!is_string($s) || mb_check_encoding($s, 'UTF-8')) return $s;
+                return mb_convert_encoding($s, 'UTF-8', 'Windows-1252');
+            };
+
             $handle = fopen($path, 'r');
-            
+
             if ($handle === false) {
                 throw new \Exception("No se pudo abrir el archivo. Asegurese que sea un CSV valido.");
             }
@@ -1316,10 +1327,11 @@ class AutoexclusionController extends Controller
             }
             
             // Normalize Header to lowercase and Strip BOM
-            $header = array_map(function($h) { 
+            $header = array_map(function($h) use ($F_UTF8) {
                 // Remove BOM if present (EF BB BF)
                 $h = preg_replace('/^\xEF\xBB\xBF/', '', $h);
-                return strtolower(trim($h)); 
+                $h = $F_UTF8($h);
+                return mb_strtolower(trim($h), 'UTF-8');
             }, $header);
             
             Log::info("Headers found: " . implode(', ', $header));
@@ -1347,6 +1359,11 @@ class AutoexclusionController extends Controller
             $idx_nacimiento   = $getVal(['dateofbirth', 'fecha_nacimiento']);
             $idx_telefono     = $getVal(['phonenumbermobile', 'phone', 'telefono', 'movil']);
             $idx_email        = $getVal(['email', 'correo']);
+            $idx_nro_domicilio = $getVal(['nro_domicilio', 'numero', 'altura']);
+            $idx_codigo_postal = $getVal(['codigo_postal', 'cp', 'zip']);
+            // Resolución nueva: opcionales. Si no vienen, se usa el mínimo (0 años adicionales, sin alcance).
+            $idx_años_adic    = $getVal(['años_adicionales', 'anios_adicionales', 'anos_adicionales', 'años adicionales']);
+            $idx_alcance      = $getVal(['alcance_interjurisdiccional', 'alcance interjurisdiccional', 'interjurisdiccional']);
             $idx_status_plat1 = $getVal(['total_exclusions']);
             $idx_status_plat2 = $getVal(['player_status']);
 
@@ -1366,6 +1383,7 @@ class AutoexclusionController extends Controller
                     $rowidx++;
                     continue; // Skip empty rows
                  }
+                 $row = array_map($F_UTF8, $row);
 
                  $dni_raw = $row[$idx_dni] ?? null;
                  // Clean DNI: remove dots/spaces/letters
@@ -1413,6 +1431,38 @@ class AutoexclusionController extends Controller
                          . ". La fila no se cargó.";
                      $rowidx++;
                      continue;
+                 }
+
+                 // --- Años adicionales / alcance interjurisdiccional (resolución nueva) ---
+                 // Vacío o columna ausente => mínimo. Un valor no interpretable rechaza la fila
+                 // en vez de cargarla en silencio con el mínimo.
+                 $años_adicionales = 0;
+                 $años_raw = ($idx_años_adic !== null) ? trim($row[$idx_años_adic] ?? '') : '';
+                 if ($años_raw !== '') {
+                     if (!ctype_digit($años_raw)) {
+                         $cant_errores++;
+                         $errores_detalle[] = "LINEA: $rowidx | DNI $dni: años adicionales inválidos ("
+                             . json_encode($años_raw) . "). La fila no se cargó.";
+                         $rowidx++;
+                         continue;
+                     }
+                     $años_adicionales = intval($años_raw);
+                 }
+
+                 $alcance_interjurisdiccional = 0;
+                 $alcance_raw = ($idx_alcance !== null) ? mb_strtolower(trim($row[$idx_alcance] ?? ''), 'UTF-8') : '';
+                 if ($alcance_raw !== '') {
+                     if (in_array($alcance_raw, ['1', 'si', 'sí', 's', 'true', 'x'])) {
+                         $alcance_interjurisdiccional = 1;
+                     } elseif (in_array($alcance_raw, ['0', 'no', 'n', 'false'])) {
+                         $alcance_interjurisdiccional = 0;
+                     } else {
+                         $cant_errores++;
+                         $errores_detalle[] = "LINEA: $rowidx | DNI $dni: alcance interjurisdiccional inválido ("
+                             . json_encode($alcance_raw) . "). La fila no se cargó.";
+                         $rowidx++;
+                         continue;
+                     }
                  }
 
                  $persona_desc = "Fila $rowidx: DNI $dni - $apellido_nombres - Fecha AE: " . $fecha_ae->format('d/m/Y');
@@ -1543,8 +1593,9 @@ class AutoexclusionController extends Controller
                     'fecha_nacimiento' => $fecha_nac,
                     'id_sexo' => $id_sexo,
                     'domicilio' => $domicilio,
-                    'nro_domicilio' => '0',
-                    'piso' => null, 'dpto' => null, 'codigo_postal' => null,
+                    'nro_domicilio' => ($idx_nro_domicilio !== null && trim($row[$idx_nro_domicilio] ?? '') !== '') ? trim($row[$idx_nro_domicilio]) : '0',
+                    'piso' => null, 'dpto' => null,
+                    'codigo_postal' => ($idx_codigo_postal !== null && trim($row[$idx_codigo_postal] ?? '') !== '') ? trim($row[$idx_codigo_postal]) : null,
                     'nombre_localidad' => $localidad,
                     'nombre_provincia' => $provincia,
                     'telefono' => $telefono,
@@ -1564,8 +1615,8 @@ class AutoexclusionController extends Controller
                           'id_plataforma' => $id_plataforma,
                           'id_usuario' => $user->id_usuario,
                           'fecha_ae' => $fecha_ae->format('Y-m-d'),
-                          'años_adicionales' => 0,//@TODO: completar con lo que se reciba del archivo (u obtener calculando la diferencia de en la fecha del AE y su vencimiento)
-                          'alcance_interjurisdiccional' => 0,//@TODO: por defecto hasta que lo manden, pongo que no consienten
+                          'años_adicionales' => $años_adicionales,//Si es 983, generarFechas lo anula
+                          'alcance_interjurisdiccional' => $alcance_interjurisdiccional,
                       ];//Las demas fechas se calculan al setearEstado
                       
                       $ae_bd = new AE\Autoexcluido;
