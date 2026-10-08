@@ -57,6 +57,9 @@ class RelevamientoController extends Controller
     'after_or_equal' => 'La fecha tiene que ser posterior',
   ];
   private static $instance;
+  //Casinos cuyo contador horario se importa en créditos (enteros) y se denomina al importar (ver LectorCSVController::importarContadorRosario)
+  //El resto se importa directamente en pesos con centavos
+  const CASINOS_IMPORTAN_EN_CREDITOS = [3];
 
   private static $cant_dias_backup_relevamiento = 6;
 
@@ -288,7 +291,8 @@ class RelevamientoController extends Controller
     $d->detalle->estado = $this->obtenerEstadoDetalleRelevamiento(
       $d->detalle->producido_importado,
       $d->detalle->diferencia,
-      $d->detalle->id_tipo_causa_no_toma
+      $d->detalle->id_tipo_causa_no_toma,
+      $this->toleranciaDiferencia($detalle->relevamiento->fecha,$d->maquina,$d->detalle)
     );
     $d->detalle = $this->sacarProducidosSegunPrivilegios($d->detalle);
     
@@ -612,7 +616,8 @@ class RelevamientoController extends Controller
       $estado     = $this->obtenerEstadoDetalleRelevamiento(
         $producido_importado,
         $diferencia,
-        $id_tipo_causa_no_toma
+        $id_tipo_causa_no_toma,
+        $this->toleranciaDiferencia($rel->fecha,$d->maquina,$d->detalle)
       );
       
       $id_unidad_medida = $d->detalle->id_unidad_medida;
@@ -898,7 +903,8 @@ class RelevamientoController extends Controller
         $estado = $d->detalle->estado;
         $estados_contador[$estado] = ($estados_contador[$estado] ?? 0)+1;
         $aux->no_toma = '';
-        if($estado == 'CORRECTO'){
+        //REDONDEO no es una diferencia real (ver toleranciaDiferencia), solo se cuenta en el resumen
+        if($estado == 'CORRECTO' || $estado == 'REDONDEO'){
           return null;
         }
         else if($estado == 'SIN_IMPORTAR'){
@@ -934,6 +940,7 @@ class RelevamientoController extends Controller
     $viewrel->cantidad_relevadas = count($viewrel->detalles);
     $viewrel->detalles = $viewrel->detalles->filter(function($d){return !is_null($d);})->toArray();
     $viewrel->truncadas = $estados_contador['TRUNCAMIENTO'] ?? 0;
+    $viewrel->redondeo  = $estados_contador['REDONDEO'] ?? 0;
     $viewrel->sin_relevar = ($estados_contador['NO_TOMA'] ?? 0)+($estados_contador['SIN_IMPORTAR'] ?? 0);
     $viewrel->verificadas = $viewrel->cantidad_relevadas - $viewrel->sin_relevar;
     $viewrel->errores_generales = $estados_contador['DIFERENCIA'] ?? 0;
@@ -1458,16 +1465,46 @@ class RelevamientoController extends Controller
   }
   
   //No modificar sin cambiar el template del modal de carga... usa estos valores de retorno
-  private function obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma){
+  private function obtenerEstadoDetalleRelevamiento($importado,$diferencia,$id_tipo_causa_no_toma,$tolerancia = 0.01){
     if(!is_null($id_tipo_causa_no_toma)) return 'NO_TOMA';
     if(is_null($importado)) return 'SIN_IMPORTAR';
     if($diferencia != 0){
       if(ProducidoController::getInstancia()->truncamiento($diferencia)){
         return 'TRUNCAMIENTO';
       }
+      //Diferencia menor a lo que puede distinguir la fuente menos precisa (ver toleranciaDiferencia)
+      if(round(abs($diferencia),2) < round($tolerancia,2)){
+        return 'REDONDEO';
+      }
       return 'DIFERENCIA';
     }
     return 'CORRECTO';
+  }
+  
+  /*
+    Solo para casinos que importan en créditos (Rosario), el resto compara al centavo.
+    Valor mínimo (en pesos) que pueden distinguir ambas fuentes, se toma la menos precisa
+    - Importado: 1 crédito (denominacion_carga)
+    - Relevado:  en pesos (id_unidad_medida = 2) => $0.01, en créditos => 1 crédito (denominacion del detalle)
+    Una diferencia por debajo de eso no se puede afirmar ni descartar con los datos disponibles
+  */
+  private function toleranciaDiferencia($fecha,$maquina,$detalle){
+    if(!in_array($maquina->id_casino ?? null,self::CASINOS_IMPORTAN_EN_CREDITOS)){
+      return 0.01;
+    }
+
+    $res_relevado = 0.01;
+    if(($detalle->id_unidad_medida ?? null) != 2){
+      $res_relevado = max(0.01,floatval($detalle->denominacion ?? 0.01));
+    }
+
+    $res_importado = 0.01;
+    $dch = ProducidoController::getInstancia()->obtenerDetalleContadorHorario($fecha,$maquina);
+    if(!is_null($dch)){
+      $res_importado = max(0.01,floatval($dch->denominacion_carga));
+    }
+
+    return max($res_relevado,$res_importado);
   }
   
   public function calcularProducidoImportado($fecha,$maquina){

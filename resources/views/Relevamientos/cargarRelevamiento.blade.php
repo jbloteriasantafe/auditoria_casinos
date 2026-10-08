@@ -20,6 +20,10 @@
     border-color: #FFA726;
     color: #FFA726;
   }
+  .modalCargarRelevamiento [data-css-colorear="REDONDEO"] [data-js-detalle-asignar-name="diferencia"] {
+    border-color: #AB47BC;
+    color: #AB47BC;
+  }
   
   .modalCargarRelevamiento [data-css-colorear="NO_TOMA"] [data-js-detalle-asignar-name="id_tipo_causa_no_toma"] {
     border: 2px solid #1E90FF;
@@ -36,7 +40,7 @@
     display: block;
   }
   
-  @foreach(['DIFERENCIA','NO_TOMA','SIN_IMPORTAR','CORRECTO','TRUNCAMIENTO'] as $e)
+  @foreach(['DIFERENCIA','NO_TOMA','SIN_IMPORTAR','CORRECTO','TRUNCAMIENTO','REDONDEO'] as $e)
   .modalCargarRelevamiento [data-css-colorear="{{$e}}"] [data-js-icono-estado="{{$e}}"] {
     display: block !important;
   }
@@ -319,6 +323,9 @@
           </a>
           <a data-js-icono-estado="TRUNCAMIENTO" class="pop" data-content="Contadores importados truncados" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
             <i class="pop fa fa-exclamation" style="color: rgb(255, 167, 38); display: inline-block;"></i>
+          </a>
+          <a data-js-icono-estado="REDONDEO" class="pop" data-content="Diferencia por redondeo: menor a 1 crédito, los contadores importados no tienen esa precisión" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
+            <i class="pop fa fa-adjust" style="color: rgb(171, 71, 188); display: inline-block;"></i>
           </a>
           <a data-js-icono-estado="SIN_IMPORTAR" class="pop" data-content="No se importaron contadores" data-placement="top" rel="popover" data-trigger="hover" style="display: none;">
             <i class="pop fa fa-question" style="color: rgb(66, 165, 245); display: inline-block;"></i>
