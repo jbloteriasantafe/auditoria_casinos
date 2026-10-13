@@ -455,19 +455,66 @@
         }
 
         /* ===== Calendario de eventos ===== */
-        .cal-ev-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; }
-        .cal-ev-nav { display:flex; align-items:center; gap:4px; }
-        .cal-ev-titulo { font-size:18px; font-weight:600; margin-left:10px; min-width:170px; }
-        .cal-ev-filtros { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
-        .cal-ev-filtros label { margin:0; font-weight:normal; cursor:pointer; }
-        .cal-ev-rama { padding:3px 10px; border-radius:12px; color:#fff; }
-        .cal-ev-rama-mkt { background:#3b82f6; }
-        .cal-ev-rama-fisc { background:#10b981; }
-        .cal-ev-recursos-menu { max-height:340px; overflow-y:auto; min-width:260px; }
-        .cal-ev-recursos-menu li label { display:block; padding:3px 14px; font-weight:normal; cursor:pointer; white-space:nowrap; }
-        .cal-ev-recursos-menu li label:hover { background:#f5f5f5; }
-        .cal-ev-rec-acciones { padding:3px 14px; font-size:12px; }
-        .cal-ev-rec-acciones a { display:inline !important; padding:0 !important; }
+        #modalCalendarioEventos .modal-content { border-radius:10px; overflow:hidden; border:none; }
+        #modalCalendarioEventos .modal-body { background:#fff; padding:18px 22px 20px; }
+        .cal-ev-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:14px 18px; padding-bottom:14px; border-bottom:1px solid #eef2f7; }
+        /* Pestañas como control segmentado */
+        .cal-ev-seg { display:inline-flex; list-style:none; margin:0; padding:3px; background:#f1f5f9; border-radius:10px; }
+        .cal-ev-seg li a { display:block; padding:6px 14px; border-radius:8px; color:#64748b; font-size:13px; font-weight:500;
+            text-decoration:none; transition:all .15s; }
+        .cal-ev-seg li a:hover { color:#334155; }
+        .cal-ev-seg li.active a { background:#fff; color:#4f46e5; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+        .cal-ev-seg li a i { margin-right:4px; }
+        /* Navegación */
+        .cal-ev-nav { display:flex; align-items:center; gap:6px; }
+        .cal-ev-icon-btn, .cal-ev-hoy { height:32px; border:1px solid #e2e8f0; background:#fff; color:#475569; border-radius:8px;
+            font-size:13px; transition:all .15s; outline:none; }
+        .cal-ev-icon-btn { width:32px; padding:0; }
+        .cal-ev-hoy { padding:0 14px; font-weight:500; }
+        .cal-ev-icon-btn:hover, .cal-ev-hoy:hover { background:#f8fafc; border-color:#cbd5e1; color:#1e293b; }
+        .cal-ev-titulo { font-size:17px; font-weight:600; color:#1e293b; margin-left:8px; white-space:nowrap; }
+        /* Filtros */
+        .cal-ev-filtros { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:auto; }
+        .cal-ev-select { height:34px; display:inline-flex; align-items:center; gap:8px; padding:0 12px; border:1px solid #e2e8f0; background:#fff;
+            border-radius:17px; color:#334155; font-size:13px; outline:none; transition:all .15s; max-width:300px; }
+        .cal-ev-select:hover, .open > .cal-ev-select { border-color:#a5b4fc; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+        .cal-ev-select > i:first-child { color:#6366f1; }
+        #calEvRecursoLabel { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        .cal-ev-select-caret { color:#94a3b8; }
+        .cal-ev-badge { background:#6366f1; color:#fff; border-radius:9px; font-size:11px; font-weight:600; padding:1px 7px; }
+        .cal-ev-recursos-menu { width:300px; padding:0; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 10px 30px rgba(15,23,42,.15);
+            margin-top:6px; overflow:hidden; }
+        .cal-ev-rec-head { padding:10px; border-bottom:1px solid #f1f5f9; background:#fafbfc; }
+        .cal-ev-rec-search { position:relative; }
+        .cal-ev-rec-search i { position:absolute; left:10px; top:9px; color:#94a3b8; font-size:12px; }
+        .cal-ev-rec-search input { width:100%; height:30px; border:1px solid #e2e8f0; border-radius:7px; padding:0 10px 0 28px; font-size:13px; outline:none; }
+        .cal-ev-rec-search input:focus { border-color:#a5b4fc; box-shadow:0 0 0 3px rgba(99,102,241,.12); }
+        .cal-ev-rec-acciones { display:flex; gap:6px; margin-top:8px; }
+        .cal-ev-rec-acciones button { flex:1; height:26px; border:1px solid #e2e8f0; background:#fff; border-radius:6px; font-size:12px; color:#475569; }
+        .cal-ev-rec-acciones button:hover { background:#eef2ff; border-color:#c7d2fe; color:#4338ca; }
+        .cal-ev-rec-lista { max-height:300px; overflow-y:auto; padding:4px 0; }
+        .cal-ev-rec-item { display:flex !important; align-items:center; gap:9px; margin:0; padding:7px 14px; font-size:13px; font-weight:normal !important;
+            text-transform:none !important; letter-spacing:normal !important; color:#334155; cursor:pointer; }
+        .cal-ev-rec-item:hover { background:#f8fafc; }
+        .cal-ev-rec-item input { display:none; }
+        .cal-ev-rec-check { width:16px; height:16px; flex:0 0 16px; border:1.5px solid #cbd5e1; border-radius:4px; display:flex; align-items:center;
+            justify-content:center; font-size:10px; color:#fff; transition:all .12s; }
+        .cal-ev-rec-check i { opacity:0; }
+        .cal-ev-rec-item input:checked + .cal-ev-rec-check { background:#6366f1; border-color:#6366f1; }
+        .cal-ev-rec-item input:checked + .cal-ev-rec-check i { opacity:1; }
+        .cal-ev-rec-item .cal-tl-dot { margin-right:0; }
+        .cal-ev-rec-tipo { margin-left:auto; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+        .cal-ev-rec-vacio { padding:14px; text-align:center; color:#94a3b8; font-size:12px; }
+        /* Chips de rama */
+        .cal-ev-chip { margin:0; cursor:pointer; text-transform:none !important; letter-spacing:normal !important; font-weight:normal !important; }
+        .cal-ev-chip input { display:none; }
+        .cal-ev-chip span { display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 14px; border-radius:17px; font-size:13px;
+            font-weight:500; border:1px solid #e2e8f0; background:#fff; color:#94a3b8; transition:all .15s; user-select:none; }
+        .cal-ev-chip span i { font-size:11px; width:0; overflow:hidden; transition:width .15s; }
+        .cal-ev-chip:hover span { border-color:#cbd5e1; color:#64748b; }
+        .cal-ev-chip-mkt input:checked + span { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+        .cal-ev-chip-fisc input:checked + span { background:#ecfdf5; border-color:#6ee7b7; color:#047857; }
+        .cal-ev-chip input:checked + span i { width:11px; }
         .cal-tl-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
         .cal-tl2 { display:flex; min-height:260px; max-height:65vh; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; border-radius:6px;
             user-select:none; transition:opacity .15s; }
@@ -506,10 +553,23 @@
         .cal-tl2-ev.corte-fin { border-top-right-radius:0; border-bottom-right-radius:0; }
         .cal-tl2-vacio { padding:20px; color:#94a3b8; text-align:center; }
         .cal-tl2-ayuda { margin-top:6px; font-size:11px; color:#94a3b8; text-align:right; }
-        .cal-ev-leyenda { margin-bottom:10px; font-size:12px; }
-        .cal-ev-ley-item { display:inline-block; margin-right:14px; }
-        #calEvMes .fc-event { cursor:pointer; font-size:11px; }
-        #calEvMes .fc-toolbar { margin-bottom:6px; }
+        .cal-ev-leyenda { display:flex; flex-wrap:wrap; gap:6px; }
+        #calEvMes .fc-toolbar .fc-left { max-width:calc(100% - 200px); }
+        .cal-ev-ley-item { display:inline-flex; align-items:center; padding:3px 10px; border-radius:12px; background:#f8fafc;
+            border:1px solid #eef2f7; font-size:12px; color:#475569; }
+        #calEvMes .fc-event { cursor:pointer; font-size:11px; border-radius:4px; padding:1px 3px; }
+        #calEvMes .fc-toolbar { margin-bottom:10px; }
+        #calEvMes .fc-button-group { display:inline-flex; padding:3px; background:#f1f5f9; border-radius:9px; }
+        #calEvMes .fc-button { height:28px; border:none; background:transparent; box-shadow:none; text-shadow:none; color:#64748b;
+            border-radius:7px !important; padding:0 12px; font-size:12px; font-weight:500; text-transform:capitalize; }
+        #calEvMes .fc-button.fc-state-active { background:#fff; color:#4f46e5; box-shadow:0 1px 3px rgba(15,23,42,.12); }
+        #calEvMes .fc-head th, #calEvMes .fc-day-header { background:#f8fafc; color:#64748b; font-weight:500; font-size:12px; padding:6px 0;
+            text-transform:capitalize; }
+        #calEvMes .fc-unthemed td, #calEvMes .fc-unthemed th, #calEvMes .fc-unthemed thead { border-color:#eef2f7; }
+        #calEvMes .fc-today { background:#fffbeb !important; }
+        #calEvMes .fc-day-number { color:#475569; font-size:12px; padding:4px 6px; }
+        #calEvMes .fc-list-heading td { background:#f8fafc; }
+        #calEvMes .fc-list-item-time { color:#64748b; white-space:nowrap; }
     </style>
 @endsection
 
@@ -1819,31 +1879,52 @@
                 </div>
                 <div class="modal-body">
                     <div class="cal-ev-toolbar">
+                        <ul class="cal-ev-seg">
+                            <li class="active"><a href="#calEvTabTimeline" data-toggle="tab"><i class="fa fa-align-left"></i> Línea de tiempo</a></li>
+                            <li><a href="#calEvTabMes" data-toggle="tab" id="calEvTabMesLink"><i class="fa fa-calendar-o"></i> Calendario</a></li>
+                        </ul>
                         <div class="cal-ev-nav">
-                            <button type="button" class="btn btn-default btn-sm" id="calEvPrev"><i class="fa fa-chevron-left"></i></button>
-                            <button type="button" class="btn btn-default btn-sm" id="calEvHoy">Hoy</button>
-                            <button type="button" class="btn btn-default btn-sm" id="calEvNext"><i class="fa fa-chevron-right"></i></button>
+                            <button type="button" class="cal-ev-icon-btn" id="calEvPrev" title="Anterior"><i class="fa fa-chevron-left"></i></button>
+                            <button type="button" class="cal-ev-hoy" id="calEvHoy">Hoy</button>
+                            <button type="button" class="cal-ev-icon-btn" id="calEvNext" title="Siguiente"><i class="fa fa-chevron-right"></i></button>
                             <span id="calEvTitulo" class="cal-ev-titulo"></span>
                         </div>
                         <div class="cal-ev-filtros">
-                            <div class="btn-group" id="calEvRecursoDrop">
-                                <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
-                                    <i class="fa fa-building"></i> <span id="calEvRecursoLabel">Todos los casinos/plataformas</span> <span class="caret"></span>
+                            <div class="dropdown" id="calEvRecursoDrop">
+                                <button type="button" class="cal-ev-select dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fa fa-building"></i>
+                                    <span id="calEvRecursoLabel">Todos los casinos</span>
+                                    <span id="calEvRecursoBadge" class="cal-ev-badge" style="display:none;"></span>
+                                    <i class="fa fa-angle-down cal-ev-select-caret"></i>
                                 </button>
-                                <ul class="dropdown-menu cal-ev-recursos-menu" id="calEvRecursoMenu"></ul>
+                                <div class="dropdown-menu dropdown-menu-right cal-ev-recursos-menu" id="calEvRecursoMenu">
+                                    <div class="cal-ev-rec-head">
+                                        <div class="cal-ev-rec-search">
+                                            <i class="fa fa-search"></i>
+                                            <input type="text" id="calEvRecursoBuscar" placeholder="Buscar casino o plataforma..." autocomplete="off">
+                                        </div>
+                                        <div class="cal-ev-rec-acciones">
+                                            <button type="button" data-accion="todos"><i class="fa fa-check-square-o"></i> Todos</button>
+                                            <button type="button" data-accion="ninguno"><i class="fa fa-eraser"></i> Limpiar</button>
+                                        </div>
+                                    </div>
+                                    <div class="cal-ev-rec-lista" id="calEvRecursoLista"></div>
+                                </div>
                             </div>
-                            <label class="cal-ev-rama cal-ev-rama-mkt"><input type="checkbox" class="calEvRama" value="MKT" checked> Marketing</label>
+                            <label class="cal-ev-chip cal-ev-chip-mkt">
+                                <input type="checkbox" class="calEvRama" value="MKT" checked>
+                                <span><i class="fa fa-check"></i> Marketing</span>
+                            </label>
                             @if(empty($esJuegoResponsable))
-                                <label class="cal-ev-rama cal-ev-rama-fisc"><input type="checkbox" class="calEvRama" value="FISC" checked> Fiscalización</label>
+                                <label class="cal-ev-chip cal-ev-chip-fisc">
+                                    <input type="checkbox" class="calEvRama" value="FISC" checked>
+                                    <span><i class="fa fa-check"></i> Fiscalización</span>
+                                </label>
                             @endif
                         </div>
                     </div>
 
-                    <ul class="nav nav-tabs" style="margin-top:10px;">
-                        <li class="active"><a href="#calEvTabTimeline" data-toggle="tab"><i class="fa fa-align-left"></i> Línea de tiempo</a></li>
-                        <li><a href="#calEvTabMes" data-toggle="tab" id="calEvTabMesLink"><i class="fa fa-th"></i> Calendario</a></li>
-                    </ul>
-                    <div class="tab-content" style="padding-top:12px;">
+                    <div class="tab-content" style="padding-top:14px;">
                         <div class="tab-pane active" id="calEvTabTimeline">
                             <div id="calEvTimeline"></div>
                         </div>

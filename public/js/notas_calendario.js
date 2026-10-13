@@ -389,6 +389,8 @@
                     },
                     eventClick: function (ev) { abrirDetalle(ev.id_nota, ev.tipo_rama); return false; }
                 });
+                // Leyenda dentro de la barra de FullCalendar, a la izquierda de Mes/Agenda
+                $cal.find('.fc-toolbar .fc-left').append($('#calEvLeyenda'));
                 fcIniciado = true;
             } else {
                 $cal.fullCalendar('gotoDate', fecha);
@@ -434,19 +436,36 @@
     }
 
     function armarMenuRecursos() {
-        var html = '<li class="cal-ev-rec-acciones"><a href="#" data-accion="todos">Todos</a> · <a href="#" data-accion="ninguno">Limpiar</a></li><li class="divider"></li>';
+        var html = '';
         recursos.forEach(function (r) {
-            html += '<li><label><input type="checkbox" class="calEvRecursoChk" value="' + esc(r.id) + '"> ' +
-                '<span class="cal-tl-dot" style="background:' + colorRecurso[r.id] + '"></span>' + esc(r.nombre) + '</label></li>';
+            html += '<label class="cal-ev-rec-item" data-nombre="' + esc(r.nombre.toLowerCase()) + '">' +
+                '<input type="checkbox" class="calEvRecursoChk" value="' + esc(r.id) + '">' +
+                '<span class="cal-ev-rec-check"><i class="fa fa-check"></i></span>' +
+                '<span class="cal-tl-dot" style="background:' + colorRecurso[r.id] + '"></span>' +
+                '<span class="cal-tl2-nombre">' + esc(r.nombre) + '</span>' +
+                '<span class="cal-ev-rec-tipo">' + (r.plataforma ? 'Online' : 'Casino') + '</span></label>';
         });
-        $('#calEvRecursoMenu').html(html);
+        html += '<div class="cal-ev-rec-vacio" style="display:none;">Sin coincidencias</div>';
+        $('#calEvRecursoLista').html(html);
+    }
+
+    function filtrarListaRecursos() {
+        var q = $.trim($('#calEvRecursoBuscar').val()).toLowerCase();
+        var visibles = 0;
+        $('#calEvRecursoLista .cal-ev-rec-item').each(function () {
+            var ok = !q || $(this).data('nombre').indexOf(q) !== -1;
+            $(this).toggle(ok);
+            if (ok) visibles++;
+        });
+        $('#calEvRecursoLista .cal-ev-rec-vacio').toggle(visibles === 0);
     }
 
     function leerRecursos() {
         state.recursos = $('.calEvRecursoChk:checked').map(function () { return this.value; }).get();
         var n = state.recursos.length;
-        $('#calEvRecursoLabel').text(n === 0 ? 'Todos los casinos/plataformas' : n === 1
-            ? $('.calEvRecursoChk:checked').parent().text().trim() : n + ' seleccionados');
+        $('#calEvRecursoLabel').text(n === 0 ? 'Todos los casinos' : n === 1
+            ? $('.calEvRecursoChk:checked').closest('label').find('.cal-tl2-nombre').text() : 'Casinos / plataformas');
+        $('#calEvRecursoBadge').text(n).toggle(n > 1);
         render();
     }
 
@@ -479,11 +498,16 @@
         // Dropdown de recursos: no cerrar al tildar
         $('#calEvRecursoMenu').on('click', function (e) { e.stopPropagation(); });
         $(document).on('change', '.calEvRecursoChk', leerRecursos);
-        $('#calEvRecursoMenu').on('click', 'a[data-accion]', function (e) {
-            e.preventDefault();
-            $('.calEvRecursoChk').prop('checked', $(this).data('accion') === 'todos');
+        $('#calEvRecursoMenu').on('click', 'button[data-accion]', function () {
+            // "Todos" tilda solo los visibles según la búsqueda
+            var marcar = $(this).data('accion') === 'todos';
+            $('#calEvRecursoLista .cal-ev-rec-item').each(function () {
+                if (!marcar || $(this).is(':visible')) $(this).find('input').prop('checked', marcar);
+            });
             leerRecursos();
         });
+        $('#calEvRecursoBuscar').on('input keyup', filtrarListaRecursos);
+        $('#calEvRecursoDrop').on('shown.bs.dropdown', function () { $('#calEvRecursoBuscar').trigger('focus'); });
 
         // Modal de detalle encima del calendario: subir su z-index y el del backdrop
         $(document).on('show.bs.modal', '.modal', function () {
