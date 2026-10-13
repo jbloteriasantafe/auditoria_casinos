@@ -2758,6 +2758,190 @@ class NotasUnificadasController extends Controller
         return response()->json($events);
     }
 
+    /**
+     * Alcance de notas del usuario: casinos/plataformas permitidos y rolVista.
+     * Misma lógica que index() (null = sin filtro). Hoy solo lo usa el calendario.
+     */
+    private function alcanceNotasUsuario($usuario, $id_usuario)
+    {
+        $casinosPermitidos = null;
+        $plataformasPermitidas = null;
+
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
+
+        if (!$sinFiltroCasino) {
+            $rolesNotas = DB::table('usuario_tiene_rol')
+                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+                ->pluck('rol.descripcion')
+                ->toArray();
+
+            $casinosPermitidos = [];
+            if (in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+
+            $plataformasPermitidas = [];
+            foreach ($rolesNotas as $rolDesc) {
+                if ($rolDesc === 'CARGA_NOTAS_UNIFICADAS') {
+                    continue;
+                }
+                $idPlat = self::idPlataformaPorCodigo(str_replace('CARGA_NOTAS_', '', $rolDesc));
+                if ($idPlat !== null) {
+                    $plataformasPermitidas[] = $idPlat;
+                }
+            }
+
+            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+        }
+
+        $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
+        $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
+        if ($esFuncionario1) {
+            $rolVista = 'funcionario1';
+        } elseif ($esFuncionario2) {
+            $rolVista = 'funcionario2';
+        } elseif ($usuario->es_administrador) {
+            $rolVista = 'administrador';
+        } elseif ($usuario->tieneRol('JUEGO_RESPONSABLE')) {
+            $rolVista = 'juego_responsable';
+        } else {
+            $rolVista = 'all';
+        }
+
+        return [$casinosPermitidos, $plataformasPermitidas, $rolVista];
+    }
+
+    /**
+     * Calendario de vigencia de eventos: notas con fecha de inicio que se
+     * superponen con el rango [desde, hasta]. Respeta casinos/plataformas
+     * permitidos y el filtro de rama del rol (sin "ver todo").
+     * Notas sin fecha de fin se devuelven como evento de un solo día.
+     */
+    public function calendarioVigencias(Request $request)
+    {
+        $id_usuario = session('id_usuario');
+        $usuario = $id_usuario ? UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'] : null;
+        if (!$usuario) {
+            return response()->json(['success' => false, 'msg' => 'Sesión expirada'], 401);
+        }
+
+        $desde = $request->input('desde');
+        $hasta = $request->input('hasta');
+        try {
+            $desde = \Carbon\Carbon::parse($desde)->toDateString();
+            $hasta = \Carbon\Carbon::parse($hasta)->toDateString();
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'msg' => 'Rango de fechas inválido'], 422);
+        }
+
+        list($casinosPermitidos, $plataformasPermitidas, $rolVista) = $this->alcanceNotasUsuario($usuario, $id_usuario);
+
+        $query = NotaIngreso::with(['grupo', 'categoria', 'tipoEvento', 'expedientes'])
+            ->whereNotNull('fecha_inicio_evento')
+            ->whereDate('fecha_inicio_evento', '<=', $hasta)
+            ->whereRaw('DATE(COALESCE(fecha_fin_evento, fecha_inicio_evento)) >= ?', [$desde])
+            ->whereHas('grupo');
+
+        // Scope de casinos/plataformas permitidos (a nivel grupo, como index)
+        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
+            if (empty($casinosPermitidos) && empty($plataformasPermitidas)) {
+                return response()->json(['success' => true, 'eventos' => []]);
+            }
+            $query->whereHas('grupo', function ($q) use ($casinosPermitidos, $plataformasPermitidas) {
+                $q->where(function ($q2) use ($casinosPermitidos, $plataformasPermitidas) {
+                    if (!empty($casinosPermitidos))
+                        $q2->orWhereIn('id_casino', $casinosPermitidos);
+                    if (!empty($plataformasPermitidas))
+                        $q2->orWhereIn('id_plataforma', $plataformasPermitidas);
+                });
+            });
+        }
+
+        // Filtro de rama por rol (mismos criterios que index, a nivel nota)
+        if ($rolVista === 'funcionario1') {
+            $query->where('tipo_rama', 'MKT')->where(function ($q) {
+                $q->whereNull('id_categoria')->orWhereNotIn('id_categoria', function ($sub) {
+                    $sub->select('id')->from('nota_categorias')->where('descripcion', 'LIKE', '%Promociones AADD%');
+                });
+            });
+        } elseif ($rolVista === 'funcionario2') {
+            $query->where(function ($q) {
+                $q->where('id_tipo_evento', 6)
+                    ->orWhere('id_categoria', 3)
+                    ->orWhereHas('expedientes', function ($q2) {
+                        $q2->where('estado_actual', 'CON INFORME NEGATIVO');
+                    });
+            });
+        } elseif ($rolVista === 'administrador') {
+            $query->where(function ($q) {
+                $q->where('tipo_rama', 'FISC')->orWhere(function ($q2) {
+                    $q2->where('tipo_rama', 'MKT')->where('compartir_administrador', 1);
+                });
+            });
+        } elseif ($rolVista === 'juego_responsable') {
+            $query->where('tipo_rama', 'MKT');
+        }
+
+        // Filtros propios del modal
+        $idCasinoFiltro = array_values(array_filter((array) $request->input('id_casino', []), 'strlen'));
+        $idPlataformaFiltro = array_values(array_filter((array) $request->input('id_plataforma', []), 'strlen'));
+        if (!empty($idCasinoFiltro) || !empty($idPlataformaFiltro)) {
+            $query->whereHas('grupo', function ($q) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                $q->where(function ($q2) use ($idCasinoFiltro, $idPlataformaFiltro) {
+                    if (!empty($idCasinoFiltro))
+                        $q2->orWhereIn('id_casino', $idCasinoFiltro);
+                    if (!empty($idPlataformaFiltro))
+                        $q2->orWhereIn('id_plataforma', $idPlataformaFiltro);
+                });
+            });
+        }
+        $ramaFiltro = array_values(array_intersect((array) $request->input('rama', []), ['MKT', 'FISC']));
+        if (!empty($ramaFiltro)) {
+            $query->whereIn('tipo_rama', $ramaFiltro);
+        }
+
+        $notas = $query->orderBy('fecha_inicio_evento')->limit(2000)->get();
+
+        $nombres = [];
+        $eventos = [];
+        foreach ($notas as $n) {
+            $g = $n->grupo;
+            $recurso = $g->id_plataforma ? 'p_' . $g->id_plataforma : (string) $g->id_casino;
+            if (!isset($nombres[$recurso])) {
+                $nombres[$recurso] = self::resolverNombreCasino($g->id_casino, $g->id_plataforma);
+            }
+            $exp = $n->expedientes->first();
+            $inicio = \Carbon\Carbon::parse($n->fecha_inicio_evento)->toDateString();
+            $fin = $n->fecha_fin_evento ? \Carbon\Carbon::parse($n->fecha_fin_evento)->toDateString() : $inicio;
+            if ($fin < $inicio) {
+                $fin = $inicio;
+            }
+            $eventos[] = [
+                'id_nota' => $n->id,
+                'id_grupo' => $g->id,
+                'tipo_rama' => $n->tipo_rama,
+                'titulo' => $n->titulo ?: $g->titulo,
+                'nro_nota' => $n->nro_nota ?: $g->nro_nota,
+                'anio' => $n->anio ?: $g->anio,
+                'inicio' => $inicio,
+                'fin' => $fin,
+                'sin_fin' => !$n->fecha_fin_evento,
+                'recurso' => $recurso,
+                'recurso_nombre' => $nombres[$recurso],
+                'estado' => $exp ? $exp->estado_actual : null,
+                'categoria' => $n->tipo_rama === 'MKT'
+                    ? ($n->categoria ? $n->categoria->descripcion : null)
+                    : ($n->tipoEvento ? $n->tipoEvento->descripcion : null),
+            ];
+        }
+
+        return response()->json(['success' => true, 'eventos' => $eventos]);
+    }
+
     // ! COMENTARIOS ("POST-ITS")
     public function addComment(Request $request)
     {

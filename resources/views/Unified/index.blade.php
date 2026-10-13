@@ -453,6 +453,63 @@
         #modalDetalleTramite .timeline-movimientos>div:last-child {
             border-bottom: none;
         }
+
+        /* ===== Calendario de eventos ===== */
+        .cal-ev-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; }
+        .cal-ev-nav { display:flex; align-items:center; gap:4px; }
+        .cal-ev-titulo { font-size:18px; font-weight:600; margin-left:10px; min-width:170px; }
+        .cal-ev-filtros { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+        .cal-ev-filtros label { margin:0; font-weight:normal; cursor:pointer; }
+        .cal-ev-rama { padding:3px 10px; border-radius:12px; color:#fff; }
+        .cal-ev-rama-mkt { background:#3b82f6; }
+        .cal-ev-rama-fisc { background:#10b981; }
+        .cal-ev-recursos-menu { max-height:340px; overflow-y:auto; min-width:260px; }
+        .cal-ev-recursos-menu li label { display:block; padding:3px 14px; font-weight:normal; cursor:pointer; white-space:nowrap; }
+        .cal-ev-recursos-menu li label:hover { background:#f5f5f5; }
+        .cal-ev-rec-acciones { padding:3px 14px; font-size:12px; }
+        .cal-ev-rec-acciones a { display:inline !important; padding:0 !important; }
+        .cal-tl-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+        .cal-tl2 { display:flex; min-height:260px; max-height:65vh; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; border-radius:6px;
+            user-select:none; transition:opacity .15s; }
+        .cal-tl2.cargando { opacity:.6; }
+        .cal-tl2-left { flex:0 0 190px; position:sticky; left:0; z-index:4; background:#fff; border-right:1px solid #cbd5e1; }
+        .cal-tl2-view { flex:1 1 0; min-width:0; position:relative; overflow-x:clip; cursor:grab; touch-action:pan-y; }
+        .cal-tl2-view.arrastrando { cursor:grabbing; }
+        .cal-tl2-view.arrastrando .cal-tl2-ev { cursor:grabbing; }
+        .cal-tl2-track { position:relative; min-height:100%; will-change:transform;
+            background-image:linear-gradient(to right, #eef2f7 1px, transparent 1px); background-size:36px 100%; }
+        .cal-tl2-track.snap { transition:transform .25s ease-out; }
+        .cal-tl2-head { position:sticky; top:0; z-index:3; height:54px; background:#f8fafc; border-bottom:1px solid #cbd5e1; }
+        .cal-tl2-corner { display:flex; align-items:flex-end; padding:0 8px 8px; font-weight:600; font-size:12px; z-index:5; }
+        .cal-tl2-meses { position:relative; height:20px; border-bottom:1px solid #e2e8f0; }
+        .cal-tl2-mes { position:absolute; top:0; padding:2px 6px; font-size:12px; font-weight:600; color:#334155; white-space:nowrap;
+            border-left:2px solid #94a3b8; }
+        .cal-tl2-mes.arrastrado { border-left-color:transparent; }
+        .cal-tl2-dias { position:relative; height:34px; }
+        .cal-tl2-dia { position:absolute; top:0; width:36px; height:34px; text-align:center; font-size:12px; line-height:1.15; padding-top:3px; }
+        .cal-tl2-dia small { display:block; font-size:10px; color:#94a3b8; }
+        .cal-tl2-dia.finde { background:#eef2f7; color:#64748b; }
+        .cal-tl2-dia.hoy { background:#fef3c7; font-weight:700; }
+        .cal-tl2-dia.inicio-mes { border-left:2px solid #94a3b8; }
+        .cal-tl2-cols { position:absolute; top:54px; bottom:0; left:0; right:0; pointer-events:none; }
+        .cal-tl2-col { position:absolute; top:0; bottom:0; width:36px; }
+        .cal-tl2-col.finde { background:rgba(148,163,184,.10); }
+        .cal-tl2-col.hoy { background:rgba(251,191,36,.15); border-left:2px solid #f59e0b; }
+        .cal-tl2-col.inicio-mes { border-left:2px solid #cbd5e1; }
+        .cal-tl2-recurso { display:flex; align-items:center; padding:0 8px; font-size:12px; border-bottom:1px solid #e2e8f0; overflow:hidden; }
+        .cal-tl2-nombre { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        .cal-tl2-fila { position:relative; border-bottom:1px solid #e2e8f0; }
+        .cal-tl2-ev { position:absolute; height:22px; line-height:22px; color:#fff; font-size:11px; padding-right:6px; border-radius:4px;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.15); z-index:1; }
+        .cal-tl2-ev:hover { filter:brightness(1.1); box-shadow:0 2px 6px rgba(0,0,0,.25); }
+        .cal-tl2-ev.corte-ini { border-top-left-radius:0; border-bottom-left-radius:0; }
+        .cal-tl2-ev.corte-fin { border-top-right-radius:0; border-bottom-right-radius:0; }
+        .cal-tl2-vacio { padding:20px; color:#94a3b8; text-align:center; }
+        .cal-tl2-ayuda { margin-top:6px; font-size:11px; color:#94a3b8; text-align:right; }
+        .cal-ev-leyenda { margin-bottom:10px; font-size:12px; }
+        .cal-ev-ley-item { display:inline-block; margin-right:14px; }
+        #calEvMes .fc-event { cursor:pointer; font-size:11px; }
+        #calEvMes .fc-toolbar { margin-bottom:6px; }
     </style>
 @endsection
 
@@ -481,6 +538,10 @@
                                     Click acá para ver notas previas al 24/4/2026
                                 </a>
                             @endif
+                            <button id="btnCalendarioEventos" class="btn btn-default" type="button"
+                                style="border-radius:8px;">
+                                <i class="fa fa-calendar"></i> Calendario de eventos
+                            </button>
                             @if(!empty($puedeExportar))
                                 <div class="btn-group" style="margin-right:8px;">
                                     <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"
@@ -1748,6 +1809,54 @@
         </div>
     @endif
 
+    {{-- Calendario de vigencia de eventos (por casino/plataforma) --}}
+    <div class="modal fade" id="modalCalendarioEventos" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document" style="width:95%; max-width:1600px;">
+            <div class="modal-content">
+                <div class="modal-header" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff;">
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:.9;">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-calendar"></i> Calendario de eventos</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="cal-ev-toolbar">
+                        <div class="cal-ev-nav">
+                            <button type="button" class="btn btn-default btn-sm" id="calEvPrev"><i class="fa fa-chevron-left"></i></button>
+                            <button type="button" class="btn btn-default btn-sm" id="calEvHoy">Hoy</button>
+                            <button type="button" class="btn btn-default btn-sm" id="calEvNext"><i class="fa fa-chevron-right"></i></button>
+                            <span id="calEvTitulo" class="cal-ev-titulo"></span>
+                        </div>
+                        <div class="cal-ev-filtros">
+                            <div class="btn-group" id="calEvRecursoDrop">
+                                <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fa fa-building"></i> <span id="calEvRecursoLabel">Todos los casinos/plataformas</span> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu cal-ev-recursos-menu" id="calEvRecursoMenu"></ul>
+                            </div>
+                            <label class="cal-ev-rama cal-ev-rama-mkt"><input type="checkbox" class="calEvRama" value="MKT" checked> Marketing</label>
+                            @if(empty($esJuegoResponsable))
+                                <label class="cal-ev-rama cal-ev-rama-fisc"><input type="checkbox" class="calEvRama" value="FISC" checked> Fiscalización</label>
+                            @endif
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs" style="margin-top:10px;">
+                        <li class="active"><a href="#calEvTabTimeline" data-toggle="tab"><i class="fa fa-align-left"></i> Línea de tiempo</a></li>
+                        <li><a href="#calEvTabMes" data-toggle="tab" id="calEvTabMesLink"><i class="fa fa-th"></i> Calendario</a></li>
+                    </ul>
+                    <div class="tab-content" style="padding-top:12px;">
+                        <div class="tab-pane active" id="calEvTabTimeline">
+                            <div id="calEvTimeline"></div>
+                        </div>
+                        <div class="tab-pane" id="calEvTabMes">
+                            <div id="calEvLeyenda" class="cal-ev-leyenda"></div>
+                            <div id="calEvMes"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('tituloDeAyuda')
@@ -1840,6 +1949,12 @@
     <script src="/js/unified_wizard.js?v={{ filemtime(public_path('js/unified_wizard.js')) }}"></script>
     <script>window.ESADMIN_MAILS = {{ !empty($esAdminMails) ? 'true' : 'false' }};</script>
     <script src="/js/notas_mails.js?v={{ filemtime(public_path('js/notas_mails.js')) }}"></script>
+    <script>
+        window.CAL_EV_RECURSOS = {!! json_encode($casinos->map(function ($c) {
+            return ['id' => $c->es_plataforma ? 'p_' . $c->id_plataforma : (string) $c->id_casino, 'nombre' => $c->nombre, 'plataforma' => (bool) $c->es_plataforma];
+        })->values()) !!};
+    </script>
+    <script src="/js/notas_calendario.js?v={{ filemtime(public_path('js/notas_calendario.js')) }}"></script>
     <script>
         /* Espaciado wizard paso 2 - inline para evitar cache */
         $(function () {
