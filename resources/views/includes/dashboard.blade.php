@@ -442,6 +442,13 @@ $contable_hijos = [
     'algun_permiso' => ['m_ver_seccion_canon'],
   ]
 ];
+// Métricas de Notas Unificadas: solo superusuario / despacho / auditor (debajo de "Notas Unificadas")
+if (\App\Http\Controllers\NotasMetricasController::puedeVerMetricas($usuario['usuario'])) {
+  $gestion_hijos['Expedientes']['hijos']['Métricas de Notas'] = [
+    'link' => '/notas-unificadas/metricas',
+    'algun_permiso' => ['ver_notas_unificadas'],
+  ];
+}
 $opciones = [
   'Gestion' => [
     'hijos' => $gestion_hijos,

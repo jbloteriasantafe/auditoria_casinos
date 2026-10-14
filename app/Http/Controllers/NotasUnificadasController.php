@@ -70,6 +70,12 @@ class NotasUnificadasController extends Controller
         return self::obtenerDatosOnline();
     }
 
+    /** Plataformas online (API) para otros controladores del módulo (ej. métricas). */
+    public static function obtenerPlataformasOnlinePublic()
+    {
+        return self::obtenerDatosOnline();
+    }
+
     /**
      * Plataformas de apuestas deportivas (tabla local, cacheada por request).
      * Son opciones de casino/plataforma SOLO para cargar notas: no asocian
@@ -163,6 +169,210 @@ class NotasUnificadasController extends Controller
         }
 
         return '---';
+    }
+
+    /**
+     * ALCANCE de notas del usuario: única fuente de verdad de "qué casinos/plataformas
+     * ve" y su rolVista. Devuelve [casinos|null, plataformas|null, rolVista]
+     * (null = sin filtro: superusuario, auditor, despacho, JUEGO_RESPONSABLE).
+     * - CARGA_NOTAS_UNIFICADAS        → casinos físicos asignados (usuario_tiene_casino)
+     * - CARGA_NOTAS_<COD> (resto)     → la plataforma de ese código
+     * - admin/control sin CARGA_NOTAS_* → sus casinos asignados
+     * Cacheado por request (se llama desde muchos endpoints).
+     */
+    private static $alcanceCache = [];
+
+    public static function alcanceNotasUsuario($usuario)
+    {
+        if (!$usuario) {
+            return [[], [], 'all'];
+        }
+        $id_usuario = $usuario->id_usuario;
+        if (isset(self::$alcanceCache[$id_usuario])) {
+            return self::$alcanceCache[$id_usuario];
+        }
+
+        $casinosPermitidos = null;
+        $plataformasPermitidas = null;
+
+        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
+
+        if (!$sinFiltroCasino) {
+            $rolesNotas = DB::table('usuario_tiene_rol')
+                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
+                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
+                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
+                ->pluck('rol.descripcion')
+                ->toArray();
+
+            $casinosPermitidos = [];
+            if (in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+
+            $plataformasPermitidas = [];
+            foreach ($rolesNotas as $rolDesc) {
+                if ($rolDesc === 'CARGA_NOTAS_UNIFICADAS') {
+                    continue;
+                }
+                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
+                $idPlat = self::idPlataformaPorCodigo(str_replace('CARGA_NOTAS_', '', $rolDesc));
+                if ($idPlat !== null) {
+                    $plataformasPermitidas[] = $idPlat;
+                }
+            }
+
+            // Fallback para administradores/control sin rol CARGA_NOTAS_*: sus casinos asignados
+            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
+                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
+            }
+        }
+
+        // rolVista determina el filtro de rama por defecto (los funcionarios tienen prioridad)
+        if ($usuario->tieneRol('FUNCIONARIO_1')) {
+            $rolVista = 'funcionario1';
+        } elseif ($usuario->tieneRol('FUNCIONARIO_2')) {
+            $rolVista = 'funcionario2';
+        } elseif ($usuario->es_administrador) {
+            $rolVista = 'administrador';
+        } elseif ($usuario->tieneRol('JUEGO_RESPONSABLE')) {
+            $rolVista = 'juego_responsable';
+        } else {
+            $rolVista = 'all';
+        }
+
+        return self::$alcanceCache[$id_usuario] = [$casinosPermitidos, $plataformasPermitidas, $rolVista];
+    }
+
+    /**
+     * Aplica el alcance del usuario a una query de grupos_tramites (o de un whereHas('grupo')).
+     */
+    public static function aplicarAlcanceGrupos($query, $casinos, $plataformas)
+    {
+        if ($casinos === null && $plataformas === null) {
+            return $query;
+        }
+        if (empty($casinos) && empty($plataformas)) {
+            return $query->whereRaw('0 = 1');
+        }
+        return $query->where(function ($q) use ($casinos, $plataformas) {
+            if (!empty($casinos))
+                $q->orWhereIn('id_casino', $casinos);
+            if (!empty($plataformas))
+                $q->orWhereIn('id_plataforma', $plataformas);
+        });
+    }
+
+    /**
+     * ¿El casino/plataforma está dentro del alcance del usuario de la sesión?
+     */
+    public static function casinoEnAlcance($id_casino, $id_plataforma)
+    {
+        $usuario = self::usuarioSesion();
+        if (!$usuario) {
+            return false;
+        }
+        list($casinos, $plataformas) = self::alcanceNotasUsuario($usuario);
+        if ($casinos === null && $plataformas === null) {
+            return true;
+        }
+        if ($id_plataforma) {
+            return in_array($id_plataforma, (array) $plataformas);
+        }
+        return $id_casino && in_array($id_casino, (array) $casinos);
+    }
+
+    public static function grupoEnAlcance($grupo)
+    {
+        return $grupo && self::casinoEnAlcance($grupo->id_casino, $grupo->id_plataforma);
+    }
+
+    /** La nota se juzga por su grupo; si no tiene, por sus propios campos. */
+    public static function notaEnAlcance($nota)
+    {
+        if (!$nota) {
+            return false;
+        }
+        $grupo = $nota->id_grupo ? \App\Models\GrupoTramite::find($nota->id_grupo) : null;
+        return $grupo ? self::grupoEnAlcance($grupo) : self::casinoEnAlcance($nota->id_casino, $nota->id_plataforma);
+    }
+
+    /**
+     * Busca la nota y corta con 404 si no existe o es de un casino fuera del alcance
+     * (no se revela que existe). Loguea el intento para detectar enumeración de ids.
+     */
+    public static function exigirNota($id)
+    {
+        $nota = $id ? NotaIngreso::find($id) : null;
+        if (!$nota || !self::notaEnAlcance($nota)) {
+            self::logFueraDeAlcance('nota', $id, $nota);
+            abort(404);
+        }
+        return $nota;
+    }
+
+    public static function exigirGrupo($id)
+    {
+        $grupo = $id ? \App\Models\GrupoTramite::find($id) : null;
+        if (!$grupo || !self::grupoEnAlcance($grupo)) {
+            self::logFueraDeAlcance('grupo', $id, $grupo);
+            abort(404);
+        }
+        return $grupo;
+    }
+
+    /**
+     * Para ids de tablas hijas (versiones, documentos, activos, comentarios PDF...):
+     * resuelve la nota dueña por la columna dada y exige que esté en alcance.
+     */
+    public static function exigirNotaPorRelacion($tabla, $id, $col = 'id_nota_ingreso')
+    {
+        $idNota = $id ? DB::table($tabla)->where('id', $id)->value($col) : null;
+        if (!$idNota) {
+            abort(404);
+        }
+        return self::exigirNota($idNota);
+    }
+
+    /** Comentario (movimiento) -> expediente -> nota */
+    public static function exigirNotaPorMovimiento($idMovimiento)
+    {
+        $idExp = $idMovimiento ? DB::table('movimientos_expedientes')->where('id', $idMovimiento)->value('id_expediente_nota') : null;
+        if (!$idExp) {
+            abort(404);
+        }
+        return self::exigirNotaPorRelacion('expedientes_notas', $idExp);
+    }
+
+    /** Nota de aprobación -> grupo */
+    public static function exigirGrupoPorAprobacion($idAprobacion)
+    {
+        $idGrupo = $idAprobacion ? DB::table('grupo_notas_aprobacion')->where('id', $idAprobacion)->value('id_grupo') : null;
+        if (!$idGrupo) {
+            abort(404);
+        }
+        return self::exigirGrupo($idGrupo);
+    }
+
+    /** ¿Dos grupos son del mismo casino/plataforma? (para relacionar padre/hija) */
+    public static function mismoCasino($a, $b)
+    {
+        return $a && $b && (int) $a->id_casino === (int) $b->id_casino && (int) $a->id_plataforma === (int) $b->id_plataforma;
+    }
+
+    private static function logFueraDeAlcance($tipo, $id, $existe)
+    {
+        if ($existe) {
+            \Log::warning('Notas: acceso fuera de alcance', [
+                'usuario' => session('id_usuario'), 'tipo' => $tipo, 'id' => $id, 'ruta' => request()->path(),
+            ]);
+        }
+    }
+
+    private static function usuarioSesion()
+    {
+        $id_usuario = session('id_usuario');
+        return $id_usuario ? UsuarioController::getInstancia()->buscarUsuario($id_usuario)['usuario'] : null;
     }
 
     /**
@@ -598,62 +808,10 @@ class NotasUnificadasController extends Controller
             return redirect('login');
         }
 
-        // --- PERMISOS DE CASINO POR USUARIO ---
-        // Superusuarios/controladores ven todo; otros solo sus casinos asignados o plataforma por rol
-        // Permisos: null = sin filtro (super/admin/control)
-        $casinosPermitidos = null;
-        $plataformasPermitidas = null;
-
-        // Roles que ven TODO sin filtro de casino: superusuario, auditor, despacho
-        // Administradores, casinos, plataformas y funcionarios: solo ven sus casinos asignados
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
-
-        if (!$sinFiltroCasino) {
-            // Buscar todos los roles CARGA_NOTAS_* del usuario
-            $rolesNotas = DB::table('usuario_tiene_rol')
-                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
-                ->pluck('rol.descripcion')
-                ->toArray();
-
-            // CARGA_NOTAS_UNIFICADAS = acceso a casinos físicos asignados
-            $tieneCasinosFisicos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
-
-            // Otros roles CARGA_NOTAS_* = acceso a plataformas (BPLAY, CCO, etc.)
-            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
-                return $r !== 'CARGA_NOTAS_UNIFICADAS';
-            });
-
-            $casinosPermitidos = [];
-            if ($tieneCasinosFisicos) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')
-                    ->where('id_usuario', $id_usuario)
-                    ->pluck('id_casino')
-                    ->toArray();
-            }
-
-            $plataformasPermitidas = [];
-            if (!empty($rolesPlataforma)) {
-                foreach ($rolesPlataforma as $rolDesc) {
-                    $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
-                    $idPlat = self::idPlataformaPorCodigo($codigo);
-                    if ($idPlat !== null) {
-                        $plataformasPermitidas[] = $idPlat;
-                    }
-                }
-            }
-
-            // Fallback para administradores/control sin rol CARGA_NOTAS_*:
-            // usar sus casinos asignados en usuario_tiene_casino.
-            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')
-                    ->where('id_usuario', $id_usuario)
-                    ->pluck('id_casino')
-                    ->toArray();
-            }
-        }
+        // --- PERMISOS DE CASINO POR USUARIO --- (fuente única: alcanceNotasUsuario)
+        // null = sin filtro (superusuario/auditor/despacho/juego responsable)
+        list($casinosPermitidos, $plataformasPermitidas, $rolVista) = self::alcanceNotasUsuario($usuario);
+        $sinFiltroCasino = $casinosPermitidos === null && $plataformasPermitidas === null;
 
         // Detectar roles de funcionario (tienen prioridad, incluso sobre superusuario)
         $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
@@ -661,20 +819,6 @@ class NotasUnificadasController extends Controller
         $esFuncionario = $esFuncionario1 || $esFuncionario2;
         $esAdministradorRol = $usuario->es_administrador && !$esFuncionario;
         $esJuegoResponsable = $usuario->tieneRol('JUEGO_RESPONSABLE');
-
-        // rolVista determina el filtro por defecto
-        // funcionario1 = solo MKT, funcionario2 = Contratos + CON INFORME NEGATIVO, administrador = FISC + compartir_admin MKT, juego_responsable = solo MKT, all = todo
-        if ($esFuncionario1) {
-            $rolVista = 'funcionario1';
-        } elseif ($esFuncionario2) {
-            $rolVista = 'funcionario2';
-        } elseif ($esAdministradorRol) {
-            $rolVista = 'administrador';
-        } elseif ($esJuegoResponsable) {
-            $rolVista = 'juego_responsable';
-        } else {
-            $rolVista = 'all';
-        }
 
         // "Ver todo" desactiva filtros de rol
         $verTodo = $request->has('ver_todo') && $request->ver_todo == '1';
@@ -690,20 +834,7 @@ class NotasUnificadasController extends Controller
         $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'casino']);
 
         // Filtrar por casinos/plataformas permitidos del usuario
-        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $hayCasinos = !empty($casinosPermitidos);
-            $hayPlataformas = !empty($plataformasPermitidas);
-            if (!$hayCasinos && !$hayPlataformas) {
-                $gruposQuery->whereRaw('0 = 1');
-            } else {
-                $gruposQuery->where(function ($q) use ($casinosPermitidos, $plataformasPermitidas, $hayCasinos, $hayPlataformas) {
-                    if ($hayCasinos)
-                        $q->orWhereIn('id_casino', $casinosPermitidos);
-                    if ($hayPlataformas)
-                        $q->orWhereIn('id_plataforma', $plataformasPermitidas);
-                });
-            }
-        }
+        self::aplicarAlcanceGrupos($gruposQuery, $casinosPermitidos, $plataformasPermitidas);
 
         // Filtros por rol (se omiten si "ver_todo" está activo)
         if (!$verTodo) {
@@ -1133,44 +1264,8 @@ class NotasUnificadasController extends Controller
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para exportar'], 403);
         }
 
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
-        $casinosPermitidos = null;
-        $plataformasPermitidas = null;
-
-        if (!$sinFiltroCasino) {
-            $rolesNotas = DB::table('usuario_tiene_rol')
-                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-                ->where(function ($q) {
-                    $q->where('rol.descripcion', 'CARGA_NOTAS')
-                        ->orWhere('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%');
-                })
-                ->pluck('rol.descripcion')->toArray();
-
-            $tieneCasinosFisicos = in_array('CARGA_NOTAS', $rolesNotas);
-            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
-                return $r !== 'CARGA_NOTAS';
-            });
-
-            $casinosPermitidos = [];
-            if ($tieneCasinosFisicos) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
-            }
-            $plataformasPermitidas = [];
-            if (!empty($rolesPlataforma)) {
-                foreach ($rolesPlataforma as $rolDesc) {
-                    $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
-                    $idPlat = self::idPlataformaPorCodigo($codigo);
-                    if ($idPlat !== null) {
-                        $plataformasPermitidas[] = $idPlat;
-                    }
-                }
-            }
-            if (!$tieneCasinosFisicos && empty($rolesPlataforma)) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
-            }
-        }
+        // Mismo alcance que el listado (fuente única)
+        list($casinosPermitidos, $plataformasPermitidas, $rolVista) = self::alcanceNotasUsuario($usuario);
 
         $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
         $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
@@ -1181,27 +1276,9 @@ class NotasUnificadasController extends Controller
             $verTodo = false;
         }
 
-        if ($esFuncionario1)
-            $rolVista = 'funcionario1';
-        elseif ($esFuncionario2)
-            $rolVista = 'funcionario2';
-        elseif ($usuario->es_administrador && !$esFuncionario)
-            $rolVista = 'administrador';
-        elseif ($esJuegoResponsable)
-            $rolVista = 'juego_responsable';
-        else
-            $rolVista = 'all';
-
         $gruposQuery = \App\Models\GrupoTramite::with(['notas', 'notas.expedientes', 'notas.expedientes.movimientos.usuario', 'casino']);
 
-        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $gruposQuery->where(function ($q) use ($casinosPermitidos, $plataformasPermitidas) {
-                if (!empty($casinosPermitidos))
-                    $q->orWhereIn('id_casino', $casinosPermitidos);
-                if (!empty($plataformasPermitidas))
-                    $q->orWhereIn('id_plataforma', $plataformasPermitidas);
-            });
-        }
+        self::aplicarAlcanceGrupos($gruposQuery, $casinosPermitidos, $plataformasPermitidas);
 
         // Filtros de rol
         if (!$verTodo) {
@@ -1617,6 +1694,21 @@ class NotasUnificadasController extends Controller
                 'success' => false,
                 'msg' => 'Debe seleccionar un Casino o Plataforma'
             ], 422);
+        }
+
+        // El casino/plataforma tiene que estar dentro del alcance del usuario
+        if (!self::casinoEnAlcance($request->id_plataforma ? null : $request->id_casino, $request->id_plataforma ?: null)) {
+            return response()->json(['success' => false, 'msg' => 'No tiene permisos sobre ese casino/plataforma'], 403);
+        }
+
+        // Nota padre: en alcance y del mismo casino/plataforma
+        if ($request->id_grupo_padre) {
+            $padre = \App\Models\GrupoTramite::find($request->id_grupo_padre);
+            $mismo = $padre && (int) $padre->id_plataforma === (int) ($request->id_plataforma ?: null)
+                && (int) $padre->id_casino === (int) ($request->id_plataforma ? null : $request->id_casino);
+            if (!$padre || !self::grupoEnAlcance($padre) || !$mismo) {
+                return response()->json(['success' => false, 'msg' => 'Solo se pueden relacionar notas del mismo casino/plataforma'], 422);
+            }
         }
 
         // Plataformas de apuestas deportivas: NO asocian juegos ni MTM, ni
@@ -2089,6 +2181,9 @@ class NotasUnificadasController extends Controller
 
     public function obtenerActivosIsla($id_isla)
     {
+        if (!self::casinoEnAlcance(DB::table('isla')->where('id_isla', $id_isla)->value('id_casino'), null)) {
+            abort(404);
+        }
         $mtms = \App\Maquina::where('id_isla', $id_isla)
             ->with(['isla.sector', 'juego_activo', 'unidad_medida', 'tipoMaquina'])
             ->get()->map(function ($m) {
@@ -2117,6 +2212,7 @@ class NotasUnificadasController extends Controller
      */
     public function vistaAdjuntar($id)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::findOrFail($id);
         return view('Unified.wizard_step_2', compact('nota'));
     }
@@ -2146,6 +2242,10 @@ class NotasUnificadasController extends Controller
         // IDs recibidos del frontend
         $id_nota_fisc = $request->id_nota_fisc;
         $id_nota_mkt = $request->id_nota_mkt;
+        if ($id_nota_fisc)
+            self::exigirNota($id_nota_fisc);
+        if ($id_nota_mkt)
+            self::exigirNota($id_nota_mkt);
 
         \Log::info("WIZARD UPLOAD START: MKT=" . ($id_nota_mkt ?? 'null') . ", FISC=" . ($id_nota_fisc ?? 'null'));
 
@@ -2218,6 +2318,7 @@ class NotasUnificadasController extends Controller
      */
     public function agregarAdjuntos(Request $request, $id)
     {
+        self::exigirNota($id);
         if ($r = self::rechazoMultimedia($request)) return $r;
         $disk = 'public';
         $nota = NotaIngreso::findOrFail($id);
@@ -2310,6 +2411,7 @@ class NotasUnificadasController extends Controller
      */
     public function getHistorialAdjuntos($id)
     {
+        self::exigirNota($id);
         try {
             $nota = NotaIngreso::with('expedientes.movimientos.usuario')->findOrFail($id);
 
@@ -2376,6 +2478,7 @@ class NotasUnificadasController extends Controller
      */
     public function quickUpdate(Request $request)
     {
+        self::exigirNota($request->id);
         try {
             $nota = NotaIngreso::findOrFail($request->id);
             $field = $request->field;
@@ -2444,6 +2547,7 @@ class NotasUnificadasController extends Controller
      */
     public function uploadArchivo(Request $request)
     {
+        self::exigirNota($request->id_nota);
         if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $nota = NotaIngreso::findOrFail($request->id_nota);
@@ -2489,6 +2593,7 @@ class NotasUnificadasController extends Controller
      */
     public function getMovimientos($id)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::with([
             'expedientes.movimientos' => function ($q) {
                 $q->orderBy('id', 'desc')->take(3);
@@ -2645,6 +2750,7 @@ class NotasUnificadasController extends Controller
     // ! DESCARGAR
     public function descargarArchivo($id, $tipo)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::findOrFail($id);
         $path = null;
 
@@ -2675,6 +2781,7 @@ class NotasUnificadasController extends Controller
     // ! VISUALIZAR (para mostrar PDFs en el navegador)
     public function visualizarArchivo($id, $tipo)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::findOrFail($id);
         $path = null;
 
@@ -2759,63 +2866,6 @@ class NotasUnificadasController extends Controller
     }
 
     /**
-     * Alcance de notas del usuario: casinos/plataformas permitidos y rolVista.
-     * Misma lógica que index() (null = sin filtro). Hoy solo lo usa el calendario.
-     */
-    private function alcanceNotasUsuario($usuario, $id_usuario)
-    {
-        $casinosPermitidos = null;
-        $plataformasPermitidas = null;
-
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
-
-        if (!$sinFiltroCasino) {
-            $rolesNotas = DB::table('usuario_tiene_rol')
-                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
-                ->pluck('rol.descripcion')
-                ->toArray();
-
-            $casinosPermitidos = [];
-            if (in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas)) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
-            }
-
-            $plataformasPermitidas = [];
-            foreach ($rolesNotas as $rolDesc) {
-                if ($rolDesc === 'CARGA_NOTAS_UNIFICADAS') {
-                    continue;
-                }
-                $idPlat = self::idPlataformaPorCodigo(str_replace('CARGA_NOTAS_', '', $rolDesc));
-                if ($idPlat !== null) {
-                    $plataformasPermitidas[] = $idPlat;
-                }
-            }
-
-            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')->where('id_usuario', $id_usuario)->pluck('id_casino')->toArray();
-            }
-        }
-
-        $esFuncionario1 = $usuario->tieneRol('FUNCIONARIO_1');
-        $esFuncionario2 = $usuario->tieneRol('FUNCIONARIO_2');
-        if ($esFuncionario1) {
-            $rolVista = 'funcionario1';
-        } elseif ($esFuncionario2) {
-            $rolVista = 'funcionario2';
-        } elseif ($usuario->es_administrador) {
-            $rolVista = 'administrador';
-        } elseif ($usuario->tieneRol('JUEGO_RESPONSABLE')) {
-            $rolVista = 'juego_responsable';
-        } else {
-            $rolVista = 'all';
-        }
-
-        return [$casinosPermitidos, $plataformasPermitidas, $rolVista];
-    }
-
-    /**
      * Calendario de vigencia de eventos: notas con fecha de inicio que se
      * superponen con el rango [desde, hasta]. Respeta casinos/plataformas
      * permitidos y el filtro de rama del rol (sin "ver todo").
@@ -2838,7 +2888,7 @@ class NotasUnificadasController extends Controller
             return response()->json(['success' => false, 'msg' => 'Rango de fechas inválido'], 422);
         }
 
-        list($casinosPermitidos, $plataformasPermitidas, $rolVista) = $this->alcanceNotasUsuario($usuario, $id_usuario);
+        list($casinosPermitidos, $plataformasPermitidas, $rolVista) = self::alcanceNotasUsuario($usuario);
 
         $query = NotaIngreso::with(['grupo', 'categoria', 'tipoEvento', 'expedientes'])
             ->whereNotNull('fecha_inicio_evento')
@@ -2847,19 +2897,9 @@ class NotasUnificadasController extends Controller
             ->whereHas('grupo');
 
         // Scope de casinos/plataformas permitidos (a nivel grupo, como index)
-        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            if (empty($casinosPermitidos) && empty($plataformasPermitidas)) {
-                return response()->json(['success' => true, 'eventos' => []]);
-            }
-            $query->whereHas('grupo', function ($q) use ($casinosPermitidos, $plataformasPermitidas) {
-                $q->where(function ($q2) use ($casinosPermitidos, $plataformasPermitidas) {
-                    if (!empty($casinosPermitidos))
-                        $q2->orWhereIn('id_casino', $casinosPermitidos);
-                    if (!empty($plataformasPermitidas))
-                        $q2->orWhereIn('id_plataforma', $plataformasPermitidas);
-                });
-            });
-        }
+        $query->whereHas('grupo', function ($q) use ($casinosPermitidos, $plataformasPermitidas) {
+            self::aplicarAlcanceGrupos($q, $casinosPermitidos, $plataformasPermitidas);
+        });
 
         // Filtro de rama por rol (mismos criterios que index, a nivel nota)
         if ($rolVista === 'funcionario1') {
@@ -2942,7 +2982,7 @@ class NotasUnificadasController extends Controller
         return response()->json(['success' => true, 'eventos' => $eventos]);
     }
 
-    // ! COMENTARIOS ("POST-ITS")
+    // ! COMENTARIOS ("POST-ITS") — LEGACY: operan sobre la tabla vieja `nota`, rutas comentadas en web.php (sin uso en el front)
     public function addComment(Request $request)
     {
         $request->validate([
@@ -2991,6 +3031,7 @@ class NotasUnificadasController extends Controller
 
     public function show($id)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::with(['casino', 'expedientes'])->findOrFail($id);
 
         if (request()->ajax()) {
@@ -3076,48 +3117,9 @@ class NotasUnificadasController extends Controller
      */
     private function casinosPlataformasPermitidos($u)
     {
-        $casinos = [];
-        $plataformas = [];
-        if (!$u)
-            return [$casinos, $plataformas];
-
-        $roles = DB::table('usuario_tiene_rol')
-            ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-            ->where('usuario_tiene_rol.id_usuario', $u->id_usuario)
-            ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
-            ->pluck('rol.descripcion')
-            ->toArray();
-
-        if (in_array('CARGA_NOTAS_UNIFICADAS', $roles)) {
-            $casinos = DB::table('usuario_tiene_casino')
-                ->where('id_usuario', $u->id_usuario)
-                ->pluck('id_casino')
-                ->toArray();
-        }
-
-        $rolesPlataforma = array_filter($roles, function ($r) {
-            return $r !== 'CARGA_NOTAS_UNIFICADAS';
-        });
-        if (!empty($rolesPlataforma)) {
-            foreach ($rolesPlataforma as $rolDesc) {
-                $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                // Matchea contra plataformas online (API) y de apuestas deportivas (tabla local)
-                $idPlat = self::idPlataformaPorCodigo($codigo);
-                if ($idPlat !== null) {
-                    $plataformas[] = $idPlat;
-                }
-            }
-        }
-
-        // Fallback admin/control sin rol CARGA_NOTAS_*: sus casinos asignados.
-        if (empty($roles) && ($u->es_administrador || $u->es_control)) {
-            $casinos = DB::table('usuario_tiene_casino')
-                ->where('id_usuario', $u->id_usuario)
-                ->pluck('id_casino')
-                ->toArray();
-        }
-
-        return [$casinos, $plataformas];
+        // Envoltorio de alcanceNotasUsuario (null -> []): lo usan los guards de concesionario
+        list($casinos, $plataformas) = self::alcanceNotasUsuario($u);
+        return [(array) $casinos, (array) $plataformas];
     }
 
     /**
@@ -3176,6 +3178,7 @@ class NotasUnificadasController extends Controller
 
     public function destroy($id)
     {
+        self::exigirNota($id);
         $nota = NotaIngreso::find($id);
         if (!$nota) {
             return response()->json(['success' => false, 'msg' => 'Nota no encontrada'], 404);
@@ -3205,6 +3208,7 @@ class NotasUnificadasController extends Controller
      */
     public function destroyGrupo($id)
     {
+        self::exigirGrupo($id);
         $grupo = \App\Models\GrupoTramite::find($id);
         if (!$grupo) {
             return response()->json(['success' => false, 'msg' => 'Grupo no encontrado'], 404);
@@ -3247,6 +3251,7 @@ class NotasUnificadasController extends Controller
      */
     public function getDetalleGrupo($id)
     {
+        self::exigirGrupo($id);
         try {
             $grupo = \App\Models\GrupoTramite::with(['notas.expedientes.movimientos.usuario', 'notas.activos'])
                 ->findOrFail($id);
@@ -3341,6 +3346,7 @@ class NotasUnificadasController extends Controller
      */
     public function getDetalleNota($id)
     {
+        self::exigirNota($id);
         try {
             $nota = NotaIngreso::with(['expedientes.movimientos.usuario', 'activos', 'grupo'])
                 ->findOrFail($id);
@@ -3562,6 +3568,7 @@ class NotasUnificadasController extends Controller
      */
     public function updateNota(Request $request, $id)
     {
+        self::exigirNota($id);
         try {
             $nota = NotaIngreso::with('grupo')->findOrFail($id);
 
@@ -3759,6 +3766,7 @@ class NotasUnificadasController extends Controller
      */
     public function updateBorrador(Request $request, $id)
     {
+        self::exigirNota($id);
         try {
             $usuario_data = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'));
             $usuario = $usuario_data['usuario'] ?? null;
@@ -3803,6 +3811,7 @@ class NotasUnificadasController extends Controller
      */
     public function addActivos(Request $request, $id)
     {
+        self::exigirNota($id);
         try {
             $nota = NotaIngreso::findOrFail($id);
 
@@ -3929,6 +3938,7 @@ class NotasUnificadasController extends Controller
      */
     public function exportarActivos(Request $request, $id)
     {
+        self::exigirNota($id);
         $formato = strtolower($request->input('formato', 'xlsx'));
         if (!in_array($formato, ['csv', 'xlsx'])) {
             $formato = 'xlsx';
@@ -3996,6 +4006,7 @@ class NotasUnificadasController extends Controller
      */
     public function removeActivo($id)
     {
+        self::exigirNotaPorRelacion('nota_tiene_activos', $id);
         try {
             $activo = NotaTieneActivo::findOrFail($id);
             $notaId = $activo->id_nota_ingreso;
@@ -4025,6 +4036,7 @@ class NotasUnificadasController extends Controller
      */
     public function addComentario(Request $request, $id)
     {
+        self::exigirNota($id);
         try {
             $nota = NotaIngreso::with('expedientes')->findOrFail($id);
             $exp = $nota->expedientes->first();
@@ -4067,6 +4079,7 @@ class NotasUnificadasController extends Controller
      */
     public function deleteComentario($id)
     {
+        self::exigirNotaPorMovimiento($id);
         try {
             $mov = Movimiento::where('accion', 'COMENTARIO')
                 ->findOrFail($id);
@@ -4090,6 +4103,7 @@ class NotasUnificadasController extends Controller
      */
     public function deleteAdjunto($id, $campo)
     {
+        self::exigirNota($id);
         if (!$this->puedeBorrarDocs()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
@@ -4261,6 +4275,7 @@ class NotasUnificadasController extends Controller
     /** Crea un NUEVO documento de un tipo con su primer archivo (versión 1). */
     public function subirDocumento(Request $request, $idNota, $tipo)
     {
+        self::exigirNota($idNota);
         if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $nota = NotaIngreso::findOrFail($idNota);
@@ -4287,6 +4302,7 @@ class NotasUnificadasController extends Controller
     /** Sube una NUEVA versión a un documento existente. */
     public function subirVersionDocumento(Request $request, $idDoc)
     {
+        self::exigirNotaPorRelacion('nota_archivos_documentos', $idDoc);
         if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $doc = \App\Models\NotaArchivoDocumento::findOrFail($idDoc);
@@ -4329,6 +4345,7 @@ class NotasUnificadasController extends Controller
     /** Versiones de un documento (para el desplegable de versiones). */
     public function getVersionesDocumento($idDoc)
     {
+        self::exigirNotaPorRelacion('nota_archivos_documentos', $idDoc);
         $versiones = \App\Models\NotaArchivoVersion::getVersionsByDocumento($idDoc);
         return response()->json([
             'success' => true,
@@ -4347,6 +4364,7 @@ class NotasUnificadasController extends Controller
     /** Elimina un documento completo: sus versiones, archivos físicos y el registro. */
     public function eliminarDocumento($idDoc)
     {
+        self::exigirNotaPorRelacion('nota_archivos_documentos', $idDoc);
         if (!$this->puedeBorrarDocs()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
@@ -4392,6 +4410,11 @@ class NotasUnificadasController extends Controller
             $ids = $request->ids;
             if (!is_array($ids) || count($ids) == 0)
                 return response()->json(['success' => false, 'msg' => 'No IDs provided'], 400);
+
+            // Solo las que estén dentro del alcance del usuario
+            $ids = NotaIngreso::whereIn('id', $ids)->get()->filter(function ($n) {
+                return self::notaEnAlcance($n);
+            })->pluck('id')->all();
 
             DB::transaction(function () use ($ids) {
                 NotaIngreso::whereIn('id', $ids)->delete();
@@ -4451,6 +4474,7 @@ class NotasUnificadasController extends Controller
      */
     public function getVersionesArchivo($id, $tipo)
     {
+        self::exigirNota($id);
         try {
             $versiones = \App\Models\NotaArchivoVersion::getVersions($id, $tipo);
 
@@ -4476,6 +4500,7 @@ class NotasUnificadasController extends Controller
      */
     public function visualizarVersion($idVersion)
     {
+        self::exigirNotaPorRelacion('nota_archivos_versiones', $idVersion);
         try {
             $version = \App\Models\NotaArchivoVersion::findOrFail($idVersion);
             $path = $version->path_archivo;
@@ -4511,6 +4536,7 @@ class NotasUnificadasController extends Controller
      */
     public function getHistorialVersionesAjax($id, $tipo)
     {
+        self::exigirNota($id);
         try {
             $versiones = \App\Models\NotaArchivoVersion::where('id_nota_ingreso', $id)
                 ->where('tipo_archivo', $tipo)
@@ -4541,6 +4567,7 @@ class NotasUnificadasController extends Controller
      */
     public function subirNotaAprobacion(Request $request)
     {
+        self::exigirGrupo($request->id_grupo);
         if ($r = self::rechazoMultimedia($request)) return $r;
         try {
             $idGrupo = $request->input('id_grupo');
@@ -4634,6 +4661,7 @@ class NotasUnificadasController extends Controller
      */
     public function visualizarNotaAprobacion($id)
     {
+        self::exigirGrupoPorAprobacion($id);
         $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
         if (!$registro)
             abort(404);
@@ -4656,6 +4684,7 @@ class NotasUnificadasController extends Controller
      */
     public function descargarNotaAprobacion($id)
     {
+        self::exigirGrupoPorAprobacion($id);
         $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
         if (!$registro)
             abort(404);
@@ -4672,6 +4701,7 @@ class NotasUnificadasController extends Controller
      */
     public function eliminarNotaAprobacion($id)
     {
+        self::exigirGrupoPorAprobacion($id);
         if (!$this->puedeEliminar()) {
             return response()->json(['success' => false, 'msg' => 'No tiene permisos para eliminar'], 403);
         }
@@ -4726,6 +4756,7 @@ class NotasUnificadasController extends Controller
      */
     public function updateNotaAprobacion(Request $request, $id)
     {
+        self::exigirGrupoPorAprobacion($id);
         try {
             $registro = DB::table('grupo_notas_aprobacion')->where('id', $id)->first();
             if (!$registro) {
@@ -4836,6 +4867,10 @@ class NotasUnificadasController extends Controller
         if (!$nroNota || !$anio || (!$idCasino && !$idPlataforma)) {
             return response()->json(['existe' => false]);
         }
+        // Fuera de su alcance: no revelar grupos de otros casinos
+        if (!self::casinoEnAlcance($idPlataforma ? null : $idCasino, $idPlataforma ?: null)) {
+            return response()->json(['existe' => false]);
+        }
 
         $q = \App\Models\GrupoTramite::with('casino')
             ->where('nro_nota', $nroNota)
@@ -4882,50 +4917,7 @@ class NotasUnificadasController extends Controller
         $usuario_data = UsuarioController::getInstancia()->buscarUsuario($id_usuario);
         $usuario = $usuario_data['usuario'];
 
-        $sinFiltroCasino = $usuario->es_superusuario || $usuario->es_auditor || $usuario->es_despacho || $usuario->tieneRol('JUEGO_RESPONSABLE');
-
-        $casinosPermitidos = null;
-        $plataformasPermitidas = null;
-
-        if (!$sinFiltroCasino) {
-            $rolesNotas = DB::table('usuario_tiene_rol')
-                ->join('rol', 'rol.id_rol', '=', 'usuario_tiene_rol.id_rol')
-                ->where('usuario_tiene_rol.id_usuario', $id_usuario)
-                ->where('rol.descripcion', 'LIKE', 'CARGA\_NOTAS\_%')
-                ->pluck('rol.descripcion')
-                ->toArray();
-
-            $tieneCasinosFisicos = in_array('CARGA_NOTAS_UNIFICADAS', $rolesNotas);
-            $rolesPlataforma = array_filter($rolesNotas, function ($r) {
-                return $r !== 'CARGA_NOTAS_UNIFICADAS';
-            });
-
-            $casinosPermitidos = [];
-            if ($tieneCasinosFisicos) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')
-                    ->where('id_usuario', $id_usuario)
-                    ->pluck('id_casino')
-                    ->toArray();
-            }
-
-            $plataformasPermitidas = [];
-            if (!empty($rolesPlataforma)) {
-                foreach ($rolesPlataforma as $rolDesc) {
-                    $codigo = str_replace('CARGA_NOTAS_', '', $rolDesc);
-                    $idPlat = self::idPlataformaPorCodigo($codigo);
-                    if ($idPlat !== null) {
-                        $plataformasPermitidas[] = $idPlat;
-                    }
-                }
-            }
-
-            if (empty($rolesNotas) && ($usuario->es_administrador || $usuario->es_control)) {
-                $casinosPermitidos = DB::table('usuario_tiene_casino')
-                    ->where('id_usuario', $id_usuario)
-                    ->pluck('id_casino')
-                    ->toArray();
-            }
-        }
+        list($casinosPermitidos, $plataformasPermitidas) = self::alcanceNotasUsuario($usuario);
 
         $queryBuilder = \App\Models\GrupoTramite::with('casino')
             ->where(function ($query) use ($q) {
@@ -4933,20 +4925,7 @@ class NotasUnificadasController extends Controller
                     ->orWhere('titulo', 'like', '%' . $q . '%');
             });
 
-        if ($casinosPermitidos !== null || $plataformasPermitidas !== null) {
-            $hayCasinos = !empty($casinosPermitidos);
-            $hayPlataformas = !empty($plataformasPermitidas);
-            if (!$hayCasinos && !$hayPlataformas) {
-                $queryBuilder->whereRaw('0 = 1');
-            } else {
-                $queryBuilder->where(function ($qBuilder) use ($casinosPermitidos, $plataformasPermitidas, $hayCasinos, $hayPlataformas) {
-                    if ($hayCasinos)
-                        $qBuilder->orWhereIn('id_casino', $casinosPermitidos);
-                    if ($hayPlataformas)
-                        $qBuilder->orWhereIn('id_plataforma', $plataformasPermitidas);
-                });
-            }
-        }
+        self::aplicarAlcanceGrupos($queryBuilder, $casinosPermitidos, $plataformasPermitidas);
 
         $resultados = $queryBuilder->orderBy('anio', 'desc')
             ->orderBy('nro_nota', 'desc')
@@ -4972,8 +4951,14 @@ class NotasUnificadasController extends Controller
      */
     public function asignarGrupoPadre(Request $request)
     {
+        $grupo = self::exigirGrupo($request->id_grupo);
+        if ($request->id_grupo_padre) {
+            $padre = self::exigirGrupo($request->id_grupo_padre);
+            if (!self::mismoCasino($grupo, $padre)) {
+                return response()->json(['success' => false, 'msg' => 'Solo se pueden relacionar notas del mismo casino/plataforma.'], 422);
+            }
+        }
         try {
-            $grupo = \App\Models\GrupoTramite::findOrFail($request->id_grupo);
             $padreId = $request->id_grupo_padre;
 
             // Validar que no se relacione consigo mismo
@@ -5021,6 +5006,7 @@ class NotasUnificadasController extends Controller
      */
     public function quitarGrupoPadre(Request $request)
     {
+        self::exigirGrupo($request->id_grupo);
         try {
             $grupo = \App\Models\GrupoTramite::findOrFail($request->id_grupo);
             $exPadreId = $grupo->id_grupo_padre;

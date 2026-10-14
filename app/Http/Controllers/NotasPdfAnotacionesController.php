@@ -13,10 +13,22 @@ use App\Models\Movimiento;
 class NotasPdfAnotacionesController extends Controller
 {
     /**
+     * Si viene un id de versión/documento/comentario, tiene que pertenecer a esa nota
+     * (evita mezclar una nota en alcance con archivos de otra). 404 si no.
+     */
+    private function exigirDeLaNota($tabla, $id, $idNota)
+    {
+        if ($id && !DB::table($tabla)->where('id', $id)->where('id_nota_ingreso', $idNota)->exists()) {
+            abort(404);
+        }
+    }
+
+    /**
      * Listar todos los PDFs disponibles de una nota
      */
     public function listarPdfs($id_nota)
     {
+        NotasUnificadasController::exigirNota($id_nota);
         $nota = NotaIngreso::findOrFail($id_nota);
 
         $pdfs = [];
@@ -78,6 +90,8 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function obtenerDatos($id_nota, $tipo, Request $request)
     {
+        NotasUnificadasController::exigirNota($id_nota);
+        $this->exigirDeLaNota('nota_archivos_versiones', $request->query('version_id'), $id_nota);
         $nota = NotaIngreso::findOrFail($id_nota);
 
         $versionId = $request->query('version_id');
@@ -200,6 +214,9 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function guardarComentario(Request $request)
     {
+        NotasUnificadasController::exigirNota($request->id_nota_ingreso);
+        $this->exigirDeLaNota('nota_archivos_versiones', $request->input('version_id'), $request->id_nota_ingreso);
+        $this->exigirDeLaNota('notas_pdf_comentarios', $request->input('padre_id'), $request->id_nota_ingreso);
         try {
             if(!$request->has('mensaje')) {
                 throw new \Exception("El mensaje está vacío");
@@ -253,6 +270,7 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function resolverComentario(Request $request)
     {
+        NotasUnificadasController::exigirNotaPorRelacion('notas_pdf_comentarios', $request->id);
         $id = $request->id;
         $resuelto = $request->resuelto ? 1 : 0;
 
@@ -282,6 +300,7 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function eliminarComentario($id)
     {
+        NotasUnificadasController::exigirNotaPorRelacion('notas_pdf_comentarios', $id);
         $comentario = DB::table('notas_pdf_comentarios')->where('id', $id)->first();
         if (!$comentario) {
             return response()->json(['success' => false, 'msg' => 'No encontrado'], 404);
@@ -317,6 +336,8 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function guardarAnotaciones(Request $request)
     {
+        NotasUnificadasController::exigirNota($request->input('id_nota_ingreso'));
+        $this->exigirDeLaNota('nota_archivos_versiones', $request->input('version_id'), $request->input('id_nota_ingreso'));
         try {
             \Log::info("INTENTO GUARDAR ANOTACIONES", $request->all());
             $id_nota = $request->input('id_nota_ingreso');
@@ -417,6 +438,8 @@ class NotasPdfAnotacionesController extends Controller
      */
     public function subirNuevaVersion(Request $request)
     {
+        NotasUnificadasController::exigirNota($request->id_nota);
+        $this->exigirDeLaNota('nota_archivos_documentos', $request->id_documento, $request->id_nota);
         if ($r = NotasUnificadasController::rechazoMultimedia($request)) return $r;
         try {
             $idNota = $request->id_nota;

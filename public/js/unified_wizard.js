@@ -2997,6 +2997,14 @@ $(document).ready(function () {
         abrirModalDetalleNota(notaId, tipoRama);
     });
 
+    // Abrir una nota directo desde la URL (?abrir_nota=ID&rama=MKT), p. ej. desde Métricas
+    (function () {
+        var m = /[?&]abrir_nota=(\d+)/.exec(window.location.search);
+        if (!m) return;
+        var r = /[?&]rama=(MKT|FISC)/.exec(window.location.search);
+        setTimeout(function () { abrirModalDetalleNota(m[1], r ? r[1] : 'MKT'); }, 300);
+    })();
+
     // Función para abrir modal con datos de grupo
     function abrirModalDetalleGrupo(grupoId) {
         // Reset modal
@@ -3079,7 +3087,13 @@ $(document).ready(function () {
             } else {
                 notificacion('error', res.msg || 'Error al cargar detalle');
             }
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr.status === 404) {
+                // Grupo de otro casino/plataforma (p. ej. una relación padre/hija cruzada) o borrado
+                $('#modalDetalleTramite').modal('hide');
+                notificacion('warning', 'No tiene acceso a ese grupo (es de otro casino/plataforma) o ya no existe');
+                return;
+            }
             notificacion('error', 'Error de conexión al cargar detalle');
         });
     }
@@ -3143,7 +3157,12 @@ $(document).ready(function () {
             } else {
                 notificacion('error', res.msg || 'Error al cargar nota');
             }
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr.status === 404) {
+                $('#modalDetalleTramite').modal('hide');
+                notificacion('warning', 'No tiene acceso a esa nota (es de otro casino/plataforma) o ya no existe');
+                return;
+            }
             notificacion('error', 'Error de conexión');
         });
     }

@@ -373,8 +373,11 @@ Route::group(['prefix' => 'notas-unificadas', 'middleware' => 'tiene_permiso:ver
   Route::get('/log-global', 'NotasUnificadasController@logGlobalMovimientos');
   Route::get('/calendar-events', 'NotasUnificadasController@getCalendarEvents');
   Route::get('/calendario-vigencias', 'NotasUnificadasController@calendarioVigencias');
-Route::post('/add-comment', 'NotasUnificadasController@addComment');
-Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
+  Route::get('/metricas', 'NotasMetricasController@index');
+  Route::get('/metricas/datos', 'NotasMetricasController@datos');
+  // LEGACY: post-its sobre la tabla vieja `nota`, sin uso en el front (ver addComment/getComments)
+  // Route::post('/add-comment', 'NotasUnificadasController@addComment');
+  // Route::get('/get-comments/{id}', 'NotasUnificadasController@getComments');
   Route::delete('/eliminar/{id}', 'NotasUnificadasController@destroy');
   Route::delete('/eliminar-grupo/{id}', 'NotasUnificadasController@destroyGrupo');
   Route::post('/eliminar-masivo', 'NotasUnificadasController@eliminarMasivo');
