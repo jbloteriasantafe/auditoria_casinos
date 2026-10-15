@@ -213,7 +213,7 @@ class NotasMetricasController extends Controller
         arsort($porCategoria);
         arsort($porEstado);
         usort($trabadas, function ($a, $b) {
-            return $b['dias'] - $a['dias'];
+            return $a['dias'] - $b['dias'];  // primero las que se trabaron más recientemente
         });
 
         return response()->json([

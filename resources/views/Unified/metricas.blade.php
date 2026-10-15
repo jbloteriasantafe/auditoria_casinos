@@ -162,6 +162,12 @@
             </div>
 
             <div class="met-grid">
+                <div class="met-card ancho">
+                    <h4>Notas trabadas</h4>
+                    <div class="met-ayuda">Notas que llevan más de {{ $diasTrabada }} días en su estado actual (sin contar los estados finales: aprobados, con informe, rechazado, visto por auditoría, tomado conocimiento, no autorizado, fuera de término, vencido).
+                        No dependen del rango de fechas: incluye notas viejas olvidadas.</div>
+                    <div class="met-trabadas-wrap" id="metTrabadas"></div>
+                </div>
                 <div class="met-card">
                     <h4>Tiempo en cada estado</h4>
                     <div class="met-ayuda">Días promedio y mediana que pasa una nota en cada estado (solo estados de los que ya salió).</div>
@@ -191,12 +197,6 @@
                     <h4>Por categoría / tipo de evento</h4>
                     <div class="met-ayuda">Categoría (MKT) o tipo de evento (FISC).</div>
                     <div class="met-chart" id="chPorCategoria"></div>
-                </div>
-                <div class="met-card ancho">
-                    <h4>Notas trabadas</h4>
-                    <div class="met-ayuda">Notas que llevan más de {{ $diasTrabada }} días en su estado actual (sin contar los estados finales: aprobados, con informe, rechazado, visto por auditoría, tomado conocimiento, no autorizado, fuera de término, vencido).
-                        No dependen del rango de fechas: incluye notas viejas olvidadas.</div>
-                    <div class="met-trabadas-wrap" id="metTrabadas"></div>
                 </div>
             </div>
         </div>
