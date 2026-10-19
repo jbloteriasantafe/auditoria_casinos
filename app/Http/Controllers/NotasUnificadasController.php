@@ -777,7 +777,9 @@ class NotasUnificadasController extends Controller
 
             $message = (new \Swift_Message($subject))
                 ->setFrom(['no-reply-loteria@santafe.gov.ar' => 'Control Sistemas Loteria'])
-                ->setTo(['no-reply-loteria@santafe.gov.ar' => 'Sistema de Notas'])
+                // Sin To: antes iba la propia casilla no-reply y le llegaba copia de cada mail.
+                // Los destinatarios van solo en BCC para no exponer la lista entre ellos.
+                // ->setTo(['no-reply-loteria@santafe.gov.ar' => 'Sistema de Notas'])
                 ->setBcc($emails)
                 ->setBody($html, 'text/html');
 
