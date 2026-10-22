@@ -219,51 +219,60 @@ input[required], select[required]{
   @slot('filtros')
   <div class="row">
     <div class="col-md-2">
-      <h5>Nombres</h5>
-      <input name="nombres" class="form-control" id="buscadorNombres" value=""/>
+      <h5>Resolucion</h5>
+      <select name="estado_resolucion" class="form-control" value="">
+        @foreach($catalog['estado_resolucion'] as $text => $val)
+        <option {{$loop->first? 'selected' : ''}} value="{{$val}}">{{$text}}</option>
+        @endforeach
+      </select>
     </div>
     <div class="col-md-2">
-      <h5>Apellido</h5>
-      <input name="apellido" class="form-control" id="buscadorApellido" value=""/>
+      <h5>Alcance Interjuris.</h5>
+      <select name="estado_alcance_interjurisdiccional" class="form-control" value="">
+        @foreach($catalog['estado_alcance_interjurisdiccional'] as $text => $val)
+        <option {{$loop->first? 'selected' : ''}} value="{{$val}}">{{$text}}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-md-2">
+      <h5>Eliminada</h5>
+      <select name="deleted" class="form-control">
+        @foreach($catalog['deleted'] as $text => $val)
+        <option {{$loop->first? 'selected' : ''}} value="{{$val}}">{{$text}}</option>
+        @endforeach
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <h5>Nombres</h5>
+      <input name="nombres" class="form-control" value=""/>
+    </div>
+    <div class="col-md-2">
+      <h5>Apellidos</h5>
+      <input name="apellidos" class="form-control" value=""/>
     </div>
     <div class="col-md-2">
       <h5>DNI</h5>
-      <input name="dni" class="form-control" id="buscadorDni" value="{{$dni}}"/>
+      <input name="nro_dni" class="form-control" value="{{$dni}}"/>
     </div>
     <div class="col-md-2">
       <h5>Correo</h5>
-      <input name="correo" class="form-control" id="buscadorCorreo" value=""/>
+      <input name="email" class="form-control" value=""/>
     </div>
     <div class="col-md-2">
       <h5>Estado</h5>
-      <select name="estado" id="buscadorEstado" class="form-control selectEstado">
-        <option selected="" value="">- Todos los estados -</option>
-        @foreach ($estados_autoexclusion as $estado)
-          <option value="{{$estado->id_nombre_estado}}">{{$estado->descripcion}}</option>
+      <select name="estado" class="form-control selectEstado">
+        @foreach($catalog['estado'] as $text => $val)
+        <option  {{$loop->first? 'selected' : ''}} value="{{$val}}">{{$text}}</option>
         @endforeach
       </select>
     </div>
     <div class="col-md-2">
-      <h5>Casino</h5>
-      <select name="casino" id="buscadorCasino" class="form-control selectCasinos" data-js-setear-plataforma="#selectEscondidoPlataforma">
-        <option value="">-Todos los Casinos-</option>
-        @foreach ($casinos as $casino)
-        <option value="{{$casino->id_casino}}">{{$casino->nombre}}</option>
-        @endforeach
-        @foreach ($plataformas as $p)
-        <option value="" data-id_plataforma="{{$p->id_plataforma}}">{{$p->nombre}}</option>
-        @endforeach
-        @foreach ($plataformas_deportivas as $p)
-        <option value="" data-id_plataforma="{{$p->id_plataforma}}">{{$p->nombre}}</option>
-        @endforeach
-      </select>
-      <select name="plataforma" id="selectEscondidoPlataforma" class="form-control" style="display: none;">
-        <option value=""></option>
-        @foreach ($plataformas as $p)
-        <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
-        @endforeach
-        @foreach ($plataformas_deportivas as $p)
-        <option value="{{$p->id_plataforma}}">{{$p->nombre}}</option>
+      <h5>Origen</h5>
+      <select name="origen" id="buscadorOrigen" class="form-control selectCasinos" data-js-setear-plataforma="#selectEscondidoPlataforma">
+        @foreach($catalog['origen'] as $text => $val)
+        <option  {{$loop->first? 'selected' : ''}} value="{{$val}}">{{$text}}</option>
         @endforeach
       </select>
     </div>
@@ -272,45 +281,45 @@ input[required], select[required]{
     <h5>Desde</h5>
     <div class="col-md-3">
       <h5>Fecha autoexclusión</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_autoexclusion_d"'])
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_desde"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha renovación</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_renovacion_d"'])
+      <h5>Fecha finalizable (5 meses)</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_finalizacion_desde"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha vencimiento</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_vencimiento_d"'])
+      <h5>Fecha vencimiento (6 meses)</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_finalizacion_vencimiento_desde"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha cierre definitivo</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_cierre_definitivo_d"'])
+      <h5>Fecha Vencimiento</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_vencimiento_desde"'])
       @endcomponent
     </div>
   </div>
   <div class="row">
     <h5>Hasta</h5>
     <div class="col-md-3">
-      <h5>Fecha autoexclusión</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_autoexclusion_h"'])
+      <h5>&nbsp;</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_hasta"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha renovación</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_renovacion_h"'])
+      <h5>&nbsp;</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_finalizacion_hasta"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha vencimiento</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_vencimiento_h"'])
+      <h5>&nbsp;</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_finalizacion_vencimiento_hasta"'])
       @endcomponent
     </div>
     <div class="col-md-3">
-      <h5>Fecha cierre definitivo</h5>
-      @component('Components/inputFecha',['attrs' => 'name="fecha_cierre_definitivo_h"'])
+      <h5>&nbsp;</h5>
+      @component('Components/inputFecha',['attrs' => 'name="estado_fecha_vencimiento_hasta"'])
       @endcomponent
     </div>
   </div>
@@ -331,16 +340,17 @@ input[required], select[required]{
   
   @slot('cabecera')
   <tr>
-    <th>CASINO</th>
-    <th>DNI</th>
-    <th>APELLIDO</th>
-    <th>NOMBRES</th>
-    <th class="smalltext">RES.</th>
-    <th class="smalltext">ESTADO</th>
-    <th class="smalltext" data-js-sortable="ae_estado.fecha_ae" data-js-state="desc">F. AE</th>
-    <th class="smalltext">F. RENOV</th>
-    <th class="smalltext">F. VENC</th>
-    <th class="smalltext">F. CIERRE</th>
+    <th data-js-sortable="id_autoexclusion">AE</th>
+    <th data-js-sortable="origen">ORIGEN</th>
+    <th data-js-sortable="nro_dni">DNI</th>
+    <th data-js-sortable="apellidos">APELLIDOS</th>
+    <th data-js-sortable="nombres">NOMBRES</th>
+    <th class="smalltext" data-js-sortable="estado_resolucion">RES.</th>
+    <th class="smalltext" data-js-sortable="estado">ESTADO</th>
+    <th class="smalltext" data-js-sortable="estado_fecha" data-js-state="desc">F. AE</th>
+    <th class="smalltext">F. FIN</th>
+    <th class="smalltext">F. FIN. VENC.</th>
+    <th class="smalltext">F. VENC.</th>
     <th style="flex: 2;">ACCIONES</th>
     @if($puede_manejar_papel)
     <th>PAPEL</th>
@@ -350,33 +360,36 @@ input[required], select[required]{
   
   @slot('molde')
   <tr class="filaBusqueda">
-    <td class="casino_plataforma"></td>
-    <td class="dni"></td>
-    <td class="apellido"></td>
+    <td class="id_autoexclusion"></td>
+    <td class="origen"></td>
+    <td class="nro_dni"></td>
+    <td class="apellidos"></td>
     <td class="nombres"></td>
-    <td class="resolucion smalltext"></td>
+    <td class="estado_resolucion smalltext"></td>
     <td class="estado smalltext"></td>
-    <td class="fecha_ae smalltext"></td>
-    <td class="fecha_renovacion smalltext"></td>
-    <td class="fecha_vencimiento smalltext"></td>
-    <td class="fecha_cierre_ae smalltext"></td>
+    <td class="estado_fecha smalltext"></td>
+    <td class="estado_fecha_finalizable	smalltext"></td>
+    <td class="estado_fecha_finalizable_vencimiento smalltext"></td>
+    <td class="estado_fecha_vencimiento	smalltext"></td>
     <td class="acciones" style="flex: 2;">
-      <button id="btnVerMas" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+      <button data-js-click-ver-ae="/autoexclusion/obtenerConHistorial" class="btn btn-info info" type="button" value="" title="VER MÁS" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-search-plus"></i>
       </button>
       @if($puede_modificar)
       <button id="btnCambiarEstado" class="btn btn-info info" type="button" value="" title="" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw"></i>
       </button>
+
       @if($usuario->es_superusuario)
-      <button id="btnEditarSuperusuario" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+      <button data-js-click-editar-ae="/autoexclusion/obtenerConHistorial" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
-      @else
-      <button id="btnEditarPendientes" class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
+      @elseif($puede_modificar)
+      <button data-js-click-editar-ae="/autoexclusion/obtenerConHistorial" data-solo-pendientes class="btn btn-info info" type="button" value="" title="EDITAR" data-toggle="tooltip" data-placement="top" data-delay="{'show':'300', 'hide':'100'}">
         <i class="fa fa-fw fa-pencil-alt"></i>
       </button>
       @endif
+
       @endif
       @if($puede_subir_archivos)
       <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" data-placement="left"
@@ -440,6 +453,437 @@ input[required], select[required]{
   </div>
 </div>
 @endif
+
+<style>
+  .tabs {
+    --fondo: white;
+    --gradiente: rgb(235,235,235);
+    --gradiente-fondo-inicio: rgba(180,180,180,1);
+    --gradiente-fondo-fin: rgba(180,180,180,0);
+    --borde-tab: rgb(221, 221, 221);
+    --borde-tab-seleccionado: orange;
+    --texto-tab-seleccionado: #555;
+    width: 100%;
+    display: flex;
+    margin-bottom: 10px;
+    background: linear-gradient(0deg, var(--gradiente-fondo-inicio) 0%, var(--gradiente-fondo-fin) 100%);
+  }
+  .tabs > div {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+  }
+  .tabs a {
+    padding: 15px 10px;
+    font-family:Roboto-condensed;
+    font-size:20px;
+    background: white;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid var(--borde-tab);
+    border-top-left-radius: 2em;
+    border-top-right-radius: 2em;
+  }
+  .tabs a.active {
+    color: var(--texto-tab-seleccionado);
+    cursor: default;
+    border-color: var(--borde-tab-seleccionado);
+    border-bottom: none;
+  }
+  .tabs a:not(.active):not(:hover) {
+    background-image:  linear-gradient(135deg, var(--gradiente) 25%, transparent 25%), linear-gradient(225deg, var(--gradiente) 25%, transparent 25%), linear-gradient(45deg, var(--gradiente) 25%, transparent 25%), linear-gradient(315deg, var(--gradiente) 25%, #ffffff 25%);
+    background-position:  3px 0, 3px 0, 0 0, 0 0;
+    background-size: 3px 3px;
+    background-repeat: repeat;
+    background-color: var(--fondo);
+  }
+
+  .VerCargarAE select[readonly],
+  .VerCargarAE input[type="file"][readonly] {
+    pointer-events: none;
+  }
+</style>
+@component('Components/modal',[
+  'clases_modal' => 'VerCargarAE',
+  'attrs_modal' => 'data-js-modal-ver-cargar-ae',
+  'estilo_cabecera' => 'background-color: #6dc7be;',
+  'grande' => 80,
+])
+  @slot('titulo')
+  <span data-modo-mostrar='[{"modo": "VER"}]'>VER AUTOEXCLUIDO</span>
+  <span data-modo-mostrar='[{"modo": "NUEVO"}]'>NUEVO AUTOEXCLUIDO</span>
+  <span data-modo-mostrar='[{"modo": "EDITAR"}]'>MODIFICAR AUTOEXCLUIDO</span>
+  <span data-modo-mostrar='[{"modo": "ADJUNTAR"}]'>ADJUNTAR A AUTOEXCLUIDO</span>
+  @endslot
+  @slot('cuerpo')
+  <div style="width: 100%;display: flex;align-items: center;justify-content: flex-end;" data-modo-mostrar='[{"modo": "VER"}]'>
+    <h5 style="width: 15rem;">Version</h5>
+    <select class="form-control" data-js-select-historial style="width: 15rem;">
+    </select>
+  </div>
+  <form style="display: flex;flex-direction: column;">
+    <div class="tabs" data-js-tabs>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-ae] [data-datos]" tabindex="0">Datos</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-ae] [data-estado]" tabindex="0">Estado</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-ae] [data-importacion]" tabindex="0">Adjuntos</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-ae] [data-contacto]" tabindex="0">Contacto</a>
+      </div>
+      <div>
+        <a data-js-tab="[data-js-modal-ver-cargar-ae] [data-encuesta]" tabindex="0">Encuesta</a>
+      </div>
+    </div>
+    <div class="pestaña" data-datos>
+      <div class="col-md-12">
+        <div class="col-md-4">
+          <h5>DNI</h5>
+          <input class="form-control" name="nro_dni" data-readonly='[{"modo": "VER"},{"modo": "EDITAR"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Origen</h5>
+          <select class="form-control" name="origen"  data-readonly='[{"modo": "*"}]'>
+            @foreach($catalog['origen'] as $text => $val)
+            @continue(empty($val))
+            <option value="{{$val}}">{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div hidden>
+          <input name="id_autoexclusion" class="form-control" data-readonly='[{"modo":"*"}]'>
+          <input name="id_autoexcluido" class="form-control" data-readonly='[{"modo":"*"}]'>
+        </div>
+      </div>
+      <div class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-4">
+          <h5>Nombres</h5>
+          <input class="form-control" name="nombres" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Apellidos</h5>
+          <input class="form-control" name="apellidos" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Fecha Nacimiento</h5>
+          @component('Components/inputFecha',[
+            'attrs' => "name='fecha_nacimiento'",
+            'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;margin: 0 !important;"'
+          ])
+          @endcomponent
+        </div>
+        <div class="col-md-4">
+          <h5>Sexo</h5>
+          <select class="form-control" name="sexo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+            @foreach($catalog['sexo'] as $text => $val)
+            <option value="{{$val}}" {{empty($val)? 'default selected' : ''}}>{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <h5>Telefono</h5>
+          <input class="form-control" name="telefono" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Correo</h5>
+          <input class="form-control" name="email" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+      </div>
+      <div class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-4">
+          <h5>Provincia</h5>
+          <input class="form-control" name="nombre_provincia" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Localidad</h5>
+          <input class="form-control" name="nombre_localidad" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Cod. Postal</h5>
+          <input class="form-control" name="codigo_postal" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Domicilio</h5>
+          <input class="form-control" name="domicilio" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>N° Dom</h5>
+          <input class="form-control" name="nro_domicilio" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Piso</h5>
+          <input class="form-control" name="piso" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Departamento</h5>
+          <input class="form-control" name="dpto" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+      </div>
+      <div class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-4">
+          <h5>Ocupacion</h5>
+          <select class="form-control" name="ocupacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+            @foreach($catalog['ocupacion'] as $text => $val)
+            <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <h5>Estado Civil</h5>
+          <select class="form-control" name="estado_civil" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+            @foreach($catalog['estado_civil'] as $text => $val)
+            <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <h5>Capacitacion</h5>
+          <select class="form-control" name="capacitacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+            @foreach($catalog['capacitacion'] as $text => $val)
+            <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-estado>
+      <div class="col-md-4">
+        <h5>Resolución</h5>
+        <select data-js-change-display-resolucion class="form-control" name="estado_resolucion" data-readonly='[{"modo": "*"}]' style="text-align: center;">
+          @foreach($catalog['estado_resolucion'] as $text => $val)
+          @continue(empty($val))
+          <option value="{{$val}}">{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Fecha</h5>
+        @component('Components/inputFecha',[
+          'attrs' => "name='estado_fecha' data-js-change-calcular-fechas='autoexclusion/calcularFechas'",
+          'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;margin: 0 !important;"'
+        ])
+        @endcomponent
+      </div>
+      <div class="col-md-4">
+        <h5>Estado</h5>
+        <select class="form-control" name="estado" data-readonly='[{"modo": "*"}]' style="text-align: center;">
+          @foreach($catalog['nombre_estado'] as $text => $val)
+          <option value="{{$val}}">{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div data-display-resolucion="983" class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-12">
+          <h5>Res. 983</h5>
+        </div>
+        <div class="col-md-4">
+          <h5>Primer AE</h5>
+          <select class="form-control" name="es_primer_ae" data-readonly='[{"modo": "*"}]'>
+            @foreach($catalog['es_primer_ae'] as $text => $val)
+            <option value="{{$val}}">{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <h5>Fecha Finalizable</h5>
+          <input class="form-control" name="estado_fecha_finalizable" data-readonly='[{"modo": "*"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Fecha Finalizable Vencimiento</h5>
+          <input class="form-control" name="estado_fecha_finalizable_vencimiento" data-readonly='[{"modo": "*"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Fecha Finalizado</h5>
+          @component('Components/inputFecha',[
+            'attrs' => "name='estado_fecha_finalizado'",
+            'form_group_attrs' => 'data-readonly=\'[{"modo": "VER"},{"modo": "ADJUNTAR"}]\' style="padding: 0 !important;margin: 0 !important;"'
+          ])
+          @endcomponent
+        </div>
+      </div>
+      <div data-display-resolucion="494" class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-12">
+          <h5>Res. 494</h5>
+        </div>
+        <div class="col-md-4">
+          <h5>Alcance Interjurisdiccional</h5>
+          <select class="form-control" name="estado_alcance_interjurisdiccional" style="text-align: center;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            @foreach($catalog['estado_alcance_interjurisdiccional'] as $text => $val)
+            @continue($val === '')
+            <option value="{{$val}}" {{($text=='NO')? 'default selected' : ''}}>{{$text}}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <h5>Fecha Vencimiento (1 año)</h5>
+          <input class="form-control" name="estado_fecha_vencimiento_minima" data-readonly='[{"modo": "*"}]'>
+        </div>
+        <div class="col-md-4">
+          <h5>Años adicionales</h5>
+          <input class="form-control" name="estado_años_adicionales" data-js-change-calcular-fechas="autoexclusion/calcularFechas" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+        </div>
+      </div>
+      <div class="col-md-12" style="border-top: 1px solid lightgray;margin-top: 1em;">
+        <div class="col-md-6">
+          <h5>Fecha Vencimiento</h5>
+          <input class="form-control" name="estado_fecha_vencimiento" data-readonly='[{"modo": "*"}]'>
+        </div>
+      </div>
+    </div>
+    <div class="pestaña" data-importacion>
+      <?php $i_idx = 0; ?>
+      @foreach($catalog['importaciones'] as $text => $val)
+      <?php 
+        $begin_parent_div = (($i_idx)%3) == 0; 
+        $end_parent_div = (($i_idx)%3) == 2; 
+      ?>
+      @if($begin_parent_div)
+      <div class="col-md-12">
+      @endif
+        <div class="col-md-4">
+          <h5>{{$text}} </h5>
+          <div display: flex;>
+            <input class="form-control" name="{{$val}}" type="file" accept=".pdf, image/jpeg, image/png, image/webp, .doc, .docx, .odt" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <a href="/autoexclusion/importacion" target="_blank" data-file-external-link="{{$val}}">FILENAME.EXT</a>
+            <a href="TOFILL" target="_blank" data-file-internal-link="{{$val}}">FILENAME.EXT</a>
+            <button class="btn btn-link" type="button" title="BORRAR" data-js-click-file-clear="{{$val}}"><i class="fa fa-fw fa-times" style="color: red !important;"></i></button>
+          </div>
+        </div>
+      @if($end_parent_div)
+      </div>
+      @endif
+      <?php $i_idx++;?>
+      @endforeach
+    </div>
+    <div class="pestaña" data-contacto>
+      <div class="col-md-4">
+        <h5>Vinculo</h5>
+        <input class="form-control" name="contacto_vinculo" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="col-md-4">
+        <h5>Nombre y Apellido</h5>
+        <input class="form-control" name="contacto_nombre_apellido" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="col-md-4">
+        <h5>Provincia</h5>
+        <input class="form-control" name="contacto_nombre_provincia" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="col-md-4">
+        <h5>Localidad</h5>
+        <input class="form-control" name="contacto_nombre_localidad" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="col-md-4">
+        <h5>Domicilio</h5>
+        <input class="form-control" name="contacto_domicilio" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+      <div class="col-md-4">
+        <h5>Telefono</h5>
+        <input class="form-control" name="contacto_telefono" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+      </div>
+    </div>
+    <div class="pestaña" data-encuesta>
+      <div class="col-md-4">
+        <h5>Encuesta</h5>
+        <select class="form-control" name="encuesta" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta'] as $text => $val)
+          <option value="{{$val}}">{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Frecuencia de Asistencia</h5>
+        <select class="form-control" name="encuesta_frecuencia_asistencia" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['frecuencia_asistencia'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Juego Preferido</h5>
+        <select class="form-control" name="encuesta_juego_preferido" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['juego_preferido'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Club Jugadores</h5>
+        <select class="form-control" name="encuesta_club_jugadores" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_club_jugadores'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Conoce Plataformas</h5>
+        <select class="form-control" name="encuesta_conoce_plataformas" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_conoce_plataformas'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Utiliza Plataformas</h5>
+        <select class="form-control" name="encuesta_utiliza_plataformas" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_utiliza_plataformas'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Por problemas de autocontrol</h5>
+        <select class="form-control" name="encuesta_autocontrol_juego" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_autocontrol_juego'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Conoce sobre Juego Responsable</h5>
+        <select class="form-control" name="encuesta_juego_responsable" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_juego_responsable'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>Recibir mas información</h5>
+        <select class="form-control" name="encuesta_recibir_informacion" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_recibir_informacion'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-4">
+        <h5>¿Como asiste?</h5>
+        <select class="form-control" name="encuesta_como_asiste" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]' style="text-align: center;">
+          @foreach($catalog['encuesta_como_asiste'] as $text => $val)
+          <option value="{{$val}}" {{($val=='NC' || $val == 'No Contesta')? 'default selected' : ''}}>{{$text}}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-md-12">
+        <h5>Observación</h5>
+        <textarea class="form-control" name="encuesta_observacion" style="width: 100%;margin: 0;resize: vertical;" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'></textarea>
+      </div>
+    </div>
+  </form>
+  @endslot
+  @slot('pie')
+  @if($puede_agregar || $puede_modificar)
+  <button class="btn btn-successAceptar" type="button" data-js-click-enviar="/autoexclusion/adjuntar" data-modo-mostrar='[{"modo": "ADJUNTAR"}]'>ADJUNTAR</button>
+  <button class="btn btn-successAceptar" type="button" data-js-click-enviar="/autoexclusion/guardar" data-modo-mostrar='[{"modo": "NUEVO"},{"modo": "EDITAR"}]'>GUARDAR</button>
+  @endif
+  @endslot
+@endcomponent
 
 @if($puede_agregar)
 <!-- MODAL AGREGAR AE-->
@@ -1459,10 +1903,23 @@ var autoBlur=true;
 var noSelect=false;
 const FECHA_FIN_R983 = "{!! env('FECHA_FIN_R983','2026-09-09') !!}";
 const NOMBRE_NUEVA_RESOLUCION = "{!! env('NOMBRE_NUEVA_RESOLUCION','494') !!}";
+const IDENTITY = "{!! $identity !!}";
+<?php 
+  $tiene_rosario = $casinos_usuario->first(function($c){
+    return $c->nombre == 'Rosario';
+  });
+  $nombres_casinos_usuario = $casinos_usuario->pluck('nombre')->toArray();
+  if($tiene_rosario){
+    $nombres_casinos_usuario[] = 'CityCenter';//Fuck up de migración
+  }
+  $nombres_plataformas_usuario = $plataformas_usuario->pluck('nombre')->toArray();
+?>
+const CASINOS_USUARIO = {!! json_encode($nombres_casinos_usuario) !!};
+const PLATAFORMAS_USUARIO = {!! json_encode($nombres_plataformas_usuario) !!};
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 
-<script src="/js/Autoexclusion/index.js?13" type="module"  charset="utf-8"></script>
+<script src="/js/Autoexclusion/index.js?14" type="module"  charset="utf-8"></script>
 <!-- JS file -->
 <script src="/js/Autoexclusion/EasyAutocomplete/jquery.easy-autocomplete.min.js"></script>
 <!-- CSS file -->

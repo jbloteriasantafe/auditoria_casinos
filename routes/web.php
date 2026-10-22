@@ -1577,6 +1577,11 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion', 'middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/', 'Autoexclusion\AutoexclusionController@index');
+  Route::get('/obtenerConHistorial','Autoexclusion\AutoexclusionController@obtenerConHistorial');
+  Route::get('/importacion','Autoexclusion\AutoexclusionController@importacion');
+  Route::get('/calcularFechas','Autoexclusion\AutoexclusionController@calcularFechas');
+  Route::post('/guardar','Autoexclusion\AutoexclusionController@guardar');
+
   Route::get('/noticias', 'Autoexclusion\AutoexclusionController@indexNoticias');
   Route::delete('eliminarAE/{id_autoexcluido}', 'Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE', 'Autoexclusion\AutoexclusionController@agregarAE');

@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Services\CmsApiClient;
+use Illuminate\Http\JsonResponse;
 
 class AutoexclusionController extends Controller
 {
@@ -43,11 +44,21 @@ class AutoexclusionController extends Controller
       return self::$instance;
     }
 
+    private $CMS = null;
     public function __construct($actualizar = true){//Actualizar estados antes de cada request
+      $this->CMS = app(CmsApiClient::class);
       if($actualizar) $this->actualizarVencidosRenovados();
     }
 
     public function index($dni = ''){
+      $catalog = $this->CMS->post('catalog', []);
+      if(!$catalog->successful()){
+        Log::warning('API error', ['status' => $catalog->status, 'body' => $catalog->body]);
+        return ['API ERROR' => $catalog->status];
+      }
+      else{
+        $catalog = json_decode($catalog->body,true);
+      }
       UsuarioController::getInstancia()->agregarSeccionReciente('Autoexclusión' , 'autoexclusion');
       $usuario = UsuarioController::getInstancia()->quienSoy()['usuario'];
       $estados_autoexclusion = AE\NombreEstadoAutoexclusion::all();
@@ -83,7 +94,9 @@ class AutoexclusionController extends Controller
                                           'estados_elegibles' => $estados_elegibles,
                                           'estados_civiles' => AE\EstadoCivilAE::all(),
                                           'capacitaciones' => AE\CapacitacionAE::all(),
-                                          'dni' => $dni
+                                          'dni' => $dni,
+                                          'catalog' => $catalog,
+                                          'identity' => $this->CMS->identity()
                                         ]);
     }
 
@@ -109,108 +122,236 @@ class AutoexclusionController extends Controller
 
   //Función para buscar los autoexcluidos existentes en el sistema
   public function buscarAutoexcluidos(Request $request){
-    $reglas = Array();
-    $filters = [
-      'nombres' => 'ae_datos.nombres',
-      'apellido' => 'ae_datos.apellido',
-      'correo' => 'ae_datos.correo',
-      'dni' => 'ae_datos.nro_dni',
-      'estado' => 'ae_estado.id_nombre_estado',
-      'casino' => 'ae_estado.id_casino',
-      'plataforma' => 'ae_estado.id_plataforma',
-      'fecha_autoexclusion_d' => 'ae_estado.fecha_ae',
-      'fecha_autoexclusion_h' => 'ae_estado.fecha_ae',
-      'fecha_vencimiento_d' => 'ae_estado.fecha_vencimiento',
-      'fecha_vencimiento_h' => 'ae_estado.fecha_vencimiento',
-      'fecha_renovacion_d' => 'ae_estado.fecha_renovacion',
-      'fecha_renovacion_h' => 'ae_estado.fecha_renovacion',
-      'fecha_cierre_definitivo_d' => 'ae_estado.fecha_cierre_ae',
-      'fecha_cierre_definitivo_h' => 'ae_estado.fecha_cierre_ae',
-    ]; 
-    foreach($filters as $key => $column){ //echo asi por las dudas si necesito agregar mas tipos de filtros y evitar tanto los if agrupando diferentes tipos de filtros en uno
-      if (!empty($request->$key)) {
-        switch($key){
-          case 'nombres':
-          case 'apellido':
-          case 'correo':
-            // si es nombre , apellido o correo
-            $reglas[] = [$column, 'LIKE','%' . $request->$key . '%'];
-            break;
-          case 'dni':
-          case 'estado':
-          case 'plataforma':
-          case 'casino':
-            // si es dni estado plataforma o casino
-            $reglas[] = [$column, '=', $request->$key];
-            break;
-          case 'fecha_autoexclusion_d':
-          case 'fecha_vencimiento_d':
-          case 'fecha_renovacion_d':
-          case 'fecha_cierre_definitivo_d':
-            // si es fecha _ bla bla _ d 
-            $reglas[] = [$column, '>=', $request->$key];
-            break;
-          case 'fecha_autoexclusion_h':
-          case 'fecha_vencimiento_h':
-          case 'fecha_renovacion_h':
-          case 'fecha_cierre_definitivo_h':
-            // si es fecha_blabla_h
-            $reglas[] = [$column, '<=', $request->$key];
-            break;
-          case 'papel_destruido':
-            $reglas[]=[DB::raw('ae_estado.id_plataforma IS NULL'),'=','1'];
-            $nulos = $request->papel_destruido == 'SI'? '0' : '1';
-            $reglas[]=[DB::raw('ae_estado.papel_destruido_id_usuario IS NULL'),'=',$nulos];
-            $reglas[]=[DB::raw('ae_estado.papel_destruido_datetime IS NULL'),'=',$nulos];
-            break;
+    $filtros = $request->all();
+    $json = array_merge($filtros,[
+      'page' => ($request->page ?? 1),
+      'per_page' => ($request->page_size	?? 10)
+    ]);
+    if(isset($request->sort_by)){
+      if(isset($request->sort_by['columna'])){
+        $json['sort'] = $request->sort_by['columna'];
+        if(isset($request->sort_by['orden'])){
+          $json['dir'] = $request->sort_by['orden'];
         }
       }
     }
-    $sort_by = ['columna' => 'ae_estado.fecha_ae', 'orden' => 'desc'];
-    if(!empty($request->sort_by)){
-      $sort_by = $request->sort_by;
-    }
-    
-    $resultados = DB::table('ae_datos')
-      ->selectRaw('ae_datos.id_autoexcluido, ae_datos.nro_dni, ae_datos.apellido, ae_datos.nombres,
-                   ae_estado.fecha_ae, ae_estado.fecha_renovacion, ae_estado.fecha_vencimiento, ae_estado.fecha_cierre_ae,
-                   ae_estado.id_nombre_estado,ae_estado.id_casino,ae_estado.id_plataforma,
-                   
-                   ae_estado.id_usuario as modificado_id_usuario,
-                   IF(ae_estado.id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.id_usuario)) as modificado_nombre_usuario,
-                   COALESCE(ae_estado.updated_at,ae_estado.created_at) as modificado_datetime,
-                   
-                   ae_estado.papel_destruido_id_usuario,
-                   IF(ae_estado.papel_destruido_id_usuario IS NULL,NULL,(SELECT u2.nombre from usuario as u2 where u2.id_usuario = ae_estado.papel_destruido_id_usuario)) as papel_destruido_nombre_usuario,
-                   ae_estado.papel_destruido_datetime,
-                   ae_estado.resolucion,
-                   ae_nombre_estado.descripcion as desc_estado,
-                   COALESCE(casino.nombre,plataforma.nombre,plat_deportiva.nombre,ae_estado.id_casino,ae_estado.id_plataforma) as casino_plataforma,
-                   ae_importacion.foto1,ae_importacion.foto2,ae_importacion.scandni,
-                   ae_importacion.solicitud_ae,ae_importacion.solicitud_revocacion,ae_importacion.caratula')
-      ->join('ae_estado'         , 'ae_datos.id_autoexcluido' , '=' , 'ae_estado.id_autoexcluido')
-      ->leftJoin('ae_importacion', 'ae_importacion.id_autoexcluido','=','ae_datos.id_autoexcluido')
-      ->join('ae_nombre_estado', 'ae_nombre_estado.id_nombre_estado', '=', 'ae_estado.id_nombre_estado')
-      ->leftjoin('casino','ae_estado.id_casino','=','casino.id_casino')
-      ->leftjoin('plataforma','ae_estado.id_plataforma','=','plataforma.id_plataforma')
-      //Las plataformas de apuestas deportivas comparten la columna id_plataforma pero viven en otra tabla
-      ->leftjoin('plataformas_apuestas_deportivas as plat_deportiva','ae_estado.id_plataforma','=','plat_deportiva.id_plataforma')
-      ->whereNull('ae_datos.deleted_at')->whereNull('ae_estado.deleted_at')
-      ->when($sort_by,function($query) use ($sort_by){
-        return $query->orderBy($sort_by['columna'],$sort_by['orden']);
-      })
-      ->orderBy('ae_datos.id_autoexcluido','desc')
-      ->where($reglas)
-      ->paginate($request->page_size);
+    $r = $this->CMS->post('buscar',compact('json'));
 
-    //Agrego algunos atributos dinamicos utiles para el frontend
-    $resultados->getCollection()->transform(function ($row){
-      $ae = AE\Autoexcluido::find($row->id_autoexcluido);
-      $row->es_primer_ae = $ae->es_primer_ae;
-      $row->estado_transicionable = $ae->estado_transicionable;
-      return $row;
-    });
-    return $resultados;
+    if ($r->successful()) {
+        return $r->json();
+    } else {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        return [
+          'data' => [
+            [
+              'id_autoexclusion' => -1,
+              'id_autoexcluido' => -1,
+              'origen' => 'ERROR',
+              'nro_dni' => 'ERROR',
+              'nombres' => 'ERROR',
+              'apellidos' => 'ERROR',
+              'estado_resolucion' => 'ERROR',
+              'estado' => 'ERROR',
+              'estado_fecha' => '1970-01-01',
+              'estado_fecha_finalizable' => '1970-01-01',
+              'estado_fecha_finalizable_vencimiento' => '1970-01-01',
+              'estado_fecha_finalizacion' => '1970-01-01',
+              'estado_fecha_vencimiento' => '1970-01-01',
+              'deleted' => 0
+            ]
+          ],
+          'current_page' => 1,
+          'per_page' => 10,
+          'total' => 1,
+          'last_page' => 1,
+          'error' => $r->body
+        ];
+    }
+  }
+
+  public function obtenerConHistorial(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    $json = compact('id_autoexclusion');
+    $r = $this->CMS->post('obtenerConHistorial',compact('json'));
+    if ($r->successful()) {
+        return $r->json();
+    } else {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+  }
+
+  public function calcularFechas(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    $nro_dni = $request->nro_dni ?? null;
+    $fecha_autoexclusion = $request->estado_fecha ?? null;
+    $años_adicionales = $request->estado_años_adicionales ?? null;
+
+    $json = compact('id_autoexclusion','nro_dni','fecha_autoexclusion','años_adicionales');
+
+    $r = $this->CMS->post('calcularFechasApp',compact('json'));
+
+    if ($r->successful()) {
+      $json_response = $r->json();
+      if(isset($json_response['es_primer_ae'])){
+        $json_response['es_primer_ae'] = $json_response['es_primer_ae']+0;
+      }
+      return $json_response;
+    } else {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          if(isset($json_response['fecha_autoexclusion'])){
+            $json_response['estado_fecha'] = $json_response['fecha_autoexclusion'];
+            unset($json_response['fecha_autoexclusion']);
+          }
+          if(isset($json_response['años_adicionales'])){
+            $json_response['estado_años_adicionales'] = $json_response['años_adicionales'];
+            unset($json_response['años_adicionales']);
+          }
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+  }
+
+  public function importacion(Request $request){
+    $id_autoexcluido = $request->id_autoexcluido ?? null;
+    $tipo_archivo = $request->tipo_archivo ?? '';
+
+    if(substr($tipo_archivo,0,strlen('importacion_')) == 'importacion_'){
+      $tipo_archivo = substr($tipo_archivo,strlen('importacion_'));
+    }
+
+    $json = compact('id_autoexcluido','tipo_archivo');
+    
+    $r = $this->CMS->post('importacionTodas',compact('json'));
+    
+    $filename = $r->filename();
+    $json_response = $r->json();
+
+    if($r->filename() === null && $json_response){
+      Log::warning('Importacion() non file', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json($json_response,422);  
+    }
+
+    if (!$r->successful()) {
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+
+    $tmpfile = tmpfile();
+    fwrite($tmpfile,$r->body);
+    rewind($tmpfile);
+
+    $tmppath = stream_get_meta_data($tmpfile)['uri'];
+    $mimeType = $r->bodyType() ?? mime_content_type($tmppath) ?? 'application/octet-stream';
+
+    $extension = explode('.',$filename);
+    if(count($extension)){
+      $extension = $extension[count($extension)-1];
+    }
+    else{
+      $extension = '.bin';
+    }
+
+    $nombreEscapado = str_replace('"', '\\"', $filename);
+    $nombreCodificado = rawurlencode($filename);
+    $filenameFallback = "filename=\"{$nombreEscapado}\"; filename*=UTF-8''{$nombreCodificado}";
+
+    return response()->stream(function() use ($tmpfile){
+      fpassthru($tmpfile);// Pone lo que esta en el archivo en stdout
+      fclose($tmpfile); // Cierra el archivo
+    }, 200, [
+      'Content-Type' => $mimeType,
+      'Content-Length' => filesize($tmppath),
+      'Content-Disposition' => "inline; {$filenameFallback}"
+    ]);
+  }
+
+  public function guardar(Request $request){
+     try {
+        $catalog = $this->CMS->post('catalog');
+        if (! $catalog->successful()) {
+            return $this->apiError($catalog);
+        }
+        $catalog = $catalog->json();
+ 
+        // input() leaves the files out; all() also brings the UploadedFile objects,
+        // which json_encode turns into {}
+        $json        = $request->input();
+        $attachments = [];
+ 
+        $importaciones = isset($catalog['importaciones']) ? $catalog['importaciones'] : [];
+        foreach ($importaciones as $k) {
+            $file = $request->file($k);
+            if ($file === null) {
+                continue;   // '-' (keep) or null (delete) travels as is in $json
+            }
+ 
+            // Too big for this server's upload_max_filesize, partial upload, ...
+            if (! $file->isValid()) {
+                return response()->json(['message' => "$k: ".$file->getErrorMessage()], 422);
+            }
+ 
+            $attachments[$k] = [
+                'path'     => $file->getRealPath(),
+                'filename' => $file->getClientOriginalName(),
+            ];
+            unset($json[$k]);   // the API rejects a field and a file with the same name
+        }
+ 
+        $r = $this->CMS->post('appGuardar', compact('json', 'attachments'));
+ 
+        if (! $r->successful()) {
+            return $this->apiError($r, function (array $body) {
+                if (array_key_exists('fecha_autoexclusion', $body)) {
+                    $body['estado_fecha'] = $body['fecha_autoexclusion'];
+                    unset($body['fecha_autoexclusion']);
+                }
+                if (array_key_exists('años_adicionales', $body)) {
+                    $body['estado_años_adicionales'] = $body['años_adicionales'];
+                    unset($body['años_adicionales']);
+                }
+                return $body;
+            });
+        }
+ 
+        $json_response = $r->json();
+        if (isset($json_response['es_primer_ae'])) {
+            $json_response['es_primer_ae'] += 0;
+        }
+ 
+        return $json_response;
+    }
+    catch (\RuntimeException $e) {
+        // Network or proxy failure, or a response that failed decryption / signature checks
+        report($e);
+ 
+        return response()->json(['message' => 'API no disponible'], 502);
+    }
+  }
+
+  private function apiError(CmsApiResponse $r, callable $map = null) : JsonResponse
+  {
+      Log::warning('API error', ['status' => $r->status, 'verified' => $r->verified, 'body' => $r->body]);
+  
+      try {
+          $body = $r->json();
+      }
+      catch (\RuntimeException $e) {
+          $body = null;   // not JSON: an HTML error page from Apache, a proxy, ...
+      }
+  
+      if (is_array($body)) {
+          return response()->json($map ? $map($body) : $body, 422);
+      }
+  
+      return response()->json(['error' => 'API ERROR '.$r->status, 'body' => $r->body], 422);
   }
 
   //Función para agregar un nuevo autoexcluido complet, o editar uno existente

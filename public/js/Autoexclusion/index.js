@@ -37,17 +37,368 @@ $(document).ready(function(){
       html:true
     });
   }).trigger('buscar');
+
+  $('[data-js-tabs]').each(function(_,tab_group_obj){
+    const tab_group = $(tab_group_obj);
+    tab_group.find('[data-js-tab]').each(function(__,tobj){
+      const tab = $(tobj);
+      const target = $(tab.attr('data-js-tab'));
+      tab.on('mostrar.tab',function(e,mostrar){
+        tab.toggleClass('active',mostrar);
+        target.toggle(mostrar);  
+      }).on('click',function(e){
+        tab_group.find('[data-js-tab]').trigger('mostrar.tab',false);
+        tab.trigger('mostrar.tab',true);
+      });
+    }).eq(0).click();
+  });
+
+
+  $('[data-js-modal-ver-cargar-ae]').each(function(_,m_obj){
+      const M = $(m_obj);
+
+
+      const setImportacion = function(name,tipo,external_filename){
+        const modo = M.attr('data-modo');
+        const file_picker = M.find(`[name="${name}"]`);
+        const file_clear = M.find(`[data-js-click-file-clear="${name}"]`);
+        const external_link = M.find(`[data-file-external-link="${name}"]`);
+        const internal_link = M.find(`[data-file-internal-link="${name}"]`);
+
+        const oldUrl = internal_link.data('blobUrl');
+        if (oldUrl) {
+          URL.revokeObjectURL(oldUrl);
+          internal_link.removeData('blobUrl');
+        }
+
+        if(tipo == 'FILEPICK'){
+          file_picker.show();
+          if(file_picker.length){
+            file_picker[0].value = null;
+          }
+          file_clear.hide();
+          external_link.text('').hide();
+
+          internal_link.removeAttr('href').text('').hide();
+          return;
+        }
+        if(tipo == 'INTERNAL'){
+          file_picker.hide();//No se limpia el file_picker para que se mande en el post
+          file_clear.toggle(modo != 'VER');
+          external_link.text('').hide();
+
+          if(file_picker[0]?.files?.length){
+            const file = file_picker[0].files[0];
+            const url = URL.createObjectURL(file);
+
+            internal_link
+            .data('blobUrl',url)
+            .attr('href',url)
+            .attr('target','_blank')
+            .text(file.name)
+            .show();
+          }
+          return;
+        }
+        if(tipo == 'EXTERNAL'){
+          file_picker.hide();
+          if(file_picker.length){
+            file_picker[0].value = null;
+          }
+          file_clear.toggle(modo != 'VER');
+          external_link.text(external_filename).show()
+          internal_link.removeAttr('href').text('').hide();
+          return;
+        }
+
+        throw 'setImportacion: tipo no manejado | '+tipo;
+      };
+      
+      const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
+        const subscript = function(s){
+          return prefix === null? s : (prefix+'['+s+']');
+        };
+        for(const k in obj){
+          const val = obj[k];
+          if(typeof val == 'object'){
+            fill(div,subscript(k),val);
+          }
+          else{
+            const name = subscript(k);
+            const named_obj = div.find(`[name="${name}"]`);
+            if(named_obj.is('input[type="file"]')){
+              if(val !== null){
+                setImportacion(name,'EXTERNAL',val);
+              }
+              else{
+                setImportacion(name,'FILEPICK',null);
+              }
+            }
+            else{
+              named_obj.val(val);
+            }
+          }
+        }
+      };
+      
+      const fillError = function(div,obj){//@HACK @TODO: mover a AUX
+        for(const k in obj){
+          const val = obj[k];
+          if(typeof val == 'object' && !Array.isArray(val)){
+            console.log(k,val,'Valor inesperado');
+          }
+          else{
+            const name_arr = k.split('.');
+            let name = name_arr?.[0] ?? '';
+            for(let idx=1;idx<name_arr.length;idx++){
+              name+='['+name_arr[idx]+']';
+            }
+            mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
+          }
+        }
+      };
+      
+      const filterFunction = function(attr){
+        const check_params = {
+          modo: M.attr('data-modo')
+        };
+              
+        return function(_,r_obj){
+          let json_rdata = null;
+          try{
+            json_rdata = JSON.parse($(r_obj).attr(attr));
+          }
+          catch(error){
+            console.log(r_obj,json_rdata);
+            throw error;
+          }
+          
+          if(!Array.isArray(json_rdata)){
+            console.log(r_obj,json_rdata);
+            throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+          }
+          for(const obj of json_rdata){
+            if(typeof obj !== 'object'){
+              console.log(r_obj,obj);
+              throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
+            }
+            for(const param in check_params){
+              const check_val = check_params[param];
+              const obj_val = obj[param] ?? undefined;
+              if(obj_val == '*' || obj_val === check_val) return true;
+            }
+          }
+          return false;
+        };
+      };
+          
+      const setReadonly = function(){
+        const setReadOnlyObj = function(state){
+          return function(_,r_obj){
+            const r = $(r_obj);
+            const f = r.children('[data-js-fecha]');
+            if(f.length){
+              f[0].readonly(state);  
+            }
+            else{
+              if(state){ r.attr('readonly',true);  }
+              else{      r.removeAttr('readonly'); }
+            }
+          };
+        }
+        
+        M.find('[data-readonly]:not([data-js-fecha])')
+        .each(setReadOnlyObj(false))
+        .filter(filterFunction('data-readonly'))
+        .each(setReadOnlyObj(true));
+      }
+      
+      const setVisible = function(){
+        M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
+      }
+
+      M.find('[data-js-change-calcular-fechas]').change(function(e){
+        const tgt = $(e.currentTarget);
+        const params = {
+          id_autoexclusion: M.find('[name="id_autoexclusion"]').val(),
+          nro_dni: M.find('[name="nro_dni"]').val(),
+          estado_fecha: M.find('[name="estado_fecha"]').val(),
+          estado_años_adicionales: M.find('[name="estado_años_adicionales"]').val(),
+        };
+        AUX.GET(tgt.attr('data-js-change-calcular-fechas'),params,function(fechas){
+          for(const k in fechas){
+            const domobj = M.find(`[name="${k}"]`);
+            domobj.val(fechas[k]);
+            if(!domobj.attr('data-js-change-calcular-fechas')){
+              domobj.change();
+            }
+          }
+        });
+      });
+
+      M.find('[data-js-change-display-resolucion]').change(function(e){
+        const tgt = $(e.currentTarget);
+        const resolucion = tgt.val();
+        M.find('[data-display-resolucion]').each(function(_,robj){
+          $(robj).toggle($(robj).attr('data-display-resolucion') == resolucion);
+        });
+      });
+
+      M.find('form input[type="file"]').change(function(e){
+        const filepicker = $(e.currentTarget);
+        const name = filepicker.attr('name');
+        setImportacion(name,'INTERNAL',null);
+      });
+
+      M.find('[data-js-click-file-clear]').click(function(e){
+        const file_clear = $(e.currentTarget);
+        const name = file_clear.attr('data-js-click-file-clear');
+        setImportacion(name,'FILEPICK',null);
+      });
+
+      M.find('[data-file-external-link]').click(function(e){
+        e.preventDefault();
+        const tgt = $(e.currentTarget);
+        const params = new URLSearchParams({
+          id_autoexcluido: M.find('[name="id_autoexcluido"]').val(),
+          tipo_archivo: tgt.attr('data-file-external-link')
+        });
+        window.open(tgt.attr('href')+'?'+params.toString(),'_blank');
+      })
+            
+      const render = function(ae,historial,mantener_historial = false){
+        const form = M.find('form');
+        M.find('input[type="file"]').show().each(function(_,fp_dom){
+          const name = $(fp_dom).attr('name');
+          M.find(`[data-js-click-file-clear="${name}"]`).hide();
+          M.find(`[data-file-external-link="${name}"]`).text('').hide();
+          M.find(`[data-file-internal-link="${name}"]`).text('').hide();
+        });
+        
+        fill(M,null,ae ?? {});
+        setReadonly();
+        setVisible();        
+                
+        (mantener_historial?
+           M.find('[data-js-select-historial]')
+         : M.find('[data-js-select-historial]').empty())
+         .append(
+          (historial ?? []).map(function(h,hidx){
+            const o = $('<option>');
+            o.val(h.id_autoexcluido);
+            o.text(h.created_by + ' - '+h.created_at);
+            o.data('canon',h);
+            return o;
+          })
+        );
+      };
+      
+      M.find('[data-js-select-historial]').change(function(e){
+        const tgt = $(e.currentTarget);
+        render(tgt.find('option:selected').data('canon'),null,true);
+      });
+      
+      M.on('mostrar.modal',function(e,url,id_autoexclusion,modo){      
+        M.attr('data-modo',modo.toUpperCase());
+        const form = M.find('form');
+        form.find('[name]').val('');
+        form.find('select option[default]').each(function(_,o){
+          $(o).parent().val($(o).val());
+        });
+        
+        if(modo !== 'NUEVO'){
+          AUX.GET(url,{id_autoexclusion: id_autoexclusion},function(ae){       
+            render(ae?.autoexcluido,ae?.historial,false);
+            if(M.is(':hidden')){
+              M.modal('show');
+            }
+          });
+        }
+        else {
+          render({},[],false);
+          if(M.is(':hidden')){
+            M.modal('show');
+          }
+        }
+      });
+      
+      M.find('[data-js-click-enviar]').click(async function(e){
+        const tgt = $(e.currentTarget);
+        const url = tgt.attr('data-js-click-enviar');
+        const form = M.find('form');
+        const entries = AUX.form_entries(form?.[0]);
+                
+        //@HACK @TODO: agregar funcionalidad a AUX para convertir objetos a FD
+        const newfd = new FormData();//Necesito FormData si voy a mandar sin procesar (porque mando archivos)
+        for(const name in entries){
+          const file_picker = M.find(`input[type="file"][name="${name}"]`);
+          if(file_picker.length){
+            const external_link = M.find(`[data-file-external-link="${name}"]`);
+            const internal_link = M.find(`[data-file-internal-link="${name}"]`);
+            if(external_link.is(':visible') && !internal_link.is(':visible')){
+              const filename = external_link.data('filename');
+              if(filename === undefined){
+                throw 'ERROR: No se pudo recuperar el filename del link externo';
+              }
+              newfd.append(name,'-');//- es invalido en base64 asi que sirve como flag para mantener
+            }
+            else if(!external_link.is(':visible') && internal_link.is(':visible')){
+              if(file_picker[0]?.files?.length){
+                const file = file_picker[0].files[0];
+                newfd.append(name,file,file.name);
+              }
+              else{
+                throw 'ERROR: No se puede recuperar el archivo del filepicker';
+              }
+            }
+            else if(!external_link.is(':visible') && !internal_link.is(':visible')){
+              newfd.append(name,'');
+            }
+            else{
+              throw "ERROR: No puede haber link externo e interno visibles"
+            }
+          }
+          else{
+            newfd.append(name,entries[name]);
+          }
+        }
+        
+        AUX.POST(url,newfd,
+          function(data){
+            AUX.mensajeExito('Guardado');
+            M.modal('hide');
+            $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
+          },
+          function(data){
+            AUX.mensajeError('');
+            fillError(form,data.responseJSON ?? {});
+          },
+          {
+            contentType: false,
+            processData: false,
+          }
+        );
+      });
+    });
 });
 
 function generarFilaTabla(molde,ae) {
   const fila = molde.clone();
-  fila.attr('data-id', ae.id_autoexcluido);
-  fila.find('.casino_plataforma').text(ae.casino_plataforma).attr('title',ae.casino_plataforma);
-  fila.find('.dni').text(ae.nro_dni).attr('title',ae.nro_dni);
-  fila.find('.apellido').text(ae.apellido).attr('title',ae.apellido);
+  if(ae.es_primer_ae){
+    fila.find('td').css('font-style','italic');
+  }
+  if(ae.deleted){
+    fila.find('td').css('color','darkred');
+  }
+  
+  fila.attr('data-id', ae.id_autoexclusion);
+  fila.find('.id_autoexclusion').text(ae.id_autoexclusion).attr('title',ae.id_autoexclusion);
+  fila.find('.origen').text(ae.origen).attr('title',ae.origen);
+  fila.find('.nro_dni').text(ae.nro_dni).attr('title',ae.nro_dni);
+  fila.find('.apellidos').text(ae.apellidos).attr('title',ae.apellidos);
   fila.find('.nombres').text(ae.nombres).attr('title',ae.nombres);
-  fila.find('.resolucion').text(ae.resolucion).attr('title',ae.resolucion);
-  fila.find('.estado').text(ae.desc_estado).attr('title',ae.desc_estado);
+  fila.find('.estado_resolucion	').text(ae.estado_resolucion	).attr('title',ae.estado_resolucion);
+  fila.find('.estado').text(ae.estado).attr('title',ae.estado);
 
   //Lo cambio a otro formato porque es mas corto que entra en pantalla mas chicas
   const convertir_fecha = function(fecha){
@@ -55,13 +406,13 @@ function generarFilaTabla(molde,ae) {
     const yyyymmdd = fecha.split('-');
     return yyyymmdd[2] + '/' + yyyymmdd[1] + '/' + yyyymmdd[0].substring(2);
   }
-  fila.find('.fecha_ae').text(convertir_fecha(ae.fecha_ae)).attr('title',ae.fecha_ae);
-  fila.find('.fecha_renovacion').text(convertir_fecha(ae.fecha_renovacion)).attr('title',ae.fecha_renovacion);
-  fila.find('.fecha_vencimiento').text(convertir_fecha(ae.fecha_vencimiento)).attr('title',ae.fecha_vencimiento);
-  fila.find('.fecha_cierre_ae').text(convertir_fecha(ae.fecha_cierre_ae)).attr('title',ae.fecha_cierre_ae);
+  fila.find('.estado_fecha').text(convertir_fecha(ae.estado_fecha)).attr('title',ae.estado_fecha);
+  fila.find('.estado_fecha_finalizable').text(convertir_fecha(ae.estado_fecha_finalizable)).attr('title',ae.estado_fecha_finalizable);
+  fila.find('.estado_fecha_finalizable_vencimiento').text(convertir_fecha(ae.estado_fecha_finalizable_vencimiento)).attr('title',ae.estado_fecha_finalizable_vencimiento);
+  fila.find('.estado_fecha_vencimiento').text(convertir_fecha(ae.estado_fecha_vencimiento)).attr('title',ae.estado_fecha_vencimiento);
 
-  fila.find('button').val(ae.id_autoexcluido);
-  fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
+  fila.find('button').val(ae.id_autoexclusion);
+  //fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
   // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
   // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
@@ -71,11 +422,12 @@ function generarFilaTabla(molde,ae) {
   //Tiene la plata forma
   || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
   //Solo pendientes de validación son editables
-  || (ae.id_nombre_estado != 3) 
+  || (ae.estado != 'Pendiente de val.') 
   ){
     fila.find('#btnEditarPendientes').remove();
   }
 
+  fila.find('#btnCambiarEstado').remove();
   //si no esta vencido oculto el botón constancia de reingreso
   if (ae.id_nombre_estado != 5) {
     fila.find('#btnGenerarConstanciaReingreso').remove();
@@ -84,18 +436,8 @@ function generarFilaTabla(molde,ae) {
   if (ae.id_nombre_estado != 4) {
     fila.find('#btnGenerarSolicitudFinalizacion').remove();
   }
-
-  if(!ae.es_primer_ae){
-    fila.find('td').css('font-style','italic');
-    fila.find('.fecha_renovacion').text('-').attr('title','-');
-    fila.find('.fecha_vencimiento').text('-').attr('title','-');
-  }
-
-  if(ae.id_nombre_estado == ae.estado_transicionable){ //El estado esta ya correcto
-    fila.find('#btnCambiarEstado').remove();
-  }
   //Pasar a vigente o renovado, segun si es primero o ya tuvo AE
-  else if((ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) && (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)){
+  /*else if((ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) && (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)){
     fila.find('#btnCambiarEstado').attr('title','VALIDAR').find('i').addClass('fa-check');
   }
   else if(ae.estado_transicionable == 4){
@@ -108,10 +450,10 @@ function generarFilaTabla(molde,ae) {
     fila.find('#btnCambiarEstado').attr('title','CERRAR POR VENCIMIENTO').find('i').addClass('fa-lock');
   }
   else {
-    fila.find('#btnCambiarEstado').remove();
     fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
-  }
+  }*/
 
+  /*
   const archivos = {
     foto1: 'FOTO #1',
     foto2: 'FOTO #2',
@@ -151,6 +493,7 @@ function generarFilaTabla(molde,ae) {
   popover_content.find('.modificado').text(ae.modificado_nombre_usuario + ' ' + ae.modificado_datetime);
   popover_content.find('.destruido').text(ae.papel_destruido_nombre_usuario + ' ' + ae.papel_destruido_datetime);
   fila.find('[data-papel-destruido]').attr('data-content',popover_content?.[0]?.outerHTML);
+  */
   return fila;
 }
 
@@ -1432,15 +1775,16 @@ function mostrarAutoexcluido(id_autoexcluido) {
   });
 }
 
-$(document).on("click", "#btnVerMas", function (e) {
+$(document).on("click", "[data-js-click-ver-ae]", function (e) {
   e.preventDefault();
-  mostrarAutoexcluido($(this).val());
+  const tgt = $(e.currentTarget);
+  $('[data-js-modal-ver-cargar-ae]').trigger('mostrar.modal',[tgt.attr('data-js-click-ver-ae'),tgt.val(),'VER']);
 });
 
-$(document).on("click", "#btnEditarSuperusuario,#btnEditarPendientes", function (e) {
+$(document).on("click", "[data-js-click-editar-ae]", function (e) {
   e.preventDefault();
-  const dni = $(this).parent().parent().find(".dni").text();
-  modalAgregarEditarAE(dni, $(this).val());
+  const tgt = $(e.currentTarget);
+  $('[data-js-modal-ver-cargar-ae]').trigger('mostrar.modal',[tgt.attr('data-js-click-editar-ae'),tgt.val(),'EDITAR']);
 });
 
 $(document).on("click", "#btnCambiarEstado", function (e) {

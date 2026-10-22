@@ -13,7 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        $this->app->singleton(\App\Services\CmsApiClient::class, function () {
+            return new \App\Services\CmsApiClient(config('cms_api'));
+        });
     }
 
     /**
