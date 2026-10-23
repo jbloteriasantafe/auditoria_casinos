@@ -4,7 +4,7 @@
 @endsection
 
 <?php
-$puede_manejar_papel = false;//Deshabilitado por ahora $usuario->es_superusuario || $usuario->es_administrador;
+$puede_manejar_papel = $usuario->es_superusuario;
 $puede_agregar   = $usuario->es_superusuario || $usuario->tienePermiso('agregar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
 $puede_modificar = $usuario->es_superusuario || $usuario->tienePermiso('modificar_ae') || $usuario->tienePermiso('aym_ae_plataformas');
 $puede_ver_formularios = $puede_agregar || $puede_modificar;
@@ -392,7 +392,7 @@ input[required], select[required]{
 
       @endif
       @if($puede_subir_archivos)
-      <a tabindex="0" id="btnSubirArchivos" class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" data-placement="left"
+      <a tabindex="0" data-js-click-mostrar-popover-adjuntar class="btn btn-info info" role="button" value="" title="SUBIR ARCHIVOS" data-toggle="popover" data-html="true" data-trigger="focus" data-placement="left"
          data-content="">
         <i class="fa fa-fw fa-folder-open"></i>
       </a>
@@ -751,7 +751,7 @@ input[required], select[required]{
         <div class="col-md-4">
           <h5>{{$text}} </h5>
           <div display: flex;>
-            <input class="form-control" name="{{$val}}" type="file" accept=".pdf, image/jpeg, image/png, image/webp, .doc, .docx, .odt" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
+            <input class="form-control" name="{{$val}}" type="file" accept=".pdf, image/jpeg, image/png, image/webp" data-readonly='[{"modo": "VER"},{"modo": "ADJUNTAR"}]'>
             <a href="/autoexclusion/importacion" target="_blank" data-file-external-link="{{$val}}">FILENAME.EXT</a>
             <a href="TOFILL" target="_blank" data-file-internal-link="{{$val}}">FILENAME.EXT</a>
             <button class="btn btn-link" type="button" title="BORRAR" data-js-click-file-clear="{{$val}}"><i class="fa fa-fw fa-times" style="color: red !important;"></i></button>
@@ -1636,43 +1636,45 @@ input[required], select[required]{
   </div>
 </div>
 
-<!--MODAL SUBIR SOLICITUD AE -->
-<div class="modal fade" id="modalSubirArchivo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 400px;">
-    <div class="modal-content">
-      <div class="modal-header modalNuevo" style="background-color: #00695c;">
-        <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
-        <button id="btn-minimizarCrear" type="button" class="close" data-toggle="collapse" data-minimizar="true" data-target="#colapsadoCrear" style="position:relative; right:20px; top:5px"><i class="fa fa-minus"></i></button>
-        <h3 class="modal-title" id="myModalLabel">| SUBIR ARCHIVO</h3>
-      </div>
-      <div id="colapsadoCrear" class="collapse in">
-        <div class="modal-body modalCuerpo">
-          <div class="row">
-            <div class="col-md-12">
-              <h5>NÚMERO DE DOCUMENTO</h5>
-              <input type="text" class="form-control nro_dni" placeholder="" value="" required disabled>
-              <br>
-            </div>
-            <div class="col-md-12">
-              <label for="archivoSubir" class="dropzone" id="dropzoneAutoexclusion" style="border: 3px dashed #00695c; border-radius: 12px; padding: 30px; text-align: center; background-color: #f8fafc; min-height: 220px; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; width: 100%; margin: 0;">
-                 <i class="fa fa-cloud-upload" style="font-size: 3em; color: #00695c; margin-bottom: 10px;"></i>
-                 <span class="tipo_archivo" style="font-weight: 600; color: #00695c; font-size: 1.3em;">ARCHIVO</span>
-                 <span id="filenameDisplay" style="color:#64748b; font-size: 15px; margin-top: 10px;">Arrastre el archivo aquí o haga click en Seleccionar Archivo</span>
-                 <input type="file" id="archivoSubir" class="archivo" style="display: none;">
-              </label>
-              <br>
-            </div>
-          </div>
-        </div>
-</br>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-successAceptar" id="btn-subir-archivo">SUBIR ARCHIVO</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">CANCELAR</button>
-        </div>
-      </div>
+@component('Components/modal',[
+  'clases_modal' => 'SubirArchivo',
+  'attrs_modal' => 'data-js-modal-subir-archivo',
+  'estilo_cabecera' => 'background-color: #00695c;',
+  'grande' => 30,
+])
+  @slot('titulo')
+  SUBIR ARCHIVO
+  @endslot
+  @slot('cuerpo')
+  <form class="row">
+    <div class="col-md-12">
+      <h5>NÚMERO DE DOCUMENTO</h5>
+      <input type="text" class="form-control" name="nro_dni" placeholder="" value="" required readonly>
     </div>
-  </div>
-</div>
+    <div class="col-md-12" hidden>
+      <input type="text" class="form-control" name="tipo_archivo" placeholder="" value="" required readonly>
+    </div>
+    <div class="col-md-12" hidden>
+      <input type="text" class="form-control" name="id_autoexclusion" placeholder="" value="" required readonly>
+    </div>
+    <div class="col-md-12">
+      <br>
+    </div>
+    <div class="col-md-12">
+      <?php $idArchivoSubir = uniqid(); ?>
+      <label for="{{$idArchivoSubir}}" class="dropzone" data-js-dropzone style="border: 3px dashed #00695c; border-radius: 12px; padding: 30px; text-align: center; background-color: #f8fafc; min-height: 220px; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; width: 100%; margin: 0;">
+        <i class="fa fa-cloud-upload" style="font-size: 3em; color: #00695c; margin-bottom: 10px;"></i>
+        <span class="tipo_archivo" style="font-weight: 600; color: #00695c; font-size: 1.3em;">ARCHIVO</span>
+        <span id="filenameDisplay" style="color:#64748b; font-size: 15px; margin-top: 10px;">Arrastre el archivo aquí o haga click en Seleccionar Archivo</span>
+        <input id="{{$idArchivoSubir}}" type="file" accept=".pdf, image/jpeg, image/png, image/webp" name="archivo" class="archivo" style="display: none;">
+      </label>
+    </div>
+  </form>
+  @endslot
+  @slot('pie')
+  <button type="button" class="btn btn-successAceptar" data-js-click-enviar-archivo="autoexclusion/subirArchivo">SUBIR ARCHIVO</button>
+  @endslot
+@endcomponent
 
 @if($puede_ver_formularios)
 <!--MODAL VER FORMULARIOS AE -->
@@ -1916,6 +1918,8 @@ const IDENTITY = "{!! $identity !!}";
 ?>
 const CASINOS_USUARIO = {!! json_encode($nombres_casinos_usuario) !!};
 const PLATAFORMAS_USUARIO = {!! json_encode($nombres_plataformas_usuario) !!};
+const IMPORTACIONES = {!! json_encode($catalog['importaciones'] ?? ((object)[])) !!};
+const ESTADOS ={!! json_encode(array_keys($catalog['nombre_estado'] ?? [])) !!};
 </script>
 <script type="text/javascript" src="/js/noprint.js?1"></script> 
 

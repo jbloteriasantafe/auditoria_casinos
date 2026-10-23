@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Services\CmsApiClient;
+use App\Services\CmsApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class AutoexclusionController extends Controller
@@ -51,7 +52,7 @@ class AutoexclusionController extends Controller
     }
 
     public function index($dni = ''){
-      $catalog = $this->CMS->post('catalog', []);
+      $catalog = $this->CMS->post('appCatalog', []);
       if(!$catalog->successful()){
         Log::warning('API error', ['status' => $catalog->status, 'body' => $catalog->body]);
         return ['API ERROR' => $catalog->status];
@@ -135,7 +136,7 @@ class AutoexclusionController extends Controller
         }
       }
     }
-    $r = $this->CMS->post('buscar',compact('json'));
+    $r = $this->CMS->post('appBuscar',compact('json'));
 
     if ($r->successful()) {
         return $r->json();
@@ -172,7 +173,7 @@ class AutoexclusionController extends Controller
   public function obtenerConHistorial(Request $request){
     $id_autoexclusion = $request->id_autoexclusion ?? null;
     $json = compact('id_autoexclusion');
-    $r = $this->CMS->post('obtenerConHistorial',compact('json'));
+    $r = $this->CMS->post('appObtenerConHistorial',compact('json'));
     if ($r->successful()) {
         return $r->json();
     } else {
@@ -193,7 +194,7 @@ class AutoexclusionController extends Controller
 
     $json = compact('id_autoexclusion','nro_dni','fecha_autoexclusion','años_adicionales');
 
-    $r = $this->CMS->post('calcularFechasApp',compact('json'));
+    $r = $this->CMS->post('appCalcularFechas',compact('json'));
 
     if ($r->successful()) {
       $json_response = $r->json();
@@ -229,7 +230,7 @@ class AutoexclusionController extends Controller
 
     $json = compact('id_autoexcluido','tipo_archivo');
     
-    $r = $this->CMS->post('importacionTodas',compact('json'));
+    $r = $this->CMS->post('appImportacionTodas',compact('json'));
     
     $filename = $r->filename();
     $json_response = $r->json();
@@ -275,7 +276,7 @@ class AutoexclusionController extends Controller
 
   public function guardar(Request $request){
      try {
-        $catalog = $this->CMS->post('catalog');
+        $catalog = $this->CMS->post('appCatalog');
         if (! $catalog->successful()) {
             return $this->apiError($catalog);
         }
@@ -738,49 +739,55 @@ class AutoexclusionController extends Controller
   }
 
   public function subirArchivo(Request $request) {
-    $user = UsuarioController::getInstancia()->buscarUsuario(session('id_usuario'))['usuario'];
-    Validator::make($request->all(), [
-        'id_autoexcluido' => 'required|integer|exists:ae_datos,id_autoexcluido',
-        'tipo_archivo' => ['required','string',Rule::in(['foto1','foto2','scandni','solicitud_ae','solicitud_revocacion','caratula'])],
-        'archivo' => 'required|file|mimes:jpg,jpeg,png,pdf',
-      ], array(), self::$atributos)->after(function($validator) use ($user){
-        $id = $validator->getData()['id_autoexcluido'];
-        $id_casino = AE\Autoexcluido::find($id)->estado->id_casino;
-        $id_plataforma = AE\Autoexcluido::find($id)->estado->id_plataforma;
-        if(!$user->es_superusuario){
-          if(!is_null($id_casino) && !$user->usuarioTieneCasino($id_casino)){
-            $validator->errors()->add('ae_estado.id_casino', 'No tiene acceso a ese casino');
-            return;
+    try {
+        $json        = $request->input();
+        $attachments = [];
+
+        $archivo = $request->file('archivo') ?? null;
+        $filename = null;
+        if($archivo !== null){
+          if (! $archivo->isValid()) {
+              return response()->json(['message' => ("archivo: ".$archivo->getErrorMessage())], 422);
           }
-          if(!is_null($id_plataforma) && !$user->tienePermiso('aym_ae_plataformas')){
-            $validator->errors()->add('ae_estado.id_plataforma', 'No tiene acceso a esa plataforma');
-            return;
-          }
+          $filename = $archivo->getClientOriginalName();
+          $attachments['archivo'] = [
+              'path'     => $archivo->getRealPath(),
+              'filename' => $filename,
+          ];
+          unset($json['archivo']);
         }
-    })->validate();
 
-    DB::transaction(function() use ($request){
-      $ae_importacion = [
-        'foto1' => null,//Necesito mandar nulo para que el metodo no lo borre de la BD
-        'foto2' => null,
-        'scandni' => null,
-        'solicitud_ae' => null,
-        'solicitud_revocacion' => null,
-        'caratula' => null,
-      ];
-      $ae_importacion[$request->tipo_archivo] = $request->archivo;
-      $this->subirImportacionArchivos(AE\Autoexcluido::find($request->id_autoexcluido),$ae_importacion);
-    });
-
-    $ae_log = AE\Autoexcluido::find($request->id_autoexcluido);
-    $this->_logearCarga('adjunto', [
-      'id_autoexcluido' => $request->id_autoexcluido,
-      'nro_dni'         => $ae_log? $ae_log->nro_dni : null,
-      'tipo_archivo'    => $request->tipo_archivo,
-      'archivo'         => $request->file('archivo')? $request->file('archivo')->getClientOriginalName() : null,
-    ]);
-
-    return ['codigo' => 200];
+        $r = $this->CMS->post('appSubirArchivo', compact('json', 'attachments'));
+ 
+        if (! $r->successful()) {
+            return $this->apiError($r, function (array $body) {
+                if (array_key_exists('id_autoexclusion', $body)) {
+                    $body['nro_dni'] = $body['id_autoexclusion'];
+                    unset($body['id_autoexclusion']);
+                }
+                if (array_key_exists('archivo', $body)) {
+                    $body['nro_dni'] = $body['archivo'];
+                    unset($body['archivo']);
+                }
+                return $body;
+            });
+        }
+ 
+        $this->_logearCarga('adjunto', [
+          'id_autoexclusion' => $request->id_autoexclusion,
+          'nro_dni'         => $request->nro_dni,
+          'tipo_archivo'    => $request->tipo_archivo,
+          'archivo'         => $filename,
+        ]);
+ 
+        return $r->json();
+    }
+    catch (\RuntimeException $e) {
+        // Network or proxy failure, or a response that failed decryption / signature checks
+        report($e);
+ 
+        return response()->json(['message' => 'API no disponible'], 502);
+    }
   }
 
   public function resolucion_por_fecha($fecha){

@@ -362,16 +362,17 @@ $(document).ready(function(){
             newfd.append(name,entries[name]);
           }
         }
-        
+        ocultarErrorValidacion(M.find('[name]'));
         AUX.POST(url,newfd,
           function(data){
             AUX.mensajeExito('Guardado');
             M.modal('hide');
-            $('#pant_canon').find('[data-js-filtro-tabla]').trigger('buscar');
+            $('[data-js-filtro-tabla]').trigger('buscar');
           },
           function(data){
-            AUX.mensajeError('');
-            fillError(form,data.responseJSON ?? {});
+            const json = data.responseJSON ?? {};
+            AUX.mensajeError(json?.mensaje ?? json?.message ?? '');
+            fillError($(form),json);
           },
           {
             contentType: false,
@@ -453,47 +454,49 @@ function generarFilaTabla(molde,ae) {
     fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
   }*/
 
-  /*
-  const archivos = {
-    foto1: 'FOTO #1',
-    foto2: 'FOTO #2',
-    scandni: 'SCAN DNI',
-    solicitud_ae: 'SOLICITUD AE',
-    solicitud_revocacion: 'SOLICITUD FINALIZACIÓN',
-    caratula: 'CARATULA'
+  const renametext = {
+    'Foto1': 'Foto #1',
+    'Foto2': 'Foto #2',
+    'Solicitud Ae': 'Solicitud AE',
+    'Solicitud Revocacion': 'Solicitud Finalización',
+    'Scandni': 'Scan DNI'
   };
+
   const ul = $('<ul>').css('text-align','left');
-  for(const key in archivos){//Se listan todos los tipos, los ya subidos se pueden reemplazar
-    //if(ae[key] !== null) continue;//Ahora se permite reemplazar los ya subidos
-    const item = $('<a>').addClass('subirArchivo').attr('data-tipo',key).text(archivos[key]);
+  for(const text in (IMPORTACIONES ?? {})){
+    const name = IMPORTACIONES[text];
+    const retext = renametext[text] ?? text;
+    const item = $('<a>').attr('data-js-click-subir-archivo',JSON.stringify({
+      tipo_archivo: name.replace('importacion_',''),
+      nro_dni: ae.nro_dni,
+      id_autoexclusion: ae.id_autoexclusion,
+      titulo: retext
+    }))
+    .text(retext);
+
     const li = $('<li>').append(item);
-    if(ae[key] !== null){//Marca de "ya subido", fuera del <a> para no ensuciar el titulo del modal
+    if(ae[name] !== null){//Marca de "ya subido", fuera del <a> para no ensuciar el titulo del modal
       li.append($('<span>').css('color','#00C853').text(' ✔'));
     }
+
     ul.append(li);
   }
-  //Estados que habilitan la constancia de finalización: 4 (Fin. por AE) y 5 (Vencido).
-  if(ae.id_nombre_estado != 4 && ae.id_nombre_estado != 5){
-    ul.find('a[data-tipo="solicitud_revocacion"]').parent().remove();
-  }
-  fila.find('#btnSubirArchivos').attr('data-content',ul[0].outerHTML);
-  fila.find('#btnSubirArchivos').popover();
-  //Antes se sacaba el boton si ya estaban todos los archivos; ahora queda para poder reemplazarlos
-  //if(ul.find('li').length == 0){//Si ya tiene todos los archivos saco el boton
-  //  fila.find('#btnSubirArchivos').remove();
-  //}
+  fila.find('[data-js-click-mostrar-popover-adjuntar]').attr('data-content',ul[0].outerHTML);
+  fila.find('[data-js-click-mostrar-popover-adjuntar]').popover();
   
-  let papel_destruido = (ae.papel_destruido_id_usuario != null || ae.papel_destruido_datetime != null)+0;
-  if(ae.id_plataforma != null) papel_destruido = -1;//Si tiene plataforma, no puede tener papel, saco todo
+  let papel_destruido = (ae.papel_destruido_by != null || ae.papel_destruido_at != null)+0;
+  if(['Melincué','Santa Fe','Rosario','CityCenter'].indexOf(ae.origen) == -1){//Tiene que ser físico
+    papel_destruido = -1;//Si tiene plataforma, no puede tener papel, saco todo
+  }
   
   fila.find('[data-papel-destruido]').filter(`[data-papel-destruido!="${papel_destruido}"]`).remove();
   const popover_content = $(`[data-js-molde-popover-papel][data-papel-destruido="${papel_destruido}"]`).clone()
   .removeAttr('data-js-molde-popover-papel');
   
-  popover_content.find('.modificado').text(ae.modificado_nombre_usuario + ' ' + ae.modificado_datetime);
-  popover_content.find('.destruido').text(ae.papel_destruido_nombre_usuario + ' ' + ae.papel_destruido_datetime);
+  popover_content.find('.modificado').text(ae.created_by + ' ' + ae.created_at);
+  popover_content.find('.destruido').text(ae.papel_destruido_by + ' ' + ae.papel_destruido_at);
   fila.find('[data-papel-destruido]').attr('data-content',popover_content?.[0]?.outerHTML);
-  */
+  
   return fila;
 }
 
@@ -1866,83 +1869,133 @@ $(".btn-ver-mas").click(function () {
   );
 });
 
+$(document).ready(function(){
+  $('[data-js-modal-subir-archivo]').each(function(_,Mobj){
+    const M = $(Mobj);
+
+    const fill = function(div,prefix,obj){//@HACK @TODO: mover a AUX
+      const subscript = function(s){
+        return prefix === null? s : (prefix+'['+s+']');
+      };
+      for(const k in obj){
+        const val = obj[k];
+        if(typeof val == 'object'){
+          fill(div,subscript(k),val);
+        }
+        else{
+          const name = subscript(k);
+          const named_obj = div.find(`[name="${name}"]`);
+          named_obj.val(val);
+        }
+      }
+    };
+
+    const fillError = function(div,obj){//@HACK @TODO: mover a AUX
+      for(const k in obj){
+        const val = obj[k];
+        if(typeof val == 'object' && !Array.isArray(val)){
+          console.log(k,val,'Valor inesperado');
+        }
+        else{
+          const name_arr = k.split('.');
+          let name = name_arr?.[0] ?? '';
+          for(let idx=1;idx<name_arr.length;idx++){
+            name+='['+name_arr[idx]+']';
+          }
+          mostrarErrorValidacion(div.find(`[name="${name}"]`),Array.isArray(val)? val.join(', ') : val,true);
+        }
+      }
+    };
+
+    const dropzone = M.find("[data-js-dropzone]");
+    const fileInput = M.find('[name="archivo"]');
+
+    dropzone.off('dragover').on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.css('background-color', '#e2e8f0');
+    });
+
+    dropzone.off('dragleave').on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.css('background-color', '#f8fafc');
+    });
+
+    dropzone.off('drop').on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.css('background-color', '#f8fafc');
+        const files = e.originalEvent.dataTransfer.files;
+        if(files.length > 0) {
+            fileInput[0].files = files;
+            fileInput.trigger('change');
+        }
+    });
+
+    fileInput.off('change').on('change', function() {
+        const display = $("#filenameDisplay");
+        if(this.files && this.files.length > 0) {
+            display.text(this.files[0].name).css({'color': '#1e40af', 'font-weight': 'bold'});
+        } else {
+            display.text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
+        }
+    });
+    
+    M.on('modal.mostrar',function(e,params){
+      ocultarErrorValidacion(M.find('form input').val(''));
+      M.find("#filenameDisplay").text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
+      M.find('.tipo_archivo').text(params?.titulo ?? 'ERROR');
+      M.find('form [name]').val('');
+      fill(M.find('form'),null,params ?? {});
+
+      M.modal("show");
+    });
+
+    M.find("[data-js-click-enviar-archivo]").click(function (e) {
+      const url = $(e.currentTarget).attr('data-js-click-enviar-archivo');
+      const form = M.find('form')?.[0];
+      const entries = AUX.form_entries(form);
+      const fd = new FormData();
+      for(const name in entries){
+        const val = entries[name];
+        const obj = M.find(`[name="${name}"]`);
+        if(obj.is('[type="file"]')){
+          const file = obj[0].files?.[0] ?? null;
+          if(file !== null){
+            fd.append(name,file,file.name);
+          }
+        }
+        else{
+          fd.append(name,val);
+        }
+      }
+      ocultarErrorValidacion(M.find('[name]'));
+      AUX.POST(url,fd,
+        function(data){
+          AUX.mensajeExito('Guardado');
+          M.modal('hide');
+          $('[data-js-filtro-tabla]').trigger('buscar');
+        },
+        function(data){
+          const json = data.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? json?.message ?? '');
+          fillError($(form),json);
+        },
+        {
+          contentType: false,
+          processData: false,
+        }
+      );
+    });
+  });
+})
+
 //Click en boton adentro del popover
-$(document).on("click", ".subirArchivo", function () {
-  $("#modalSubirArchivo input").val("");
-  ocultarErrorValidacion($("#modalSubirArchivo input"));
-  $("#filenameDisplay").text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
-  //Esto es bastante ridiculo pero bueno...
-  const tr = $(this).parent().parent().parent().parent().parent().parent();
-  $("#modalSubirArchivo .nro_dni").val(tr.find(".dni").text());
-  $("#modalSubirArchivo .tipo_archivo").text($(this).text());
-  $("#btn-subir-archivo").attr("data-id", tr.attr("data-id"));
-  $("#btn-subir-archivo").attr("data-tipo", $(this).attr("data-tipo"));  const dropzone = $("#dropzoneAutoexclusion");
-  const fileInput = $("#archivoSubir");
-
-  dropzone.off('dragover').on('dragover', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.css('background-color', '#e2e8f0');
-  });
-
-  dropzone.off('dragleave').on('dragleave', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.css('background-color', '#f8fafc');
-  });
-
-  dropzone.off('drop').on('drop', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.css('background-color', '#f8fafc');
-      const files = e.originalEvent.dataTransfer.files;
-      if(files.length > 0) {
-          fileInput[0].files = files;
-          fileInput.trigger('change');
-      }
-  });
-
-  fileInput.off('change').on('change', function() {
-      const display = $("#filenameDisplay");
-      if(this.files && this.files.length > 0) {
-          display.text(this.files[0].name).css({'color': '#1e40af', 'font-weight': 'bold'});
-      } else {
-          display.text("Arrastre el archivo aquí o haga click en Seleccionar Archivo").css({'color': '#64748b', 'font-weight': 'normal'});
-      }
-  });
-
-  //muestra modal
-  $("#modalSubirArchivo").modal("show");
-});
-
-//botón subir archivo solicitud ae
-$("#btn-subir-archivo").click(function (e) {
-  //guardo el archivo en un formdata
-  const formData = new FormData();
-  formData.append("id_autoexcluido", $(this).attr("data-id"));
-  formData.append("tipo_archivo", $(this).attr("data-tipo"));
-  formData.append("archivo", $("#modalSubirArchivo .archivo")[0].files[0]);
-  $.ajax({
-    type: "POST",
-    url: '/autoexclusion/subirArchivo',
-    data: formData,
-    processData: false,
-    contentType: false,
-    cache: false,
-    success: function (data) {
-      $('#modalSubirArchivo').modal('hide');
-      mensajeExito($('#modalSubirArchivo .tipo_archivo').text()+' asignada');
-      $('[data-js-filtro-tabla]').trigger('buscar');
-    },
-    error: function (data) {
-      const json = data.responseJSON;
-      mensajeError('');
-      if("archivo" in json){
-        mostrarErrorValidacion($('#modalSubirArchivo .archivo'),"Archivo faltante o invalido",true);
-      }
-      console.log(data);
-    }
-  });
+$(document).on("click", "[data-js-click-subir-archivo]", function (e) {
+  const tgt = $(e.currentTarget);
+  const params = tgt.attr('data-js-click-subir-archivo'); 
+  $('[data-js-modal-subir-archivo]').trigger('modal.mostrar',JSON.parse(params));
 });
 
 //Mostrar formularios
