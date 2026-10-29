@@ -53,10 +53,8 @@ $(document).ready(function(){
     }).eq(0).click();
   });
 
-
   $('[data-js-modal-ver-cargar-ae]').each(function(_,m_obj){
       const M = $(m_obj);
-
 
       const setImportacion = function(name,tipo,external_filename){
         const modo = M.attr('data-modo');
@@ -106,7 +104,7 @@ $(document).ready(function(){
             file_picker[0].value = null;
           }
           file_clear.toggle(modo != 'VER');
-          external_link.text(external_filename).show()
+          external_link.text(external_filename).data('filename',external_filename).show()
           internal_link.removeAttr('href').text('').hide();
           return;
         }
@@ -160,7 +158,8 @@ $(document).ready(function(){
       
       const filterFunction = function(attr){
         const check_params = {
-          modo: M.attr('data-modo')
+          modo: M.attr('data-modo'),
+          resolucion: M.find('[name="estado_resolucion"]').val()
         };
               
         return function(_,r_obj){
@@ -182,11 +181,13 @@ $(document).ready(function(){
               console.log(r_obj,obj);
               throw 'Valor inesperado de "'+$(r_obj).attr(attr)+'" se esperaba un arreglo de objetos';
             }
+            let all_true = true;
             for(const param in check_params){
               const check_val = check_params[param];
               const obj_val = obj[param] ?? undefined;
-              if(obj_val == '*' || obj_val === check_val) return true;
+              all_true = all_true && (obj_val == '*' || obj_val === check_val || obj_val === undefined);
             }
+            if(all_true) return true;
           }
           return false;
         };
@@ -214,34 +215,100 @@ $(document).ready(function(){
       }
       
       const setVisible = function(){
-        M.find('[data-modo-mostrar]').hide().filter(filterFunction('data-modo-mostrar')).show();
+        M.find('[data-mostrar]').hide().filter(filterFunction('data-mostrar')).show();
       }
 
       M.find('[data-js-change-calcular-fechas]').change(function(e){
         const tgt = $(e.currentTarget);
-        const params = {
+
+        const params_basicos = {
           id_autoexclusion: M.find('[name="id_autoexclusion"]').val(),
           nro_dni: M.find('[name="nro_dni"]').val(),
           estado_fecha: M.find('[name="estado_fecha"]').val(),
-          estado_años_adicionales: M.find('[name="estado_años_adicionales"]').val(),
         };
-        AUX.GET(tgt.attr('data-js-change-calcular-fechas'),params,function(fechas){
-          for(const k in fechas){
-            const domobj = M.find(`[name="${k}"]`);
-            domobj.val(fechas[k]);
-            if(!domobj.attr('data-js-change-calcular-fechas')){
-              domobj.change();
+
+        const params_983 = {
+          estado_fecha_finalizacion: M.find('[name="estado_fecha_finalizacion"]').val()
+        };
+
+        const params_494 = {
+          estado_años_adicionales: M.find('[name="estado_años_adicionales"]').val(),
+          estado_alcance_interjurisdiccional: M.find(['[name="estado_alcance_interjurisdiccional"]']).val()
+        };
+
+        //Primero se mandan los atributos basicos, se setea lo retornado
+        //Luego se setean los particulares a cada resolucion y se reenvia para recalcular
+        //Esto es para evitar errores de validacion de la API (ej enviar 983 con años_adicionales)
+
+        const url = tgt.attr('data-js-change-calcular-fechas');
+        const handleErr = function(err){
+          $('[data-js-modal-procesando]').modal('hide');
+          const json = err?.responseJSON ?? {};
+          AUX.mensajeError(json?.mensaje ?? json?.message ?? '');
+          fillError(M.find('form'),json);
+        };
+
+        ocultarErrorValidacion(M.find('[name]'));
+        $('[data-js-modal-procesando]').modal('show');
+        AUX.GET(url,params_basicos,
+          function(fechas1){
+            let params = null;
+            switch(fechas1.estado_resolucion){
+              case "983":{
+                params = {...params_basicos,...params_983};
+              }break;
+              case "494":{
+                params = {...params_basicos,...params_494};
+              }break;
+              default:{
+                throw "Tipo de resolucion sin manejar: "+fechas1.estado_resolucion;
+              }break;
             }
-          }
-        });
+
+            AUX.GET(url,params,
+              function(fechas2){
+                for(const k in fechas2){
+                  const domobj = M.find(`[name="${k}"]`);
+                  domobj.val(fechas2[k]);
+                  if(!domobj.attr('data-js-change-calcular-fechas')){
+                    domobj.change();
+                  }
+                }
+                render(undefined,undefined,true);
+                $('[data-js-modal-procesando]').modal('hide');
+              },
+              handleErr
+            );
+          },
+          handleErr
+        );
       });
 
-      M.find('[data-js-change-display-resolucion]').change(function(e){
-        const tgt = $(e.currentTarget);
-        const resolucion = tgt.val();
-        M.find('[data-display-resolucion]').each(function(_,robj){
-          $(robj).toggle($(robj).attr('data-display-resolucion') == resolucion);
-        });
+      M.find('[data-js-change-aproximar-fecha_nacimiento]').change(function(e){
+        const modo = M.attr('data-modo');
+
+        if(modo != 'NUEVO'){
+          return;
+        }
+
+        const ya_cargo = M.find('[name="nombres"],[name="apellidos"],[name="sexo"]').filter(function(_,domobj){
+	        return $(domobj).val().length > 0
+        }).length > 0;
+
+        if(ya_cargo){
+          return;
+        }
+
+        const dni = parseInt(M.find('[name="nro_dni"]').val());
+        if(isNaN(dni)){
+          return;
+        }
+
+        //Obtenido regresionando con Median
+        // 28/10/2026 Octavio
+        const segundos = dni * 44.4661 - 922908824.8301;//Ver abajo de todo de donde saco estos valores
+        const fecha = new Date(segundos * 1000);
+        M.find('[name="fecha_nacimiento"]').closest('[data-js-fecha]').data("datetimepicker").setDate(fecha);
       });
 
       M.find('form input[type="file"]').change(function(e){
@@ -275,10 +342,12 @@ $(document).ready(function(){
           M.find(`[data-file-internal-link="${name}"]`).text('').hide();
         });
         
-        fill(M,null,ae ?? {});
+        if(ae !== undefined){
+          fill(M,null,ae ?? {});
+        }
         setReadonly();
-        setVisible();        
-                
+        setVisible();  
+        
         (mantener_historial?
            M.find('[data-js-select-historial]')
          : M.find('[data-js-select-historial]').empty())
@@ -291,6 +360,8 @@ $(document).ready(function(){
             return o;
           })
         );
+
+        M.find('[data-js-tab]').eq(0).click();
       };
       
       M.find('[data-js-select-historial]').change(function(e){
@@ -315,7 +386,7 @@ $(document).ready(function(){
           });
         }
         else {
-          render({},[],false);
+          render({estado: "Pendiente de val.", estado_fecha: FECHA_API,origen: IDENTITY},[],false);
           if(M.is(':hidden')){
             M.modal('show');
           }
@@ -413,46 +484,28 @@ function generarFilaTabla(molde,ae) {
   fila.find('.estado_fecha_vencimiento').text(convertir_fecha(ae.estado_fecha_vencimiento)).attr('title',ae.estado_fecha_vencimiento);
 
   fila.find('button').val(ae.id_autoexclusion);
-  //fila.find('button').attr('estado-nuevo',ae.estado_transicionable);
 
-  // 1 Vigente, 2 Renovado, 3 Pendiente Valid, 4 Fin por AE,
-  // 5 Vencido, 6 RES983 Pendiente, 7 RES983 Verificado
+  if(!(CASINOS_USUARIO.includes(ae.origen) || PLATAFORMAS_USUARIO.includes(ae.origen))){
+    fila.find('[data-origen-exclusivo]').remove();
+  }
   
-  //Tiene el casino
-  if((ae.id_casino != null && $('#id_casino option[value="'+ae.id_casino+'"]').length == 0)
-  //Tiene la plata forma
-  || (ae.id_plataforma != null && $('#id_casino option[value="-'+ae.id_plataforma+'"]').length == 0)
-  //Solo pendientes de validación son editables
-  || (ae.estado != 'Pendiente de val.') 
-  ){
-    fila.find('#btnEditarPendientes').remove();
-  }
-
-  fila.find('#btnCambiarEstado').remove();
-  //si no esta vencido oculto el botón constancia de reingreso
-  if (ae.id_nombre_estado != 5) {
-    fila.find('#btnGenerarConstanciaReingreso').remove();
-  }
-  //si no esta finalizado por AE, oculto el boton
-  if (ae.id_nombre_estado != 4) {
-    fila.find('#btnGenerarSolicitudFinalizacion').remove();
-  }
-  //Pasar a vigente o renovado, segun si es primero o ya tuvo AE
-  /*else if((ae.id_nombre_estado == 3 || ae.id_nombre_estado == 6) && (ae.estado_transicionable == 1 || ae.estado_transicionable == 2)){
-    fila.find('#btnCambiarEstado').attr('title','VALIDAR').find('i').addClass('fa-check');
-  }
-  else if(ae.estado_transicionable == 4){
-    fila.find('#btnCambiarEstado').attr('title','FINALIZAR POR AE').find('i').addClass('fa-ban');
-  }
-  else if(ae.estado_transicionable == 2){
-    fila.find('#btnCambiarEstado').attr('title','RENOVAR').find('i').addClass('fa-undo');
-  }
-  else if(ae.estado_transicionable == 5){
-    fila.find('#btnCambiarEstado').attr('title','CERRAR POR VENCIMIENTO').find('i').addClass('fa-lock');
-  }
-  else {
-    fila.find('.estado').css('color','red');//Lo marco como inconsistente, hay algun error de logica en algun lado.
-  }*/
+  fila.find('[data-visible]').each(function(_,obj){
+    const o = $(obj);
+    try{
+      const visible_json = JSON.parse(o.attr('data-visible'));
+      let visible = true;
+      for(const k in visible_json){
+        visible = visible && visible_json[k] == ae[k];
+      }
+      if(!visible){
+        o.remove();
+      }
+    }
+    catch (error){
+      console.log(obj,error);
+      o.remove();
+    }
+  });
 
   const renametext = {
     'Foto1': 'Foto #1',
@@ -591,11 +644,6 @@ function modalAgregarEditarAE(dni, id_autoexcluido = null) {
   //muestra modal
   $("#modalAgregarAE").modal("show");
 }
-//Botón agregar nuevo AE
-$("#btn-agregar-ae").click(function (e) {
-  e.preventDefault();
-  modalAgregarEditarAE("");
-});
 
 //Botón ver formularios AE
 $("#btn-ver-formularios-ae").click(function (e) {
@@ -630,10 +678,6 @@ function marcarBotonCerrarComoFinalizar(){
     //btn-successAceptar es el estilo de acción principal de los modales (borde teal).
     $('#btn-cerrar-importar').removeClass('btn-default').addClass('btn-successAceptar').text('FINALIZAR');
 }
-
-
-
-
 
 // Setup CSRF for all ajax 
 $.ajaxSetup({
@@ -946,49 +990,6 @@ const to_iso = function (d, m, y) {
   );
 };
 
-/*
--- Matias me habia pedido si podia aproximarse la fecha asi no tenian que mover mucho.
--- Script para calcular la regresion. No lo pongo como un request GET porque no es 
--- necesario cambiarlo siempre (capaz me olvide de algo en el where y con algun AE que 
--- agreguen se rompe todo). Lo pongo aca para que se vea que no lo saque de la galera.
--- Saco los muy viejos, muy nuevos y los DNI muy altos (extranjeros).
--- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
-
-DROP PROCEDURE IF EXISTS DniStampLinreg;
-DELIMITER $$
-CREATE PROCEDURE DniStampLinreg()
-BEGIN
-    CREATE TEMPORARY TABLE temp_dni_stamp (nro_dni bigint, stamp bigint);
-    INSERT INTO temp_dni_stamp
-        select distinct ae.nro_dni, DATEDIFF(ae.fecha_nacimiento,'1970-01-01')*24*60*60 as stamp
-        from ae_datos as ae
-        where ae.deleted_at is null and ae.fecha_nacimiento is not null 
-        and YEAR(ae.fecha_nacimiento) > 1940 and YEAR(ae.fecha_nacimiento) < 2002 
-        and ae.nro_dni < 50000000
-        ORDER BY `ae`.`nro_dni` asc;
-
-    CREATE TEMPORARY TABLE temp_dni_stamp_uniq (nro_dni bigint, stamp bigint);
-    INSERT INTO temp_dni_stamp_uniq
-        select nro_dni,MIN(stamp) as stamp
-        from temp_dni_stamp
-        group by temp_dni_stamp.nro_dni;
-    
-    SET @x  := (SELECT SUM(nro_dni)         FROM temp_dni_stamp_uniq);
-    SET @x2 := (SELECT SUM(nro_dni*nro_dni) FROM temp_dni_stamp_uniq);
-    SET @y  := (SELECT SUM(stamp)           FROM temp_dni_stamp_uniq);
-    SET @y2 := (SELECT SUM(stamp*stamp)     FROM temp_dni_stamp_uniq);
-    SET @xy := (SELECT SUM(nro_dni*stamp)   FROM temp_dni_stamp_uniq);
-    SET @n  := (SELECT COUNT(nro_dni)       FROM temp_dni_stamp_uniq);
-    
-    DROP TABLE temp_dni_stamp_uniq;
-    DROP TABLE temp_dni_stamp;
-    
-    SELECT (@y*@x2 - @x*@xy)/(@n*@x2-@x*@x) as intercept, (@n*@xy - @x*@y )/(@n*@x2-@x*@x) as slope;
-END$$
-
--- En otra consulta
-Call DniStampLinreg();
-*/
 
 $("#nro_dni").change(function () {
   const dni = parseInt($(this).val());
@@ -1778,6 +1779,13 @@ function mostrarAutoexcluido(id_autoexcluido) {
   });
 }
 
+
+$(document).on("click", "[data-js-click-nuevo-ae]", function (e) {
+  e.preventDefault();
+  const tgt = $(e.currentTarget);
+  $('[data-js-modal-ver-cargar-ae]').trigger('mostrar.modal',[tgt.attr('data-js-click-nuevo-ae'),tgt.val(),'NUEVO']);
+});
+
 $(document).on("click", "[data-js-click-ver-ae]", function (e) {
   e.preventDefault();
   const tgt = $(e.currentTarget);
@@ -1790,20 +1798,6 @@ $(document).on("click", "[data-js-click-editar-ae]", function (e) {
   $('[data-js-modal-ver-cargar-ae]').trigger('mostrar.modal',[tgt.attr('data-js-click-editar-ae'),tgt.val(),'EDITAR']);
 });
 
-$(document).on("click", "#btnCambiarEstado", function (e) {
-  e.preventDefault();
-  const id = $(this).val();
-  const estado = $(this).attr("estado-nuevo");
-  $.ajax({
-    type: 'GET',
-    url: '/autoexclusion/cambiarEstadoAE/'+ id + '/' + estado,
-    dataType: 'json',
-    success: function(data) {
-      mensajeExito('Cambio de estado realizado');
-      $('[data-js-filtro-tabla]').trigger('buscar');
-    },
-  });
-});
 $(document).on("click", "#btnEliminar", function (e) {
   e.preventDefault();
   const id = $(this).val();
@@ -1816,28 +1810,42 @@ $(document).on("click", "#btnEliminar", function (e) {
   }]);
 });
 
-$(document).on("click", "#btnGenerarSolicitudAutoexclusion", function (e) {
+$(document).on("click", "[data-js-click-generar-pdf]", function (e) {
   e.preventDefault();
+  const tgt = $(e.currentTarget);
+  const params = {
+    id_autoexclusion: $(e.currentTarget).val(),
+  };
   window.open(
-    "/autoexclusion/generarSolicitudAutoexclusion/" + $(this).val(),
+    tgt.attr('data-js-click-generar-pdf') + "?" + (new URLSearchParams(params))?.toString(),
     "_blank"
   );
 });
 
-$(document).on("click", "#btnGenerarConstanciaReingreso", function (e) {
-  e.preventDefault();
-  window.open(
-    "/autoexclusion/generarConstanciaReingreso/" + $(this).val(),
-    "_blank"
-  );
-});
-
-$(document).on("click", "#btnGenerarSolicitudFinalizacion", function (e) {
-  e.preventDefault();
-  window.open(
-    "/autoexclusion/generarSolicitudFinalizacionAutoexclusion/" + $(this).val(),
-    "_blank"
-  );
+$(document).on("click","[data-js-click-cambiar-estado]", function(e){
+  const tgt = $(e.currentTarget);
+  try{
+    const json_params = JSON.parse(tgt.attr('data-js-click-cambiar-estado'));
+    const params = {
+      id_autoexclusion: $(e.currentTarget).val(),
+      de: json_params.de,
+      a: json_params.a
+    };
+    AUX.GET(json_params.url,params,
+      function(data){
+        AUX.mensajeExito('Cambio a '+params.a+' realizado');
+        $('[data-js-filtro-tabla]').trigger('buscar');
+      },
+      function(err){
+        const json = err.responseJSON;
+        console.log(json);
+        AUX.mensajeError(json?.mensaje ?? json?.message ?? '');
+      }
+    );
+  }
+  catch(error){
+    console.log(e.currentTarget,error);
+  }
 });
 
 $(document).on('click','.btnDestruirPapel',function(e){
@@ -2031,3 +2039,232 @@ $("#hace_encuesta").change(function () {
     .not(".no_esconder");
   divs.toggle(show);
 });
+
+
+
+/*
+-- Matias me habia pedido si podia aproximarse la fecha asi no tenian que mover mucho.
+-- Script para calcular la regresion. No lo pongo como un request GET porque no es 
+-- necesario cambiarlo siempre (capaz me olvide de algo en el where y con algun AE que 
+-- agreguen se rompe todo). Lo pongo aca para que se vea que no lo saque de la galera.
+-- Saco los muy viejos, muy nuevos y los DNI muy altos (extranjeros).
+-- Creo que se aproximaria mejor con una cuadratica o exponencial pero con esto funciona
+
+DROP PROCEDURE IF EXISTS DniStampLinreg;
+DELIMITER $$
+CREATE PROCEDURE DniStampLinreg()
+BEGIN
+    CREATE TEMPORARY TABLE temp_dni_stamp (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp
+        select distinct ae.nro_dni, DATEDIFF(ae.fecha_nacimiento,'1970-01-01')*24*60*60 as stamp
+        from ae_datos as ae
+        where ae.deleted_at is null and ae.fecha_nacimiento is not null 
+        and YEAR(ae.fecha_nacimiento) > 1940 and YEAR(ae.fecha_nacimiento) < 2002 
+        and ae.nro_dni < 50000000
+        ORDER BY `ae`.`nro_dni` asc;
+
+    CREATE TEMPORARY TABLE temp_dni_stamp_uniq (nro_dni bigint, stamp bigint);
+    INSERT INTO temp_dni_stamp_uniq
+        select nro_dni,MIN(stamp) as stamp
+        from temp_dni_stamp
+        group by temp_dni_stamp.nro_dni;
+    
+    SET @x  := (SELECT SUM(nro_dni)         FROM temp_dni_stamp_uniq);
+    SET @x2 := (SELECT SUM(nro_dni*nro_dni) FROM temp_dni_stamp_uniq);
+    SET @y  := (SELECT SUM(stamp)           FROM temp_dni_stamp_uniq);
+    SET @y2 := (SELECT SUM(stamp*stamp)     FROM temp_dni_stamp_uniq);
+    SET @xy := (SELECT SUM(nro_dni*stamp)   FROM temp_dni_stamp_uniq);
+    SET @n  := (SELECT COUNT(nro_dni)       FROM temp_dni_stamp_uniq);
+    
+    DROP TABLE temp_dni_stamp_uniq;
+    DROP TABLE temp_dni_stamp;
+    
+    SELECT (@y*@x2 - @x*@xy)/(@n*@x2-@x*@x) as intercept, (@n*@xy - @x*@y )/(@n*@x2-@x*@x) as slope;
+END$$
+
+-- En otra consulta
+Call DniStampLinreg();
+*/
+
+/*
+-- Usando median para sacar outliers (generado por Claude)
+-- Test copy of DniStampRobust: same logic, but returns its values through OUT
+-- parameters instead of a final SELECT, so another procedure can collect them.
+-- The original DniStampRobust is not changed. If you edit one, edit the other too.
+DROP PROCEDURE IF EXISTS DniStampRobustOut;
+DELIMITER $$
+CREATE PROCEDURE DniStampRobustOut(IN  sample_rate    DOUBLE,
+                                   OUT o_intercept    DOUBLE,
+                                   OUT o_slope        DOUBLE,
+                                   OUT o_rows_used    INT,
+                                   OUT o_buckets_used INT)
+BEGIN
+    -- sample_rate: fraction of DNIs to use, between 0 and 1 (1.0 = use all of them)
+    DECLARE bucket_size BIGINT DEFAULT 250000;  -- width of each DNI range
+    DECLARE min_count   INT    DEFAULT 30;      -- ignore ranges with fewer people than this
+    DECLARE v_rows      INT;
+    DECLARE v_n         INT;
+    DECLARE v_slope     DOUBLE;
+    DECLARE v_intercept DOUBLE;
+
+    DROP TEMPORARY TABLE IF EXISTS
+        tmp_sorted, tmp_bstats, tmp_buckets, tmp_buckets2, tmp_slopes, tmp_icpt;
+
+    -- 1. One birth timestamp per DNI, optionally sampled, stored sorted by (range, stamp).
+    --    The AUTO_INCREMENT id records each row's position in that order, which is what
+    --    lets us find medians without window functions.
+    CREATE TEMPORARY TABLE tmp_sorted (
+        id      INT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        bucket  INT    NOT NULL,
+        nro_dni BIGINT NOT NULL,
+        stamp   BIGINT NOT NULL
+    ) ENGINE=MEMORY;
+
+    INSERT INTO tmp_sorted (bucket, nro_dni, stamp)
+        SELECT FLOOR(u.nro_dni / bucket_size), u.nro_dni, u.stamp
+        FROM (
+            SELECT nro_dni,
+                   MIN(DATEDIFF(fecha_nacimiento, '1970-01-01')) * 86400 AS stamp
+            FROM ae_datos
+            WHERE deleted_at IS NULL
+              AND fecha_nacimiento >= '1980-01-01'   -- same as YEAR() > 1940, but can use an index
+              AND fecha_nacimiento <  '2002-01-01'   -- same as YEAR() < 2002
+              AND nro_dni < 70000000
+            GROUP BY nro_dni
+        ) u
+        WHERE RAND() < sample_rate
+        ORDER BY FLOOR(u.nro_dni / bucket_size), u.stamp;
+
+    SELECT COUNT(*) INTO v_rows FROM tmp_sorted;
+
+    -- 2. Per range: where it starts in tmp_sorted, how many rows it has, and its mean DNI
+    --    (a mean is fine for x: DNIs inside one range can't be far off from each other)
+    CREATE TEMPORARY TABLE tmp_bstats (
+        bucket   INT    NOT NULL PRIMARY KEY,
+        first_id INT    NOT NULL,
+        n        INT    NOT NULL,
+        x        DOUBLE NOT NULL
+    ) ENGINE=MEMORY;
+
+    INSERT INTO tmp_bstats (bucket, first_id, n, x)
+        SELECT bucket, MIN(id), COUNT(*), AVG(nro_dni)
+        FROM tmp_sorted
+        GROUP BY bucket
+        HAVING COUNT(*) >= min_count;
+
+    -- 3. Median stamp of each range = the middle row(s) by position
+    CREATE TEMPORARY TABLE tmp_buckets (
+        bucket INT    NOT NULL PRIMARY KEY,
+        x      DOUBLE NOT NULL,
+        y      DOUBLE NOT NULL
+    ) ENGINE=MEMORY;
+
+    INSERT INTO tmp_buckets (bucket, x, y)
+        SELECT b.bucket, b.x, AVG(s.stamp)
+        FROM tmp_sorted s
+        JOIN tmp_bstats b ON b.bucket = s.bucket
+        WHERE s.id - b.first_id IN (FLOOR((b.n - 1) / 2), CEIL((b.n - 1) / 2))
+        GROUP BY b.bucket, b.x;
+
+    -- 4. Theil-Sen slope: median of the slopes between every pair of ranges
+    --    (MySQL can't use the same TEMPORARY table twice in one query, hence the copy)
+    CREATE TEMPORARY TABLE tmp_buckets2 ENGINE=MEMORY SELECT * FROM tmp_buckets;
+
+    CREATE TEMPORARY TABLE tmp_slopes (
+        id  INT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        val DOUBLE NOT NULL
+    ) ENGINE=MEMORY;
+
+    INSERT INTO tmp_slopes (val)
+        SELECT (b.y - a.y) / (b.x - a.x) AS val
+        FROM tmp_buckets a
+        JOIN tmp_buckets2 b ON b.bucket > a.bucket
+        ORDER BY val;
+
+    SELECT COUNT(*) INTO v_n FROM tmp_slopes;
+    SELECT AVG(val) INTO v_slope
+    FROM tmp_slopes
+    WHERE id IN (FLOOR((v_n + 1) / 2), CEIL((v_n + 1) / 2));
+
+    -- 5. Intercept: median of (y - slope * x) over the ranges
+    CREATE TEMPORARY TABLE tmp_icpt (
+        id  INT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        val DOUBLE NOT NULL
+    ) ENGINE=MEMORY;
+
+    INSERT INTO tmp_icpt (val)
+        SELECT y - v_slope * x AS val
+        FROM tmp_buckets
+        ORDER BY val;
+
+    SELECT COUNT(*) INTO v_n FROM tmp_icpt;
+    SELECT AVG(val) INTO v_intercept
+    FROM tmp_icpt
+    WHERE id IN (FLOOR((v_n + 1) / 2), CEIL((v_n + 1) / 2));
+
+    DROP TEMPORARY TABLE
+        tmp_sorted, tmp_bstats, tmp_buckets, tmp_buckets2, tmp_slopes, tmp_icpt;
+
+    SET o_intercept    = v_intercept;
+    SET o_slope        = v_slope;
+    SET o_rows_used    = v_rows;
+    SET o_buckets_used = v_n;
+END$$
+DELIMITER ;
+
+
+-- Runs DniStampRobustOut several times and returns one table:
+-- one row per run, plus a "mean" and a "std dev" row at the end.
+DROP PROCEDURE IF EXISTS DniStampRuns;
+DELIMITER $$
+CREATE PROCEDURE DniStampRuns(IN times INT, IN sample_rate DOUBLE)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE r_intercept, r_slope DOUBLE;
+    DECLARE r_rows, r_buckets INT;
+    DECLARE m_intercept, m_slope, m_rows, m_buckets DOUBLE;
+    DECLARE s_intercept, s_slope, s_rows, s_buckets DOUBLE;
+
+    DROP TEMPORARY TABLE IF EXISTS tmp_runs;
+    CREATE TEMPORARY TABLE tmp_runs (
+        seq          INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        run          VARCHAR(10),
+        intercept    DOUBLE,
+        slope        DOUBLE,
+        rows_used    DOUBLE,
+        buckets_used DOUBLE
+    ) ENGINE=MEMORY;
+
+    WHILE i < times DO
+        SET i = i + 1;
+        CALL DniStampRobustOut(sample_rate, r_intercept, r_slope, r_rows, r_buckets);
+        INSERT INTO tmp_runs (run, intercept, slope, rows_used, buckets_used)
+        VALUES (i, r_intercept, r_slope, r_rows, r_buckets);
+    END WHILE;
+
+    -- Summary rows (computed into variables first: MySQL can't read and
+    -- write the same TEMPORARY table in one statement)
+    SELECT AVG(intercept), AVG(slope), AVG(rows_used), AVG(buckets_used),
+           STDDEV_SAMP(intercept), STDDEV_SAMP(slope), STDDEV_SAMP(rows_used), STDDEV_SAMP(buckets_used)
+    INTO m_intercept, m_slope, m_rows, m_buckets,
+         s_intercept, s_slope, s_rows, s_buckets
+    FROM tmp_runs;
+
+    INSERT INTO tmp_runs (run, intercept, slope, rows_used, buckets_used)
+    VALUES ('mean',    m_intercept, m_slope, m_rows, m_buckets),
+           ('std dev', s_intercept, s_slope, s_rows, s_buckets);
+
+    SELECT run, intercept, slope, rows_used, buckets_used
+    FROM tmp_runs
+    ORDER BY seq;
+
+    DROP TEMPORARY TABLE tmp_runs;
+END$$
+DELIMITER ;
+
+-- In another query: 10 runs with a 30% sample
+CALL DniStampRuns(10, 0.3);
+
+-- Using the result (FROM_UNIXTIME returns NULL for negative stamps, i.e. pre-1970 births):
+-- SELECT DATE_ADD('1970-01-01', INTERVAL ROUND(@intercept + @slope * 30123456) SECOND);
+*/

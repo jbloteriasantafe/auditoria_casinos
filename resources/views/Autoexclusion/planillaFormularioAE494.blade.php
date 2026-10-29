@@ -41,7 +41,7 @@
     </p>
 
     <div class="primerEncabezado"  style="font-size:13px;">
-      <b>Fecha:</b> {{$datos_estado['fecha_ae']}}
+      <b>Fecha:</b> {{$ae['estado_fecha'] ?? 'ERROR'}}
     </div>
 
     <div class="primerEncabezado" style="font-size:13px">
@@ -57,15 +57,15 @@
     <div class="primerEncabezado" style="font-size:13px">
       <p style="font-size:15px" ><b>ACUERDO:</b></p>
       <p>
-        Yo <b>{{$autoexcluido['nombres']}} {{$autoexcluido['apellido']}}</b>, 
-        DNI N° <b>{{$autoexcluido['nro_dni']}}</b>, 
-        de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, 
-        Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>
-        @if(!empty($autoexcluido['telefono']))
-        , Teléfono <b>{{$autoexcluido['telefono']}}</b>
+        Yo <b>{{$ae['nombres'] ?? 'ERROR'}} {{$ae['apellidos'] ?? 'ERROR'}}</b>, 
+        DNI N° <b>{{$ae['nro_dni'] ?? 'ERROR'}}</b>, 
+        de la localidad de <b>{{$ae['nombre_localidad'] ?? 'ERROR'}}</b>, 
+        Provincia de <b>{{$ae['nombre_provincia'] ?? 'ERROR'}}</b>
+        @if(!empty($ae['telefono']))
+        , Teléfono <b>{{$ae['telefono']}}</b>
         @endif
-        @if(!empty($autoexcluido['correo']))
-        , Correo electrónico: <b>{{$autoexcluido['correo']}}</b> 
+        @if(!empty($ae['correo']))
+        , Correo electrónico: <b>{{$ae['correo'] ?? 'ERROR'}}</b> 
         @endif
       </p>
     </div>
@@ -75,18 +75,18 @@
       <table style="border-collapse:collapse;">
         <tr>
           <td style="vertical-align:middle; padding:2px 6px 2px 0; width:20px;">
-            <input type="checkbox" {{ empty($datos_estado['años_adicionales']) ? 'checked' : '' }}>
+            <input type="checkbox" {{ empty($ae['estado_años_adicionales']) ? 'checked' : '' }}>
           </td>
           <td style="vertical-align:middle; padding:2px 0;">1 (un) año (Plazo mínimo normativo)</td>
         </tr>
         <tr>
           <td style="vertical-align:middle; padding:2px 6px 2px 0;">
-            <input type="checkbox" {{ !empty($datos_estado['años_adicionales']) ? 'checked' : '' }}>
+            <input type="checkbox" {{ !empty($ae['estado_años_adicionales']) ? 'checked' : '' }}>
           </td>
           <td style="vertical-align:middle; padding:2px 0;">Plazo extendido de: <b>{{ !empty($datos_estado['años_adicionales']) ? ($datos_estado['años_adicionales']+1) : 'N/A' }}</b> años</td>
         </tr>
       </table>
-      <p>Cuyo vencimiento operará el día: <b>{{$datos_estado['fecha_cierre']}}</b></p>
+      <p>Cuyo vencimiento operará el día: <b>{{$ae['estado_fecha_vencimiento'] ?? 'ERROR'}}</b></p>
     </div>
 
     <div class="primerEncabezado" style="font-size:13px;padding-left: 1em;">
@@ -116,7 +116,7 @@
       <table style="border-collapse:collapse;">
         <tr>
           <td style="vertical-align:middle; padding:2px 6px 2px 0; width:20px;">
-            <input type="checkbox" {{ ($datos_estado['alcance_interjurisdiccional'] ?? 0) ? 'checked' : '' }}>
+            <input type="checkbox" {{ ($ae['estado_alcance_interjurisdiccional'] ?? 0) ? 'checked' : '' }}>
           </td>
           <td style="vertical-align:middle; padding:2px 0;"><b>SÍ CONSIENTO</b> que la medida se extienda a otras jurisdicciones con las cuales la C.A.S.-Lotería de Santa Fe mantenga convenios de reciprocidad.</td>
         </tr>

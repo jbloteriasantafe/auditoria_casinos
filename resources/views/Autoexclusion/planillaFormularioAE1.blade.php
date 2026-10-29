@@ -40,7 +40,7 @@
     </p>
 
     <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;font-size:12px;">
-      Fecha: {{$datos_estado['fecha_ae']}}
+      Fecha: {{$ae['estado_fecha'] ?? 'ERROR'}}
     </div>
 
     <div class="primerEncabezado" style="font-size:13px">
@@ -53,16 +53,16 @@
     <div class="primerEncabezado" style="font-size:13px">
       <p style="font-size:15px" ><b>ACUERDO:</b></p>
       <p>
-        Yo <b>{{$autoexcluido['nombres']}} {{$autoexcluido['apellido']}}</b>, DNI <b>{{$autoexcluido['nro_dni']}}</b>,
-        constituyendo domicilio a los efectos del presente en calle <b>{{$autoexcluido['domicilio']}}</b> Nº <b>{{$autoexcluido['nro_domicilio']}}</b>
-        {!! is_null($autoexcluido['piso'])? '' : ', Piso <b>'.$autoexcluido['piso'].'</b>' !!}
-        {!! is_null($autoexcluido['dpto'])? '' : ', Dpto <b>'.$autoexcluido['dpto'].'</b>' !!}
-         de la localidad de <b>{{$autoexcluido['nombre_localidad']}}</b>, Provincia de <b>{{$autoexcluido['nombre_provincia']}}</b>
-        {!! is_null($autoexcluido['codigo_postal'])? '' : ', C.P. <b>'.$autoexcluido['codigo_postal'].'</b>' !!}
-        {!! is_null($autoexcluido['telefono'])? '' : ', Teléfono <b>'.$autoexcluido['telefono'].'</b>' !!}; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
+        Yo <b>{{$ae['nombres']}} {{$ae['apellidos']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
+        constituyendo domicilio a los efectos del presente en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>
+        {!! is_null($ae['piso'])? '' : ', Piso <b>'.$ae['piso'].'</b>' !!}
+        {!! is_null($ae['dpto'])? '' : ', Dpto <b>'.$ae['dpto'].'</b>' !!}
+         de la localidad de <b>{{$ae['nombre_localidad']}}</b>, Provincia de <b>{{$ae['nombre_provincia']}}</b>
+        {!! is_null($ae['codigo_postal'])? '' : ', C.P. <b>'.$ae['codigo_postal'].'</b>' !!}
+        {!! is_null($ae['telefono'])? '' : ', Teléfono <b>'.$ae['telefono'].'</b>' !!}; manifiesto voluntariamente, que no ingresaré a ninguna Sala de Juego de los Casinos y
         Bingos, ni accederé a las Plataformas de Juego Online
 (<a href="https://www.bplay.bet.ar">www.bplay.bet.ar</a> y/o <a href="https://www.citycenteronline.bet.ar">www.citycenteronline.bet.ar</a>) de la Provincia de Santa Fe, durante el plazo de duración del
-        @if($es_primer_ae)
+        @if($ae['es_primer_ae'])
         presente, que se extiende por seis (6) meses desde su suscripción y
         cuyo primer vencimiento operará en la siguiente fecha:
         @else
@@ -71,9 +71,9 @@
       </p>
     </div>
 
-    @if($es_primer_ae)
+    @if($ae['es_primer_ae'])
     <p style="margin-left: 40%;width: 20%;margin-right: 40%;text-align: center;font-size:18px;border: 1px solid black;">
-      <b>{{$datos_estado['fecha_vencimiento']}}</b>
+      <b>{{$ae['estado_fecha_finalizable_vencimiento']}}</b>
     </p>
 
     <p class="primerEncabezado" style="font-size:13px">
@@ -86,16 +86,16 @@
     <table style="table-layout: fixed;width: 100%;">
       <tr>
         <td width="40%" style="text-align: center;">
-        @if(!$es_primer_ae)
+        @if(!$ae['es_primer_ae'])
           <b>VENCIMIENTO (*)</b>
         @endif
         </td>
-        <td width="20%" style="font-size:18px;text-align: center;border: 1px solid black;"><b>{{$datos_estado['fecha_cierre']}}</b></td>
+        <td width="20%" style="font-size:18px;text-align: center;border: 1px solid black;"><b>{{$ae['estado_fecha_vencimiento']}}</b></td>
         <td width="40%"></td>
       </tr>
     </table>
 
-    @if(!$es_primer_ae)
+    @if(!$ae['es_primer_ae'])
       <br>
       <p class="primerEncabezado"><b>(*) R.V.E. N° 983/19 –cito en Art. 1, último párrafo 
       “Para las personas que ya fueron parte del pro-grama, cuando soliciten ingresar 
@@ -123,11 +123,11 @@
 
     <div class="primerEncabezado" style="font-size:13px">
       <p>Asimismo, expreso:</p>
-      @if(count($contacto['nombre_apellido']) > 0)
+      @if(count($ae['contacto_nombre_apellido']) > 0)
       <p>Que nombro como persona de contacto en forma de referencia a:</p>
-      <p>Sr./Sra <b>{{ifempty($contacto['nombre_apellido'],'NOINFORMA')}}</b> con domicilio en calle <b>{{ifempty($contacto['domicilio'])}}</b>
-      de la Localidad de <b>{{ifempty($contacto['nombre_localidad'])}}</b> Provincia de <b>{{ifempty($contacto['nombre_provincia'])}}</b>
-      Tel <b>{{ifempty($contacto['telefono'])}}</b> Vínculo con el Solicitante <b>{{ifempty($contacto['vinculo'])}}</b>.</p>
+      <p>Sr./Sra <b>{{ifempty($ae['contacto_nombre_apellido'],'NOINFORMA')}}</b> con domicilio en calle <b>{{ifempty($ae['contacto_domicilio'])}}</b>
+      de la Localidad de <b>{{ifempty($ae['contacto_nombre_localidad'])}}</b> Provincia de <b>{{ifempty($ae['contacto_nombre_provincia'])}}</b>
+      Tel <b>{{ifempty($ae['contacto_telefono'])}}</b> Vínculo con el Solicitante <b>{{ifempty($ae['contacto_vinculo'])}}</b>.</p>
       @endif
       <p>Que el ingreso al presente Programa de Autoexclusión, es voluntario, resultando exclusivamente responsable de su cumplimiento,
       para lo cual eximo expresamente de toda responsabilidad al respecto a la C.A.S.-Lotería de Santa Fe y los Concesionarios.
@@ -151,7 +151,7 @@
       Capitulo IV, Art. 13, inc. f, deberes del personal.</p>
     </div>
 
-    @if($es_primer_ae)
+    @if($ae['es_primer_ae'])
     <div class="primerEncabezado" style="font-size:13px">
       <p><b>(*) Si decide realizar el trámite de finalización de la autoexclusión, deberá concurrir con D.N.I., a Calle 1° junta 2724 8vo. Piso
       de la Ciudad de Santa Fe o en San Martin 1221 de la Ciudad de Rosario, los días hábiles de 7:30 a 13:30 hs. En el caso de Melincué
@@ -199,18 +199,18 @@
       <table style="table-layout: fixed;width: 50%;">
         <tr>
           <td style="width: 25%;">Diaria</td>
-          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 1 ? 'checked' : ''}}/></td>
+          <td style="width: 25%;"><input type="checkbox" {{$ae['encuesta_frecuencia_asistencia'] == 'Diaria' ? 'checked' : ''}}/></td>
         </tr>
         <tr>
           <td style="width: 25%;">Semanal</td>
-          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 2 ? 'checked' : ''}}/></td>
-          <td style="width: 15%;border: 1px solid black;">{{$encuesta['id_frecuencia_asistencia'] == 2 ? $encuesta['veces'] : ''}}</td>
+          <td style="width: 25%;"><input type="checkbox" {{$ae['encuesta_frecuencia_asistencia'] == 'Semanal' ? 'checked' : ''}}/></td>
+          <td style="width: 15%;border: 1px solid black;">{{$ae['encuesta_frecuencia_asistencia'] == 'Semanal' ? $ae['encuesta_veces'] : ''}}</td>
           <td style="width: 35%;">Veces</td>
         </tr>
         <tr>
           <td style="width: 25%;">Mensual</td>
-          <td style="width: 25%;"><input type="checkbox" {{$encuesta['id_frecuencia_asistencia'] == 3 ? 'checked' : ''}}/></td>
-          <td style="width: 15%;border: 1px solid black;">{{$encuesta['id_frecuencia_asistencia'] == 3 ? $encuesta['veces'] : ''}}</td>
+          <td style="width: 25%;"><input type="checkbox" {{$ae['encuesta_frecuencia_asistencia'] == 'Mensual' ? 'checked' : ''}}/></td>
+          <td style="width: 15%;border: 1px solid black;">{{$ae['encuesta_frecuencia_asistencia'] == 'Mensual' ? $ae['encuesta_veces'] : ''}}</td>
           <td style="width: 35%;">Veces</td>
         </tr>
       </table>
@@ -218,7 +218,7 @@
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
           <td style="width: 50%;font-size: 14px;">2. ¿Cuánto tiempo permanece jugando?</td>
-          <td style="width: 7.5%;border: 1px solid black;">{{$encuesta['tiempo_jugado'] != -1? $encuesta['tiempo_jugado'] : ''}}</td>
+          <td style="width: 7.5%;border: 1px solid black;">{{$ae['encuesta_tiempo_jugado']? $ae['encuesta_tiempo_jugado'] : ''}}</td>
           <td style="width: 42.5%;">Horas.</td>
         </tr>
       </table>
@@ -227,9 +227,9 @@
         <tr>
           <td style="font-size: 14px;width: 40%;">3. ¿Cómo asiste al casino?</td>
           <td style="font-size: 14px;width: 10%;">Solo</td>
-          <td style="width: 10%;"><input type="checkbox" {{$encuesta['como_asiste'] === 0 ? 'checked' : ''}}/></td>
+          <td style="width: 10%;"><input type="checkbox" {{$ae['encuesta_como_asiste'] === 'SOLO' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 20%;">Acompañado</td>
-          <td style="width: 10%;"><input type="checkbox" {{$encuesta['como_asiste'] === 1 ? 'checked' : ''}}/></td>
+          <td style="width: 10%;"><input type="checkbox" {{$ae['encuesta_como_asiste'] === 'ACOMPAÑADO'? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°4 -->
@@ -245,7 +245,7 @@
           <td style="width: 30%;text-align: center;">Mesas de Paño</td>
           <td style="width: 5%;"></td>
           <td style="width: 20%;text-align: center;">Bingo</td>
-          <td style="width: 20%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 3 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Bingo' ? 'checked' : ''}}/></td>
         </tr>
         <tr>
           <td style="width: 30%;text-align: center;font-size: 11px;">|</td>
@@ -254,23 +254,23 @@
         </tr>
         <tr>
           <td style="width: 30%;">Máquinas Tradicionales</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 1 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Tragamonedas' ? 'checked' : ''}}/></td>
           <td style="width: 30%;">Carteados</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 2 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Juegos Carteados' ? 'checked' : ''}}/></td>
           <td style="width: 20%;text-align: center;">Otro</td>
-          <td style="width: 20%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 7 ? 'checked' : ''}}/></td>
+          <td style="width: 20%;"><input type="checkbox" {{$ae['encuesta_juego_preferido']== 'Otro' ? 'checked' : ''}}/></td>
         </tr>
         <tr>
           <td style="width: 30%;">Ruleta Electrónica</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 5 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Ruletas Electronicas' ? 'checked' : ''}}/></td>
           <td style="width: 30%;">Ruleta Americana</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 4 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Ruletas' ? 'checked' : ''}}/></td>
         </tr>
         <tr>
           <td style="width: 30%;"></td>
           <td style="width: 5%;"></td>
           <td style="width: 30%;">Dados</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['id_juego_preferido'] == 6 ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_juego_preferido'] == 'Dados' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°5 -->
@@ -278,9 +278,9 @@
         <tr>
           <td style="font-size: 14px;width: 50%;">5. ¿Es socio del club de jugadores?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['club_jugadores'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_club_jugadores'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['club_jugadores'] == 'NO' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_club_jugadores'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°6 -->
@@ -288,9 +288,9 @@
         <tr>
           <td style="font-size: 14px;width: 50%;">6. ¿Conoce las plataformas de Juego Online?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['conoce_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_conoce_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['conoce_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_conoce_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°7 -->
@@ -298,9 +298,9 @@
         <tr>
           <td style="font-size: 14px;width: 50%;">7. Si conoce las plataformas de Juego Online, ¿las utiliza?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['utiliza_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_utiliza_plataformas'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['utiliza_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_utiliza_plataformas'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°8 -->
@@ -308,9 +308,9 @@
         <tr>
           <td style="font-size: 14px;width: 50%;">8. ¿Considera que su decisión de autoexcluirse responde a problemas de autocontrol sobre el juego?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['autocontrol_juego'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_autocontrol_juego'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['autocontrol_juego'] == 'NO' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_autocontrol_juego'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <!-- PREGUNTA N°9 -->
@@ -318,9 +318,9 @@
         <tr>
           <td style="font-size: 14px;width: 50%;">9. ¿Desea recibir información sobre Juego Responsable?</td>
           <td style="font-size: 14px;width: 5%;">Sí</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['recibir_informacion'] == 'SI' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_recibir_informacion'] == 'SI' ? 'checked' : ''}}/></td>
           <td style="font-size: 14px;width: 5%;">No</td>
-          <td style="width: 5%;"><input type="checkbox" {{$encuesta['recibir_informacion'] == 'NO' ? 'checked' : ''}}/></td>
+          <td style="width: 5%;"><input type="checkbox" {{$ae['encuesta_recibir_informacion'] == 'NO' ? 'checked' : ''}}/></td>
         </tr>
       </table>
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;margin-left: 5%;">
@@ -330,10 +330,10 @@
       </table>
       <table style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
-          @if($encuesta['medio_recibir_informacion'] != -1 && is_numeric($encuesta['medio_recibir_informacion']))
+          @if(@$ae['encuesta_medio_recibir_informacion'] && is_numeric($ae['encuesta_medio_recibir_informacion']))
           <td style="width: 5%;"><input type="checkbox" checked/></td>
           <td style="width: 15%;">Al Teléfono</td>
-          <td style="width: 80%;">{{$encuesta['medio_recibir_informacion']}}</td>
+          <td style="width: 80%;">{{$ae['encuesta_medio_recibir_informacion']}}</td>
           @else
           <td style="width: 5%;"><input type="checkbox"/></td>
           <td style="width: 15%;">Al Teléfono</td>
@@ -341,10 +341,10 @@
           @endif
         </tr>        
         <tr>
-          @if($encuesta['medio_recibir_informacion'] != -1 && strpos($encuesta['medio_recibir_informacion'], '@'))
+          @if(@$ae['encuesta_medio_recibir_informacion'] && strpos($ae['encuesta_medio_recibir_informacion'], '@'))
           <td style="width: 5%;"><input type="checkbox" checked/></td>
           <td style="width: 25%;">Al Correo electrónico</td>
-          <td style="width: 70%;">{{$encuesta['medio_recibir_informacion']}}</td>
+          <td style="width: 70%;">{{$ae['encuesta_medio_recibir_informacion']}}</td>
           @else
           <td style="width: 5%;"><input type="checkbox"/></td>
           <td style="width: 25%;">Al Correo electrónico</td>
@@ -352,10 +352,10 @@
           @endif
         </tr>
         <tr>
-          @if($encuesta['medio_recibir_informacion'] != -1 && !is_numeric($encuesta['medio_recibir_informacion']) && strpos($encuesta['medio_recibir_informacion'], '@') == false && count($encuesta['medio_recibir_informacion']) > 0)
+          @if(@$ae['encuesta_medio_recibir_informacion'] && !is_numeric($ae['encuesta_medio_recibir_informacion']) && strpos($ae['encuesta_medio_recibir_informacion'], '@') == false && count($ae['encuesta_medio_recibir_informacion']) > 0)
           <td style="width: 5%;"><input type="checkbox" checked/></td>
           <td style="width: 15%;">Otro medio</td>
-          <td style="width: 80%;">{{$encuesta['medio_recibir_informacion']}}</td>
+          <td style="width: 80%;">{{$ae['encuesta_medio_recibir_informacion']}}</td>
           @else
           <td style="width: 5%;"><input type="checkbox"/></td>
           <td style="width: 15%;">Otro medio</td>
@@ -363,11 +363,11 @@
           @endif
         </tr>
       </table>
-      @if(count($encuesta['observacion']) > 0)
+      @if(count($ae['encuesta_observacion']) > 0)
       <table  style="table-layout: fixed;width: 100%;margin-top: 1%;">
         <tr>
           <td style="width: 15%;">Observación:</td>
-          <td style="width: 85%;">{{$encuesta['observacion']}}</td>
+          <td style="width: 85%;">{{$ae['encuesta_observacion']}}</td>
         </tr>
       </table>
       @endif

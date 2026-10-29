@@ -1577,32 +1577,41 @@ AUTOEXCLUSIÓN
 *************/
 Route::group(['prefix' => 'autoexclusion', 'middleware' => 'tiene_permiso:ver_seccion_ae_alta'], function () {
   Route::get('/', 'Autoexclusion\AutoexclusionController@index');
-  Route::get('/obtenerConHistorial','Autoexclusion\AutoexclusionController@obtenerConHistorial');
-  Route::get('/importacion','Autoexclusion\AutoexclusionController@importacion');
-  Route::get('/calcularFechas','Autoexclusion\AutoexclusionController@calcularFechas');
-  Route::post('/guardar','Autoexclusion\AutoexclusionController@guardar');
+  Route::get('obtenerConHistorial','Autoexclusion\AutoexclusionController@obtenerConHistorial');
+  Route::get('importacion','Autoexclusion\AutoexclusionController@importacion');
+
+  Route::group(['middleware' => 'tiene_algun_permiso:agregar_ae,modificar_ae,aym_ae_plataformas'],function(){
+    Route::get('calcularFechas','Autoexclusion\AutoexclusionController@calcularFechas');
+    Route::post('guardar','Autoexclusion\AutoexclusionController@guardar');
+    Route::get('generarSolicitudAutoexclusion', 'Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
+    Route::get('generarConstanciaReingreso', 'Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
+    Route::get('generarSolicitudFinalizacionAutoexclusion', 'Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
+    Route::get('cambiarEstado', 'Autoexclusion\AutoexclusionController@cambiarEstado');
+  });
+
+  Route::group(['middleware' => 'tiene_permiso:borrar_ae'],function (){
+    Route::get('eliminar', 'Autoexclusion\AutoexclusionController@eliminar');
+    Route::get('deseliminar', 'Autoexclusion\AutoexclusionController@deseliminar');
+  });
 
   Route::get('/noticias', 'Autoexclusion\AutoexclusionController@indexNoticias');
-  Route::delete('eliminarAE/{id_autoexcluido}', 'Autoexclusion\AutoexclusionController@eliminarAE')->middleware('tiene_permiso:borrar_ae');
   Route::post('agregarAE', 'Autoexclusion\AutoexclusionController@agregarAE');
   Route::post('subirArchivo', 'Autoexclusion\AutoexclusionController@subirArchivo');
   Route::post('importarMasivo', 'Autoexclusion\AutoexclusionController@importarMasivo');
-  Route::get('cambiarEstadoAE/{id}/{id_estado}', 'Autoexclusion\AutoexclusionController@cambiarEstadoAE');
   Route::get('existeAutoexcluido/{dni}', 'Autoexclusion\AutoexclusionController@existeAutoexcluido');
   Route::get('generarEstado/{fecha_ae}/{dni}', 'Autoexclusion\AutoexclusionController@generarEstado');
   Route::post('buscarAutoexcluidos', 'Autoexclusion\AutoexclusionController@buscarAutoexcluidos');
   Route::get('buscarAutoexcluido/{id}', 'Autoexclusion\AutoexclusionController@buscarAutoexcluido');
   Route::get('mostrarArchivo/{id_importacion}/{tipo_archivo}', 'Autoexclusion\AutoexclusionController@mostrarArchivo');
   Route::get('mostrarFormulario/{id_formulario}', 'Autoexclusion\AutoexclusionController@mostrarFormulario');
-  Route::get('generarSolicitudAutoexclusion/{id}', 'Autoexclusion\AutoexclusionController@generarSolicitudAutoexclusion');
-  Route::get('generarSolicitudFinalizacionAutoexclusion/{id}', 'Autoexclusion\AutoexclusionController@generarSolicitudFinalizacionAutoexclusion');
-  Route::get('generarConstanciaReingreso/{id}', 'Autoexclusion\AutoexclusionController@generarConstanciaReingreso');
+  
+  
   Route::get('BDCSV', 'Autoexclusion\AutoexclusionController@BDCSV')->middleware('tiene_permiso:descargar_aes');
   Route::get('logsDescarga','Autoexclusion\AutoexclusionController@logsDescarga')->middleware('tiene_permiso:logs_descargar_aes');
   //Solo superusuarios: el gate vive dentro del método, no hay permiso asociado.
   //Tiene que ir ANTES del {dni?} de abajo, que es catch-all y se lo comería.
   Route::get('logsCarga','Autoexclusion\AutoexclusionController@logsCarga');
-  Route::get('{dni?}', 'Autoexclusion\AutoexclusionController@index');
+  Route::get('/{dni?}', 'Autoexclusion\AutoexclusionController@index');
   Route::post('destruirPapel', 'Autoexclusion\AutoexclusionController@destruirPapel');
 });
 

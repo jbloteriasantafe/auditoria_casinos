@@ -30,15 +30,21 @@
     </p>
 
     <div class="primerEncabezado"  style="margin-left: 74%;border: 1px solid black;text-align: center;">
-      Fecha: {{$datos['fecha_revocacion_ae']}}
+      Fecha: {{$ae['estado_fecha_finalizacion']}}
     </div>
 
     <p class="primerEncabezado" style="font-size:13px">Por medio de la presente,</p>
     <p class="primerEncabezado" style="font-size:13px"><b>Expreso:</b></p>
     <p class="primerEncabezado" style="font-size:13px">
-      Que yo, <b>{{$ae['nombres']}} {{$ae['apellido']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
+      Que yo, <b>{{$ae['nombres']}} {{$ae['apellidos']}}</b>, DNI <b>{{$ae['nro_dni']}}</b>,
+      <?php $dom = !empty($ae['domicilio']) || !empty($ae['nro_domicilio']); ?>
+      @if($dom)
       con domicilio real en calle <b>{{$ae['domicilio']}}</b> Nº <b>{{$ae['nro_domicilio']}}</b>,
-      Teléfono <b>{{$ae['telefono']}}</b> de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
+      @endif
+      @if(!empty($ae['telefono']))
+      Teléfono <b>{{$ae['telefono']}}</b>
+      @endif
+       de la localidad de <b>{{$ae['nombre_localidad']}}</b> Provincia de
       <b>{{$ae['nombre_provincia']}}</b>; manifiesto expresamente mi voluntad de finalizar con la autoexclusión,
       solicitando que se me PERMITA INGRESAR a las Salas de Juego de los Casinos y Bingos
       y a las plataformas de juego on-line autorizadas en la Provincia de Santa Fe,
@@ -47,7 +53,7 @@
     </p>
 
     <p class="primerEncabezado" style="margin-left: 25%;width: 50%;margin-right: 25%;text-align: center;font-size:16px;">
-      <b>Fecha: {{$datos['fecha_vencimiento']}}</b>
+      <b>Fecha: {{$ae['estado_fecha_finalizable_vencimiento']}}</b>
     </p>
 
     <p class="primerEncabezado" style="font-size:13px">

@@ -187,32 +187,42 @@ class AutoexclusionController extends Controller
   }
 
   public function calcularFechas(Request $request){
-    $id_autoexclusion = $request->id_autoexclusion ?? null;
-    $nro_dni = $request->nro_dni ?? null;
-    $fecha_autoexclusion = $request->estado_fecha ?? null;
-    $años_adicionales = $request->estado_años_adicionales ?? null;
+    $front_to_back = [
+      'id_autoexclusion' => 'id_autoexclusion',
+      'nro_dni' => 'nro_dni',
+      'estado_fecha' => 'fecha_autoexclusion',
+      'estado_alcance_interjurisdiccional' => 'alcance_interjurisdiccional',
+      'estado_años_adicionales' => 'años_adicionales',
+      'estado_fecha_finalizacion' => 'fecha_finalizacion'
+    ];
 
-    $json = compact('id_autoexclusion','nro_dni','fecha_autoexclusion','años_adicionales');
+    $json = [];
+    foreach($front_to_back as $front => $back){
+      $json[$back] = $request[$front] ?? null;
+    }
 
     $r = $this->CMS->post('appCalcularFechas',compact('json'));
-
     if ($r->successful()) {
       $json_response = $r->json();
+      foreach($front_to_back as $front => $back){
+        if(isset($json_response[$back])){
+          $json_response[$front] = $json_response[$back];
+          unset($json_response[$back]);
+        }
+      }
       if(isset($json_response['es_primer_ae'])){
-        $json_response['es_primer_ae'] = $json_response['es_primer_ae']+0;
+        $json_response['es_primer_ae'] = $json_response['es_primer_ae']? 1 : 0;
       }
       return $json_response;
     } else {
         Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
         $json_response = $r->json();
         if($json_response){
-          if(isset($json_response['fecha_autoexclusion'])){
-            $json_response['estado_fecha'] = $json_response['fecha_autoexclusion'];
-            unset($json_response['fecha_autoexclusion']);
-          }
-          if(isset($json_response['años_adicionales'])){
-            $json_response['estado_años_adicionales'] = $json_response['años_adicionales'];
-            unset($json_response['años_adicionales']);
+          foreach($front_to_back as $front => $back){
+            if(isset($json_response[$back])){
+              $json_response[$front] = $json_response[$back];
+              unset($json_response[$back]);
+            }
           }
           return response()->json($json_response,422);  
         }
@@ -905,20 +915,35 @@ class AutoexclusionController extends Controller
     ]);
   }
 
-  public function generarSolicitudAutoexclusion($id){
-    $autoexcluido = AE\Autoexcluido::find($id);
-    $estado = $autoexcluido->estado;
-    $datos_estado = array(
-      'fecha_ae' => date("d/m/Y",strtotime($estado->fecha_ae)),
-      'fecha_vencimiento' => date("d/m/Y", strtotime($estado->fecha_vencimiento)),
-      'fecha_cierre' => date("d/m/Y", strtotime($estado->fecha_cierre_ae)),
-      'años_adicionales' => $estado->años_adicionales,
-      'alcance_interjurisdiccional' => $estado->alcance_interjurisdiccional,
-      'resolucion' => $estado->resolucion
-    );
-    if($datos_estado['resolucion'] == env('NOMBRE_NUEVA_RESOLUCION','494')){
-      $contacto = $autoexcluido->contacto;
-      $view = View::make('Autoexclusion.planillaFormularioAE494', compact('autoexcluido', 'datos_estado', 'contacto'));
+  public function generarSolicitudAutoexclusion(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['autoexclusion' => ['Autoexclusión no especificada']],422);
+    }
+
+    $json = compact('id_autoexclusion');
+    $r = $this->CMS->post('appObtenerConHistorial',compact('json'));
+    if (!$r->successful()) {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+
+    $json = $r->json();
+
+    if($json === null){
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['autoexclusion' => ['API ERROR no se obtuvo una autoexclusión en formato correcto']],422);
+    }
+
+    $ae = $json['autoexcluido'] ?? [];
+    $resolucion = @$ae['estado_resolucion'] ?? null;
+
+    if($resolucion === env('NOMBRE_NUEVA_RESOLUCION','494')){
+      $view = View::make('Autoexclusion.planillaFormularioAE494', compact('ae'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml($view->render());
@@ -928,27 +953,8 @@ class AutoexclusionController extends Controller
       $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
       return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
     }
-    else if($datos_estado['resolucion'] == '983'){
-      $encuesta = $autoexcluido->encuesta;
-      $es_primer_ae = $autoexcluido->es_primer_ae;
-      if (is_null($encuesta)) {
-        $encuesta = array(
-          'id_frecuencia_asistencia' => -1,
-          'veces' => -1,
-          'tiempo_jugado' => -1,
-          'como_asiste' => -1,
-          'id_juego_preferido' => -1,
-          'club_jugadores' => -1,
-          'conoce_plataformas' => -1,
-          'utiliza_plataformas' => -1,
-          'autocontrol_juego' => -1,
-          'recibir_informacion' => -1,
-          'medio_recibir_informacion' => -1,
-          'observacion' => ''
-        );
-      }
-      $contacto = $autoexcluido->contacto;
-      $view = View::make('Autoexclusion.planillaFormularioAE1', compact('autoexcluido', 'encuesta', 'datos_estado', 'contacto','es_primer_ae'));
+    else if($resolucion === '983'){
+      $view = View::make('Autoexclusion.planillaFormularioAE1', compact('ae'));
       $dompdf = new Dompdf();
       $dompdf->set_paper('A4', 'portrait');
       $dompdf->loadHtml($view->render());
@@ -959,24 +965,42 @@ class AutoexclusionController extends Controller
 
       return $dompdf->stream("solicitud_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
     }
+    else if($resolucion === null){
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['autoexclusion' => ['API ERROR autoexclusión sin resolución']],422);
+    }
+    else{
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['autoexclusion' => ['Resolución '.$resolucion.' sin implementar']],422);
+    }
   }
 
-  public function generarConstanciaReingreso($id){
-    $ae = AE\Autoexcluido::find($id);
-    $datos = array(
-      'apellido_y_nombre' => $ae->apellido . ', ' . $ae->nombres,
-      'dni' => $ae->nro_dni,
-      'domicilio_completo' => $ae->domicilio . ' ' . $ae->nro_domicilio,
-      'localidad' => ucwords(strtolower($ae->nombre_localidad)),
-      'fecha_cierre_definitivo' => date('d/m/Y', strtotime($ae->estado->fecha_cierre_ae))
-    );
-
-    //Si revoco, le permitimos entrar a partir de la fecha del vencimiento
-    if(!is_null($ae->estado->fecha_revocacion_ae)){
-      $datos['fecha_cierre_definitivo'] = date('d/m/Y',strtotime($ae->estado->fecha_vencimiento));
+  public function generarConstanciaReingreso(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['autoexclusion' => ['Autoexclusión no especificada']],422);
     }
 
-    $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('datos'));
+    $json = compact('id_autoexclusion');
+    $r = $this->CMS->post('appObtenerConHistorial',compact('json'));
+    if (!$r->successful()) {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+
+    $json = $r->json();
+
+    if($json === null){
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['autoexclusion' => ['API ERROR no se obtuvo una autoexclusión en formato correcto']],422);
+    }
+
+    $ae = $json['autoexcluido'] ?? [];
+    $view = View::make('Autoexclusion.planillaConstanciaReingreso', compact('ae'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -988,15 +1012,32 @@ class AutoexclusionController extends Controller
     return $dompdf->stream("constancia_reingreso_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
   }
 
-  public function generarSolicitudFinalizacionAutoexclusion($id){
-    $ae = AE\Autoexcluido::find($id);
-    $estado = $ae->estado;
-    $datos = array(
-      'fecha_revocacion_ae' => date("d/m/Y", strtotime($estado->fecha_revocacion_ae)),
-      'fecha_vencimiento'   => date("d/m/Y", strtotime($estado->fecha_vencimiento))
-    );
+  public function generarSolicitudFinalizacionAutoexclusion(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['autoexclusion' => ['Autoexclusión no especificada']],422);
+    }
 
-    $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('ae', 'datos'));
+    $json = compact('id_autoexclusion');
+    $r = $this->CMS->post('appObtenerConHistorial',compact('json'));
+    if (!$r->successful()) {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['error' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+
+    $json = $r->json();
+
+    if($json === null){
+      Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+      return response()->json(['autoexclusion' => ['API ERROR no se obtuvo una autoexclusión en formato correcto']],422);
+    }
+    $ae = $json['autoexcluido'] ?? [];
+
+    $view = View::make('Autoexclusion.planillaFormularioFinalizacionAE', compact('ae'));
     $dompdf = new Dompdf();
     $dompdf->set_paper('A4', 'portrait');
     $dompdf->loadHtml($view->render());
@@ -1006,6 +1047,38 @@ class AutoexclusionController extends Controller
     $dompdf->getCanvas()->page_text(525, 820, "Página {PAGE_NUM} de {PAGE_COUNT}", $font, 8, array(0,0,0));
 
     return $dompdf->stream("solicitud_finalizacion_autoexclusion_" . date('Y-m-d') . ".pdf", Array('Attachment'=>0));
+  }
+
+  public function cambiarEstado(Request $request){
+    $id_autoexclusion = $request->id_autoexclusion ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['message' => 'Autoexclusión no especificada'],422);
+    }
+    $de = $request->de ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['message' => 'Estado original no especificado'],422);
+    }
+    $a = $request->a ?? null;
+    if($id_autoexclusion === null){
+      return response()->json(['message' => 'Estado futuro no especificado'],422);
+    }
+
+    $json = compact('id_autoexclusion','de','a');
+
+    $r = $this->CMS->post('appCambiarEstado',compact('json'));
+    if (!$r->successful()) {
+        Log::warning('API error', ['status' => $r->status, 'body' => $r->body]);
+        $json_response = $r->json();
+        if($json_response){
+          return response()->json($json_response,422);  
+        }
+        return response()->json(['message' => "API ERROR ".$r->status,'body' => $r->body],422);
+    }
+
+    $json = $r->json();
+    return $json !== null? 
+      response()->json($json) 
+    : response($r->body)->header('Content-Type','text/plain');
   }
 
   public function cambiarEstadoAE($id,$id_estado){//Usado en APIAEController
